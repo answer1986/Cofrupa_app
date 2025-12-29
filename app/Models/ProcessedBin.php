@@ -30,6 +30,7 @@ class ProcessedBin extends Model
         'lote',
         'unidades_per_pound_avg',
         'humidity',
+        'damage_percentage',
         'current_bin_number',
         'original_weight',
         'gross_weight',
@@ -48,6 +49,11 @@ class ProcessedBin extends Model
         'processed_at',
         'processing_history',
         'notes',
+        'stock_status',
+        'available_kg',
+        'assigned_kg',
+        'used_kg',
+        'location',
     ];
 
     protected $casts = [
@@ -62,6 +68,7 @@ class ProcessedBin extends Model
         'reception_weight_per_truck' => 'decimal:2',
         'unidades_per_pound_avg' => 'decimal:2',
         'humidity' => 'decimal:2',
+        'damage_percentage' => 'decimal:2',
         'qr_generated_at' => 'datetime',
         'qr_updated_at' => 'datetime',
         'received_at' => 'datetime',
@@ -103,6 +110,13 @@ class ProcessedBin extends Model
     public function supplier()
     {
         return $this->belongsTo(Supplier::class);
+    }
+
+    public function orders()
+    {
+        return $this->belongsToMany(ProcessOrder::class, 'order_tarjas', 'processed_bin_id', 'process_order_id')
+            ->withPivot('quantity_kg')
+            ->withTimestamps();
     }
 
     // Get calibre display name

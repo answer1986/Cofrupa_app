@@ -19,6 +19,10 @@ class Supplier extends Model
         'business_type',
         'total_debt',
         'total_paid',
+        'tax_id',
+        'bank_name',
+        'bank_account_type',
+        'bank_account_number',
     ];
 
     protected $casts = [

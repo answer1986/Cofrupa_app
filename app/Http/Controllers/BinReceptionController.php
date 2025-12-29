@@ -59,6 +59,7 @@ class BinReceptionController extends Controller
             'existing_bins.*.trash_level' => 'required_with:existing_bins|in:alto,mediano,bajo,limpio',
             'existing_bins.*.unidades_per_pound_avg' => 'nullable|numeric|min:0',
             'existing_bins.*.humidity' => 'nullable|numeric|min:0|max:100',
+            'existing_bins.*.damage_percentage' => 'nullable|numeric|min:0|max:100',
             'lote' => 'nullable|string|max:100',
             'bins' => 'nullable|array',
             'bins.*.bin_number' => 'nullable|string|max:255',
@@ -76,6 +77,7 @@ class BinReceptionController extends Controller
             'bins.*.trash_level' => 'required_with:bins|in:alto,mediano,bajo,limpio',
             'bins.*.unidades_per_pound_avg' => 'nullable|numeric|min:0',
             'bins.*.humidity' => 'nullable|numeric|min:0|max:100',
+            'bins.*.damage_percentage' => 'nullable|numeric|min:0|max:100',
             'notes' => 'nullable|string|max:500',
         ]);
 
@@ -180,6 +182,7 @@ class BinReceptionController extends Controller
                     'lote' => $request->lote,
                     'unidades_per_pound_avg' => $groupData['unidades_per_pound_avg'] ?? null,
                     'humidity' => $groupData['humidity'] ?? null,
+                    'damage_percentage' => $groupData['damage_percentage'] ?? null,
                     'status' => 'received',
                     'received_at' => now(),
                     'notes' => $request->notes,
@@ -256,6 +259,7 @@ class BinReceptionController extends Controller
                     'lote' => $request->lote,
                     'unidades_per_pound_avg' => $binData['unidades_per_pound_avg'] ?? null,
                     'humidity' => $binData['humidity'] ?? null,
+                    'damage_percentage' => $binData['damage_percentage'] ?? null,
                     'status' => 'received',
                     'received_at' => now(),
                     'notes' => $request->notes,

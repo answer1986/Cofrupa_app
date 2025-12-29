@@ -137,9 +137,18 @@
                 <div class="tarja-field">
                     <div class="tarja-label"><i class="fas fa-star"></i> Daño / Suciedad</div>
                     <div class="tarja-value">
-                        <span class="tarja-stars">{{ str_repeat('★', $processedBin->trash_level_stars) }}{{ str_repeat('☆', 4 - $processedBin->trash_level_stars) }}</span>
-                        <br>
-                        <small>({{ ucfirst($processedBin->trash_level_display) }})</small>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="tarja-stars">{{ str_repeat('★', $processedBin->trash_level_stars) }}{{ str_repeat('☆', 4 - $processedBin->trash_level_stars) }}</span>
+                                <br>
+                                <small>({{ ucfirst($processedBin->trash_level_display) }})</small>
+                            </div>
+                            <div class="text-end">
+                                <strong class="h5 mb-0">{{ $processedBin->damage_percentage ? number_format($processedBin->damage_percentage, 2) . '%' : 'N/A' }}</strong>
+                                <br>
+                                <small class="text-muted">Daño</small>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 

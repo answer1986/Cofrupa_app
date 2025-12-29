@@ -470,6 +470,16 @@ function addWeighingGroup() {
                         <small class="text-muted">Porcentaje de humedad</small>
                     </div>
                 </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">Porcentaje de Daño (%)</label>
+                        <input type="number" step="0.01" class="form-control" 
+                               name="bins[${binCount}][damage_percentage]" 
+                               placeholder="Ej: 5.5"
+                               min="0" max="100">
+                        <small class="text-muted">Porcentaje de daño de la fruta</small>
+                    </div>
+                </div>
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label class="form-label">
@@ -736,6 +746,18 @@ function createWeighingGroupFromSelected() {
                                placeholder="Ej: 12.5"
                                min="0" max="100">
                         <small class="text-muted">Porcentaje de humedad</small>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">Porcentaje de Daño (%)</label>
+                        <input type="number" step="0.01" class="form-control" 
+                               name="existing_bins[${existingBinGroupsCount}][damage_percentage]" 
+                               placeholder="Ej: 5.5"
+                               min="0" max="100">
+                        <small class="text-muted">Porcentaje de daño de la fruta</small>
                     </div>
                 </div>
             </div>
