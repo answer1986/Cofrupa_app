@@ -246,6 +246,11 @@
                                     </a>
                                 </li>
                                 <li>
+                                    <a href="{{ route('discards.index') }}" class="{{ request()->is('discards*') ? 'active' : '' }}">
+                                        <i class="fas fa-recycle"></i> Gestión de Descartes
+                                    </a>
+                                </li>
+                                <li>
                                     <a href="{{ route('processing.accounting.index') }}" class="{{ request()->is('processing/accounting*') ? 'active' : '' }}">
                                         <i class="fas fa-calculator"></i> Módulo de Contabilidad
                                     </a>

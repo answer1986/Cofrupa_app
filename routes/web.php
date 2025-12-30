@@ -167,6 +167,17 @@ Route::middleware(['auth', '2fa'])->group(function () {
         // Módulo de Contabilidad
         Route::resource('accounting', App\Http\Controllers\AccountingRecordController::class);
     });
+
+    // Discards Management
+    Route::prefix('discards')->group(function () {
+        Route::get('/', [App\Http\Controllers\DiscardController::class, 'index'])->name('discards.index');
+        Route::get('/create', [App\Http\Controllers\DiscardController::class, 'create'])->name('discards.create');
+        Route::post('/', [App\Http\Controllers\DiscardController::class, 'store'])->name('discards.store');
+        Route::get('/{discard}', [App\Http\Controllers\DiscardController::class, 'show'])->name('discards.show');
+        Route::post('/{discard}/recover', [App\Http\Controllers\DiscardController::class, 'recover'])->name('discards.recover');
+        Route::post('/{discard}/dispose', [App\Http\Controllers\DiscardController::class, 'dispose'])->name('discards.dispose');
+        Route::post('/bulk-recover', [App\Http\Controllers\DiscardController::class, 'bulkRecover'])->name('discards.bulk-recover');
+    });
 });
 
 Auth::routes();
