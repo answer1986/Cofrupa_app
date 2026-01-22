@@ -19,11 +19,40 @@
                 <h5 class="mb-0"><i class="fas fa-shopping-cart"></i> Información de la Compra</h5>
             </div>
             <div class="card-body">
-                <form action="{{ route('purchases.store') }}" method="POST">
+                <form action="{{ route('purchases.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
 
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-12 mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-building"></i> Comprador *
+                            </label>
+                            <div class="row">
+                                <div class="col-auto">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" id="buyer_cofrupa" name="buyer" value="Cofrupa" {{ old('buyer', 'Cofrupa') == 'Cofrupa' ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="buyer_cofrupa">
+                                            Cofrupa
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" id="buyer_lg" name="buyer" value="LG" {{ old('buyer') == 'LG' ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="buyer_lg">
+                                            LG
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            @error('buyer')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-6 col-md-12 mb-3">
                             <label for="supplier_id" class="form-label">
                                 <i class="fas fa-truck"></i> Proveedor *
                             </label>
@@ -41,13 +70,13 @@
                             @enderror
                         </div>
 
-                        <div class="col-md-6 mb-3">
+                        <div class="col-lg-6 col-md-12 mb-3">
                             <label for="purchase_order" class="form-label">
-                                <i class="fas fa-file-invoice"></i> Orden de Compra
+                                <i class="fas fa-file-invoice"></i> Orden de Compra o Contrato
                             </label>
                             <input type="text" class="form-control @error('purchase_order') is-invalid @enderror"
                                    id="purchase_order" name="purchase_order" value="{{ old('purchase_order') }}"
-                                   placeholder="Ej: OC-001, COMP-2024-001">
+                                   placeholder="Ej: OC-001, COMP-2024-001, Contrato XYZ">
                             @error('purchase_order')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -55,40 +84,30 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">
-                                <i class="fas fa-boxes"></i> Bins Disponibles *
+                        <div class="col-lg-6 col-md-12 mb-3">
+                            <label for="purchase_type" class="form-label">
+                                <i class="fas fa-shopping-cart"></i> Tipo de Compra *
                             </label>
-                            <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
-                                @foreach($bins as $bin)
-                                <div class="form-check">
-                                    <input class="form-check-input bin-checkbox" type="checkbox"
-                                           id="bin_{{ $bin->id }}" name="bin_ids[]" value="{{ $bin->id }}"
-                                           {{ in_array($bin->id, old('bin_ids', [])) ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="bin_{{ $bin->id }}">
-                                        <strong>{{ $bin->bin_number }}</strong> -
-                                        {{ $bin->type_display }}
-                                        (Cap: {{ number_format($bin->weight_capacity, 2) }}kg)
-                                        @if($bin->current_weight > 0)
-                                            <span class="text-warning">
-                                                <i class="fas fa-exclamation-triangle"></i>
-                                                Contiene {{ number_format($bin->current_weight, 2) }}kg
-                                            </span>
-                                        @endif
-                                    </label>
-                                </div>
-                                @endforeach
-                            </div>
-                            <div class="form-text">
-                                Seleccione uno o más bins disponibles para esta compra.
-                                <span id="selected-count" class="text-primary">0 bins seleccionados</span>
-                            </div>
-                            @error('bin_ids')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            <select class="form-select @error('purchase_type') is-invalid @enderror"
+                                    id="purchase_type" name="purchase_type" required>
+                                <option value="">Seleccione tipo de compra</option>
+                                <option value="fruta" {{ old('purchase_type', 'fruta') == 'fruta' ? 'selected' : '' }}>Fruta</option>
+                                <option value="pure_fruta" {{ old('purchase_type') == 'pure_fruta' ? 'selected' : '' }}>Puré de Fruta</option>
+                                <option value="descarte" {{ old('purchase_type') == 'descarte' ? 'selected' : '' }}>Descarte</option>
+                            </select>
+                            @error('purchase_type')
+                                <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
-                        <div class="col-md-6 mb-3">
+                        <div class="col-lg-6 col-md-12 mb-3">
+                            <div class="alert alert-info border-0 bg-light">
+                                <i class="fas fa-boxes text-primary me-2"></i>
+                                <strong>Bins internos disponibles:</strong> {{ $bins->count() }}
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6 col-md-12 mb-3">
                             <label for="purchase_date" class="form-label">
                                 <i class="fas fa-calendar"></i> Fecha de Compra *
                             </label>
@@ -101,7 +120,33 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-md-4 mb-3">
+                        <div class="col-lg-6 col-md-12 mb-3">
+                            <label for="supplier_bins_count" class="form-label">
+                                <i class="fas fa-boxes"></i> Cantidad de Bins Propios del Vendedor
+                            </label>
+                            <input type="number" class="form-control @error('supplier_bins_count') is-invalid @enderror"
+                                   id="supplier_bins_count" name="supplier_bins_count" value="{{ old('supplier_bins_count') }}" min="0">
+                            @error('supplier_bins_count')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <div class="form-text">Ingrese la cantidad de bins que aporta el vendedor (ej: 7)</div>
+                        </div>
+
+                        <div class="col-lg-6 col-md-12 mb-3">
+                            <label for="supplier_bins_photo" class="form-label">
+                                <i class="fas fa-camera"></i> Foto de los Bins del vendedor
+                            </label>
+                            <input type="file" class="form-control @error('supplier_bins_photo') is-invalid @enderror"
+                                   id="supplier_bins_photo" name="supplier_bins_photo" accept="image/*">
+                            @error('supplier_bins_photo')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <div class="form-text">Suba una foto que identifique el tipo de bins del vendedor</div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-4 col-md-6 col-12 mb-3">
                             <label for="weight_purchased" class="form-label">
                                 <i class="fas fa-weight"></i> Peso Comprado (kg) *
                             </label>
@@ -112,7 +157,7 @@
                             @enderror
                         </div>
 
-                        <div class="col-md-4 mb-3">
+                        <div class="col-lg-4 col-md-6 col-12 mb-3">
                             <label for="calibre" class="form-label">
                                 <i class="fas fa-tag"></i> Calibre *
                             </label>
@@ -132,7 +177,7 @@
                             @enderror
                         </div>
 
-                        <div class="col-md-4 mb-3">
+                        <div class="col-lg-4 col-md-6 col-12 mb-3">
                             <label for="units_per_pound" class="form-label">
                                 <i class="fas fa-hashtag"></i> Unidades x Libra *
                             </label>
@@ -145,9 +190,20 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-12 mb-3">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="price_in_usd" name="price_in_usd" value="1" {{ old('price_in_usd') ? 'checked' : '' }}>
+                                <label class="form-check-label fw-bold" for="price_in_usd">
+                                    <i class="fas fa-dollar-sign text-success"></i> Precios en USD
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-6 col-md-12 mb-3">
                             <label for="unit_price" class="form-label">
-                                <i class="fas fa-dollar-sign"></i> Precio Unitario ($)
+                                <i class="fas fa-dollar-sign"></i> Precio Unitario (<span id="currency-label">CLP</span>)
                             </label>
                             <input type="number" step="0.01" class="form-control @error('unit_price') is-invalid @enderror"
                                    id="unit_price" name="unit_price" value="{{ old('unit_price') }}">
@@ -156,9 +212,9 @@
                             @enderror
                         </div>
 
-                        <div class="col-md-6 mb-3">
+                        <div class="col-lg-6 col-md-12 mb-3">
                             <label for="amount_paid" class="form-label">
-                                <i class="fas fa-money-bill-wave"></i> Monto Pagado ($)
+                                <i class="fas fa-money-bill-wave"></i> Monto Pagado (<span id="currency-label-paid">CLP</span>)
                             </label>
                             <input type="number" step="0.01" class="form-control @error('amount_paid') is-invalid @enderror"
                                    id="amount_paid" name="amount_paid" value="{{ old('amount_paid') }}">
@@ -169,7 +225,7 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-lg-6 col-md-12 mb-3">
                             <label for="payment_due_date" class="form-label">
                                 <i class="fas fa-calendar-times"></i> Fecha Límite de Pago
                             </label>
@@ -181,9 +237,9 @@
                             @enderror
                         </div>
 
-                        <div class="col-md-6 mb-3">
+                        <div class="col-lg-6 col-md-12 mb-3">
                             <label for="total_amount" class="form-label">
-                                <i class="fas fa-calculator"></i> Total Calculado ($)
+                                <i class="fas fa-calculator"></i> Total Calculado (<span id="currency-label-total">CLP</span>)
                             </label>
                             <input type="number" step="0.01" class="form-control" id="total_amount" readonly>
                             <div class="form-text">Total calculado automáticamente</div>
@@ -217,21 +273,6 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Update selected bins counter
-    function updateSelectedCount() {
-        const checkboxes = document.querySelectorAll('.bin-checkbox:checked');
-        const count = checkboxes.length;
-        document.getElementById('selected-count').textContent = count + ' bins seleccionados';
-
-        // Update validation
-        const binIdsField = document.querySelector('input[name="bin_ids[]"]');
-        if (count === 0) {
-            document.getElementById('selected-count').className = 'text-danger';
-        } else {
-            document.getElementById('selected-count').className = 'text-success';
-        }
-    }
-
     // Auto-calculate total when weight and unit price change
     function calculateTotal() {
         const weight = parseFloat(document.getElementById('weight_purchased').value) || 0;
@@ -241,17 +282,24 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('total_amount').value = total.toFixed(2);
     }
 
-    // Add event listeners
-    document.querySelectorAll('.bin-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', updateSelectedCount);
-    });
+    // Update currency labels
+    function updateCurrencyLabels() {
+        const isUsd = document.getElementById('price_in_usd').checked;
+        const currency = isUsd ? 'USD' : 'CLP';
 
+        document.getElementById('currency-label').textContent = currency;
+        document.getElementById('currency-label-paid').textContent = currency;
+        document.getElementById('currency-label-total').textContent = currency;
+    }
+
+    // Add event listeners
     document.getElementById('weight_purchased').addEventListener('input', calculateTotal);
     document.getElementById('unit_price').addEventListener('input', calculateTotal);
+    document.getElementById('price_in_usd').addEventListener('change', updateCurrencyLabels);
 
     // Initialize
-    updateSelectedCount();
     calculateTotal();
+    updateCurrencyLabels();
 });
 </script>
 @endsection

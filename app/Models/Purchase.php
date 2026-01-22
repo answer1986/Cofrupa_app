@@ -25,6 +25,11 @@ class Purchase extends Model
         'payment_date',
         'payment_due_date',
         'notes',
+        'supplier_bins_count',
+        'supplier_bins_photo',
+        'currency',
+        'purchase_type',
+        'buyer',
     ];
 
     protected $casts = [

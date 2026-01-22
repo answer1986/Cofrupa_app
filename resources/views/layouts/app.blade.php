@@ -137,14 +137,120 @@
             min-height: calc(100vh - 80px);
             padding: 30px;
         }
+        /* Mobile Menu Toggle */
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1100;
+            background: #722f37;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .mobile-menu-toggle i {
+            font-size: 20px;
+        }
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        
         @media (max-width: 768px) {
+            .mobile-menu-toggle {
+                display: block;
+            }
             .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                position: fixed;
+                width: 280px;
+                z-index: 1001;
+            }
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            .sidebar-overlay.show {
+                display: block;
             }
             .main-content {
                 margin-left: 0;
+            }
+            .top-navbar {
+                padding: 15px 60px 15px 15px;
+            }
+            .content-wrapper {
+                padding: 15px;
+            }
+            /* Hacer tablas scrolleables */
+            .table-responsive {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            /* Ajustar cards */
+            .card {
+                margin-bottom: 15px;
+            }
+            /* Ajustar columnas en móvil */
+            .col-md-6, .col-md-4, .col-md-3 {
+                margin-bottom: 15px;
+            }
+            /* Ocultar texto largo en tablas */
+            td small {
+                display: block;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                max-width: 150px;
+            }
+            /* Botones más grandes para touch */
+            .btn {
+                padding: 10px 15px;
+                min-height: 44px;
+            }
+            .btn-group .btn {
+                padding: 8px 12px;
+            }
+            /* Form controls más grandes */
+            .form-control, .form-select {
+                min-height: 44px;
+                font-size: 16px; /* Evita zoom en iOS */
+            }
+            /* User info en navbar */
+            .user-info span {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .sidebar {
+                width: 85%;
+            }
+            h1, h2 {
+                font-size: 1.5rem;
+            }
+            h3 {
+                font-size: 1.25rem;
+            }
+            /* Hacer estadísticas apiladas */
+            .col-md-3 {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            /* Botones full width en formularios */
+            .card-body .btn {
+                width: 100%;
+                margin-bottom: 10px;
             }
         }
     </style>
@@ -152,8 +258,16 @@
 <body>
     <div id="app">
         @auth
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-menu-toggle" id="mobileMenuToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        
         <!-- Sidebar -->
-        <div class="sidebar">
+        <div class="sidebar" id="sidebar">
             <div class="sidebar-logo">
                 <img src="{{ asset('image/LOGO-sinfonfopng.png') }}" alt="Cofrupa Logo">
             </div>
@@ -451,6 +565,36 @@
                     }
                 });
             });
+            
+            // Mobile Menu Toggle
+            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            
+            if (mobileMenuToggle && sidebar && sidebarOverlay) {
+                // Abrir menú
+                mobileMenuToggle.addEventListener('click', function() {
+                    sidebar.classList.add('show');
+                    sidebarOverlay.classList.add('show');
+                });
+                
+                // Cerrar menú con overlay
+                sidebarOverlay.addEventListener('click', function() {
+                    sidebar.classList.remove('show');
+                    sidebarOverlay.classList.remove('show');
+                });
+                
+                // Cerrar menú al hacer clic en un link
+                const sidebarLinks = sidebar.querySelectorAll('a');
+                sidebarLinks.forEach(function(link) {
+                    link.addEventListener('click', function() {
+                        if (window.innerWidth <= 768) {
+                            sidebar.classList.remove('show');
+                            sidebarOverlay.classList.remove('show');
+                        }
+                    });
+                });
+            }
         });
     </script>
 </body>

@@ -32,7 +32,7 @@ class PurchaseController extends Controller
     public function create()
     {
         $suppliers = Supplier::orderBy('name')->get();
-        $bins = Bin::where('status', 'available')->orderBy('bin_number')->get();
+        $bins = Bin::where('status', 'available')->where('ownership_type', 'internal')->orderBy('bin_number')->get();
 
         return view('purchases.create', compact('suppliers', 'bins'));
     }
@@ -47,9 +47,9 @@ class PurchaseController extends Controller
     {
         $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
+            'buyer' => 'required|in:LG,Cofrupa',
             'purchase_order' => 'nullable|string|max:50',
-            'bin_ids' => 'required|array|min:1',
-            'bin_ids.*' => 'exists:bins,id',
+            'purchase_type' => 'required|in:fruta,pure_fruta,descarte',
             'purchase_date' => 'required|date',
             'weight_purchased' => 'required|numeric|min:0',
             'calibre' => [
@@ -64,6 +64,9 @@ class PurchaseController extends Controller
             'amount_paid' => 'nullable|numeric|min:0',
             'payment_due_date' => 'nullable|date|after:purchase_date',
             'notes' => 'nullable|string|max:500',
+            'supplier_bins_count' => 'nullable|integer|min:0',
+            'supplier_bins_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'price_in_usd' => 'nullable|boolean',
         ]);
 
         // Calculate total amount and owed amount
@@ -80,9 +83,17 @@ class PurchaseController extends Controller
             }
         }
 
+        // Handle photo upload
+        $photoPath = null;
+        if ($request->hasFile('supplier_bins_photo')) {
+            $photoPath = $request->file('supplier_bins_photo')->store('supplier_bins_photos', 'public');
+        }
+
         $purchase = Purchase::create([
             'supplier_id' => $request->supplier_id,
+            'buyer' => $request->buyer,
             'purchase_order' => $request->purchase_order,
+            'purchase_type' => $request->purchase_type,
             'purchase_date' => $request->purchase_date,
             'weight_purchased' => $request->weight_purchased,
             'calibre' => $request->calibre,
@@ -94,21 +105,12 @@ class PurchaseController extends Controller
             'payment_status' => $paymentStatus,
             'payment_due_date' => $request->payment_due_date,
             'notes' => $request->notes,
+            'supplier_bins_count' => $request->supplier_bins_count,
+            'supplier_bins_photo' => $photoPath,
+            'currency' => $request->price_in_usd ? 'USD' : 'CLP',
         ]);
 
-        // Attach bins to purchase using pivot table and update their status
-        $bins = Bin::whereIn('id', $request->bin_ids)->get();
-        $weightPerBin = $request->weight_purchased / count($bins);
-
-        foreach ($bins as $bin) {
-            // Attach bin to purchase in pivot table
-            $purchase->bins()->attach($bin->id);
-
-            // Update bin status (weight is calculated dynamically from purchases)
-            $bin->supplier_id = $request->supplier_id;
-            $bin->status = 'in_use';
-            $bin->save();
-        }
+        // No bins are assigned automatically; only supplier bins are recorded
 
         // Update supplier debt
         $supplier = Supplier::find($request->supplier_id);
