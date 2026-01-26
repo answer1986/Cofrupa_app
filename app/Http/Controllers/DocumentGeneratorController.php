@@ -57,6 +57,36 @@ class DocumentGeneratorController extends Controller
     }
 
     /**
+     * Mostrar formulario para crear nuevo Certificado de Calidad
+     */
+    public function createQualityCertificate()
+    {
+        $contracts = Contract::with('client')
+            ->whereIn('status', ['active', 'completed'])
+            ->latest()
+            ->get();
+        
+        // Datos por defecto del certificado
+        $certificate = [
+            'exporter' => 'COFRUPA / Registration CSE 153105',
+            'production_plant' => 'Agrícola Siemel / Registration Nr. CCHL1301211201016',
+            'container_nr' => '',
+            'bl_nr' => '',
+            'invoice_nr' => '',
+            'product' => "Chilean D'Agen Prunes Natural condition",
+            'size' => '120/144 LOT COF 81',
+            'production_date' => now()->format('Y-m-d'),
+            'expiration_date' => now()->addYear()->format('Y-m-d'),
+            'size_allowance' => '120/144',
+            'size_result' => '129',
+            'moisture_result' => '18',
+            'defects_result' => '4.4',
+        ];
+        
+        return view('documents.quality_certificate_create', compact('contracts', 'certificate'));
+    }
+
+    /**
      * Mostrar formulario para editar/crear Certificado de Calidad
      */
     public function editQualityCertificate($contractId)
@@ -267,6 +297,35 @@ class DocumentGeneratorController extends Controller
             ->get();
         
         return view('documents.quality_certificate_eu_list', compact('contracts'));
+    }
+
+    /**
+     * Mostrar formulario para crear nuevo Certificado de Calidad EU
+     */
+    public function createQualityCertificateEU()
+    {
+        $contracts = Contract::with('client')
+            ->whereIn('status', ['active', 'completed'])
+            ->latest()
+            ->get();
+        
+        // Datos por defecto del certificado EU
+        $certificate = [
+            'emission_date' => now()->format('Y-m-d'),
+            'client_name' => '',
+            'product' => 'PITTED PRUNES',
+            'size' => 'EX 70/80',
+            'quantity' => '',
+            'contract_number' => '',
+            'invoice_nr' => '',
+            'vessel' => '',
+            'bl_nr' => '',
+            'fcl' => '',
+            'origin' => 'VALPARAISO, CHILE',
+            'destination' => '',
+        ];
+        
+        return view('documents.quality_certificate_eu_create', compact('contracts', 'certificate'));
     }
 
     /**
@@ -553,6 +612,62 @@ class DocumentGeneratorController extends Controller
     }
 
     /**
+     * Mostrar formulario para crear nuevo Instructivo de Embarque
+     */
+    public function createShippingInstructions()
+    {
+        $contracts = Contract::with('client')
+            ->whereIn('status', ['active', 'completed'])
+            ->latest()
+            ->get();
+        
+        $shipping = [
+            'agent_name' => 'AGENCIA CARLO ROSSI SOFFIA Y CIA LTDA',
+            'ref_contract' => 'REF: CONTRACT',
+            'csnee' => '',
+            'contract_number' => '',
+            'numbers_container' => '1 X 20\' DRY ST',
+            'booking' => '',
+            'carrier' => 'MSC',
+            'ship' => '',
+            'loading_port' => 'VALPARAISO, CHILE',
+            'destination_port' => '',
+            'destination_final' => '',
+            'clausula_venta' => 'CFR',
+            'flete' => 'PREPAID',
+            'deposito' => '',
+            'modalidad_venta' => '',
+            'forma_pago' => '',
+            'precio_venta' => '',
+            'documents' => '',
+            'hs_code' => '',
+            'valor_fob' => '',
+            'etd' => '',
+            'cut_off' => '',
+            'matriz' => '',
+            'stacking' => '',
+            'terminal_entrega' => '',
+            'puerto_ingreso' => '',
+            'horario_stacking' => '',
+            'container_type' => '',
+            'net_weight' => '',
+            'detail' => '',
+            'unit_price' => '',
+            'total_boxes' => '',
+            'total_net_weight' => '',
+            'total_pallet' => '',
+            'total_gross_weight' => '',
+            'net_boxes' => '',
+            'gross_bags' => '',
+            'shipper_info' => 'COFRUPA EXPORT SPA',
+            'consignee_info' => '',
+            'notify_info' => '',
+        ];
+        
+        return view('documents.shipping_instructions_create', compact('contracts', 'shipping'));
+    }
+
+    /**
      * Mostrar formulario para editar/crear Instructivo de Embarque
      */
     public function editShippingInstructions($contractId)
@@ -710,6 +825,46 @@ class DocumentGeneratorController extends Controller
             ->get();
         
         return view('documents.transport_instructions_list', compact('contracts'));
+    }
+
+    /**
+     * Mostrar formulario para crear nuevo Instructivo de Transporte
+     */
+    public function createTransportInstructions()
+    {
+        $contracts = Contract::with('client')
+            ->whereIn('status', ['active', 'completed'])
+            ->latest()
+            ->get();
+        
+        $transport = [
+            'emission_date' => now()->format('Y-m-d'),
+            'transport_company' => 'Cotrans Ltda.',
+            'contact_info' => 'cotrans.ingrid@gmail.com',
+            'client_name' => 'Cofrupa',
+            'client_reference' => '',
+            'booking_number' => '',
+            'shipping_company' => 'MSC',
+            'vessel_name' => '',
+            'container_type_quantity' => '1 X 20\' DRY ST',
+            'product_quantity' => '',
+            'net_weight_per_unit' => '',
+            'gross_weight_per_unit' => '',
+            'empty_pickup_location' => 'Medlog - Valparaíso',
+            'empty_pickup_date' => '',
+            'loading_address' => 'Camino Lo Mackenna Parcela 7A, Buin, Chile',
+            'loading_date' => '',
+            'loading_contact' => 'Alvaro Riquelme / +569 84254550',
+            'stacking_terminal' => 'TPS',
+            'stacking_address' => 'Terminal Pacífico Sur - Valparaíso',
+            'stacking_date' => '',
+            'cut_off' => '',
+            'sail_date' => '',
+            'destination' => '',
+            'observations' => '',
+        ];
+        
+        return view('documents.transport_instructions_create', compact('contracts', 'transport'));
     }
 
     /**
@@ -925,6 +1080,19 @@ class DocumentGeneratorController extends Controller
             ->get();
         
         return view('documents.dispatch_guides_list', compact('contracts'));
+    }
+
+    /**
+     * Mostrar formulario para crear nueva Guía de Despacho
+     */
+    public function createDispatchGuide()
+    {
+        $contracts = Contract::with('client')
+            ->whereIn('status', ['active', 'completed'])
+            ->latest()
+            ->get();
+        
+        return view('documents.dispatch_guide_create', compact('contracts'));
     }
 
     /**
