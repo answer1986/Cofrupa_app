@@ -44,12 +44,17 @@
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="shipping-lines-tab" data-bs-toggle="tab" data-bs-target="#shipping-lines" type="button" role="tab">
-                <i class="fas fa-ship"></i> Navieras
+                <i class="fas fa-ship"></i> Forwarders
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="logistics-companies-tab" data-bs-toggle="tab" data-bs-target="#logistics-companies" type="button" role="tab">
                 <i class="fas fa-truck"></i> Empresas Logísticas
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="customs-agencies-tab" data-bs-toggle="tab" data-bs-target="#customs-agencies" type="button" role="tab">
+                <i class="fas fa-building"></i> Agencias de Aduana
             </button>
         </li>
     </ul>
@@ -67,19 +72,20 @@
                         <table class="table table-striped table-hover">
                             <thead class="table-dark">
                                 <tr>
-                                    <th>Nombre</th>
-                                    <th>Tipo</th>
-                                    <th>Email</th>
-                                    <th>Teléfono</th>
-                                    <th>Conversaciones</th>
-                                    <th>Contratos</th>
-                                    <th>Acciones</th>
+                                    <th style="min-width: 150px;">Nombre</th>
+                                    <th style="min-width: 100px;">Tipo</th>
+                                    <th style="min-width: 180px;">Email</th>
+                                    <th style="min-width: 120px;">Teléfono</th>
+                                    <th style="min-width: 180px;">Agencia de Aduana</th>
+                                    <th style="min-width: 120px;">Conversaciones</th>
+                                    <th style="min-width: 100px;">Contratos</th>
+                                    <th style="min-width: 150px;">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($clients as $client)
                                     <tr>
-                                        <td>{{ $client->name }}</td>
+                                        <td><strong>{{ $client->name }}</strong></td>
                                         <td>
                                             <span class="badge bg-{{ $client->type === 'constant' ? 'success' : 'info' }}">
                                                 {{ $client->type_display }}
@@ -87,8 +93,15 @@
                                         </td>
                                         <td>{{ $client->email ?? 'N/A' }}</td>
                                         <td>{{ $client->phone ?? 'N/A' }}</td>
-                                        <td>{{ $client->conversations->count() }}</td>
-                                        <td>{{ $client->contracts->count() }}</td>
+                                        <td>
+                                            @if($client->customs_agency)
+                                                <span class="badge bg-info text-dark">{{ $client->customs_agency }}</span>
+                                            @else
+                                                <span class="text-muted">N/A</span>
+                                            @endif
+                                        </td>
+                                        <td class="text-center">{{ $client->conversations->count() }}</td>
+                                        <td class="text-center">{{ $client->contracts->count() }}</td>
                                         <td>
                                             <div class="btn-group" role="group">
                                                 <a href="{{ route('clients.show', $client->id) }}" class="btn btn-sm btn-outline-info" title="Ver">
@@ -109,7 +122,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="text-center">No hay clientes registrados</td>
+                                        <td colspan="8" class="text-center">No hay clientes registrados</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -247,7 +260,7 @@
             <div class="row mb-3">
                 <div class="col-12">
                     <a href="{{ route('shipping-lines.create') }}" class="btn btn-success">
-                        <i class="fas fa-plus"></i> Nueva Naviera
+                        <i class="fas fa-plus"></i> Nueva Naviera o Forwarder
                     </a>
                 </div>
             </div>
@@ -388,6 +401,77 @@
                         </table>
                     </div>
                     {{ $logisticsCompanies->links() }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Agencias de Aduana Tab -->
+        <div class="tab-pane fade" id="customs-agencies" role="tabpanel">
+            <div class="row mb-3">
+                <div class="col-12">
+                    <a href="{{ route('customs-agencies.create') }}" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Nueva Agencia de Aduana
+                    </a>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-list"></i> Lista de Agencias de Aduana</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Código</th>
+                                    <th>Dirección</th>
+                                    <th>Contactos</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($customsAgencies as $agency)
+                                    <tr>
+                                        <td><strong>{{ $agency->name }}</strong></td>
+                                        <td><span class="badge bg-info">{{ $agency->code ?? '-' }}</span></td>
+                                        <td>{{ $agency->address ?? 'N/A' }}</td>
+                                        <td>{{ $agency->contacts->count() }}</td>
+                                        <td>
+                                            @if($agency->is_active)
+                                                <span class="badge bg-success">Activa</span>
+                                            @else
+                                                <span class="badge bg-secondary">Inactiva</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{{ route('customs-agencies.show', $agency->id) }}" class="btn btn-sm btn-outline-info" title="Ver">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{{ route('customs-agencies.edit', $agency->id) }}" class="btn btn-sm btn-outline-warning" title="Editar">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <form action="{{ route('customs-agencies.destroy', $agency->id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Está seguro de eliminar esta agencia de aduana?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="6" class="text-center">No hay agencias de aduana registradas</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                    {{ $customsAgencies->links() }}
                 </div>
             </div>
         </div>

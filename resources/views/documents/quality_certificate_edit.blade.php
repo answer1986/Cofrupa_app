@@ -21,6 +21,8 @@
     <form action="{{ route('documents.quality-certificate.store', $contract->id) }}" method="POST">
         @csrf
         
+        @include('documents.partials.contract_fields')
+
         <div class="card mb-4">
             <div class="card-header bg-primary text-white">
                 <h5 class="mb-0">Información General</h5>

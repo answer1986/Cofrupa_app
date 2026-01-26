@@ -5,7 +5,7 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
-                <h2><i class="fas fa-calculator"></i> Módulo de Contabilidad</h2>
+                <h2><i class="fas fa-calculator"></i> Módulo de Finanzas</h2>
                 <a href="{{ route('processing.accounting.create') }}" class="btn btn-primary">
                     <i class="fas fa-plus"></i> Nuevo Registro
                 </a>
@@ -34,8 +34,8 @@
         </div>
     </div>
     <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card border-danger">
+        <div class="col-md-3 mb-3">
+            <div class="card border-danger h-100">
                 <div class="card-body">
                     <h6 class="card-title text-danger">💰 Compras a Proveedores</h6>
                     <h3 class="text-danger">{{ number_format($stats['total_compras'], 0, ',', '.') }}</h3>
@@ -45,10 +45,10 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-danger">
+        <div class="col-md-3 mb-3">
+            <div class="card border-danger h-100">
                 <div class="card-body">
-                    <h6 class="card-title text-danger">🏭 Costo de Proceso (Plantas)</h6>
+                    <h6 class="card-title text-danger">🏭 Costo de Proceso</h6>
                     <h3 class="text-danger">{{ number_format($stats['total_costo_proceso'], 0, ',', '.') }}</h3>
                     <small class="text-muted">
                         Pendiente: <strong>{{ number_format($stats['total_procesos_pendientes'], 0, ',', '.') }}</strong>
@@ -56,8 +56,8 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-danger">
+        <div class="col-md-3 mb-3">
+            <div class="card border-danger h-100">
                 <div class="card-body">
                     <h6 class="card-title text-danger">👔 Comisiones de Brokers</h6>
                     <h3 class="text-danger">{{ number_format($stats['total_comisiones_broker'], 0, ',', '.') }}</h3>
@@ -65,12 +65,15 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-danger">
+        <div class="col-md-3 mb-3">
+            <div class="card border-warning h-100">
                 <div class="card-body">
-                    <h6 class="card-title text-danger">🚢 Costos de Logística</h6>
-                    <h3 class="text-danger">{{ number_format($stats['total_costos_logistica'], 0, ',', '.') }}</h3>
-                    <small class="text-muted">Transporte + Naviera</small>
+                    <h6 class="card-title text-warning">🚛 Costos de Transporte</h6>
+                    <h3 class="text-warning">{{ number_format($stats['total_costos_logistica'] + $stats['total_costos_camion'], 0, ',', '.') }}</h3>
+                    <small class="text-muted">
+                        Naviera: <strong>{{ number_format($stats['total_costos_logistica'], 0, ',', '.') }}</strong><br>
+                        Camión: <strong>{{ number_format($stats['total_costos_camion'], 0, ',', '.') }}</strong>
+                    </small>
                 </div>
             </div>
         </div>
@@ -131,7 +134,8 @@
                     - [Compras ({{ number_format($stats['total_compras'], 0, ',', '.') }}) 
                     + Proceso ({{ number_format($stats['total_costo_proceso'], 0, ',', '.') }}) 
                     + Brokers ({{ number_format($stats['total_comisiones_broker'], 0, ',', '.') }}) 
-                    + Logística ({{ number_format($stats['total_costos_logistica'], 0, ',', '.') }})]
+                    + Logística ({{ number_format($stats['total_costos_logistica'], 0, ',', '.') }}) 
+                    + Camión ({{ number_format($stats['total_costos_camion'], 0, ',', '.') }})]
                     = <strong>{{ number_format($stats['margen_bruto'], 0, ',', '.') }}</strong>
                 </p>
             </div>

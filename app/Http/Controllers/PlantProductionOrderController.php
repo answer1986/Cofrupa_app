@@ -14,7 +14,7 @@ class PlantProductionOrderController extends Controller
     {
         $query = PlantProductionOrder::with(['contract', 'plant']);
 
-        // Filtro por planta
+        // Filtro por planta (importante para histórico con múltiples plantas)
         if ($request->filled('plant_id')) {
             $query->where('plant_id', $request->plant_id);
         }
@@ -29,11 +29,17 @@ class PlantProductionOrderController extends Controller
             $query->where('has_delay', $request->has_delay == '1');
         }
 
-        $orders = $query->latest('completion_date')->paginate(20);
+        // Ordenar por fecha de término (más recientes primero) o fecha de creación
+        $orders = $query->latest('completion_date')->latest('created_at')->paginate(20);
         
-        return view('processing.production_orders.index', compact('orders'));
+        // Obtener todas las plantas para el filtro
+        $plants = Plant::where('is_active', true)->get();
+        
+        return view('processing.production_orders.index', compact('orders', 'plants'));
     }
 
+    // COMENTADO: Funcionalidad de crear deshabilitada - ahora es solo histórico
+    /*
     public function create()
     {
         $plants = Plant::where('is_active', true)->get();
@@ -74,6 +80,7 @@ class PlantProductionOrderController extends Controller
         return redirect()->route('processing.production-orders.index')
             ->with('success', 'Orden de producción creada exitosamente');
     }
+    */
 
     public function show(PlantProductionOrder $productionOrder)
     {

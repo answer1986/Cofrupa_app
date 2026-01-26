@@ -72,6 +72,27 @@ class Contract extends Model
         'contract_clause',
         'total_amount',
         'unit_price_per_kg',
+        'seller_date',
+        'contract_ref',
+        'payment_per_container',
+        'humidity',
+        'total_defects',
+        'beneficiary',
+        'beneficiary_bank_account',
+        'beneficiary_account_number_swift',
+        'commercial_details',
+        'product_description_english',
+        'quality_specification_english',
+        'packing_english',
+        'seller_address_english',
+        'consignee_address_english',
+        'notify_address_english',
+        'payment_terms_english',
+        'required_documents_english',
+        'transportation_details_english',
+        'shipment_schedule_english',
+        'contract_clause_english',
+        'commercial_details_english',
     ];
 
     protected $casts = [
@@ -80,12 +101,14 @@ class Contract extends Model
         'broker_commission_percentage' => 'decimal:2',
         'contract_variations' => 'array',
         'contract_date' => 'date',
+        'seller_date' => 'date',
         'maturity_date' => 'date',
         'etd_date' => 'date',
         'eta_date' => 'date',
         'freight_amount' => 'decimal:2',
         'total_amount' => 'decimal:2',
         'unit_price_per_kg' => 'decimal:2',
+        'payment_per_container' => 'decimal:2',
     ];
 
     // Relationships

@@ -67,6 +67,15 @@
 
                     <dt class="col-sm-4">N° Solicitud:</dt>
                     <dd class="col-sm-8">{{ $shipment->transport_request_number ?? 'N/A' }}</dd>
+
+                    <dt class="col-sm-4">Costo del Camión:</dt>
+                    <dd class="col-sm-8">
+                        @if($shipment->truck_cost)
+                            ${{ number_format($shipment->truck_cost, 2, ',', '.') }}
+                        @else
+                            <span class="text-muted">No registrado</span>
+                        @endif
+                    </dd>
                 </dl>
             </div>
         </div>

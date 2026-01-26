@@ -5,10 +5,15 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
-                <h2><i class="fas fa-clipboard-list"></i> Programa de Producción</h2>
+                <div>
+                    <h2><i class="fas fa-history"></i> Histórico de Envíos a Producción</h2>
+                    <p class="text-muted mb-0">Registro histórico de todas las órdenes enviadas a plantas de procesamiento</p>
+                </div>
+                {{-- COMENTADO: Funcionalidad de crear deshabilitada
                 <a href="{{ route('processing.production-orders.create') }}" class="btn btn-primary">
                     <i class="fas fa-plus"></i> Nueva Orden de Producción
                 </a>
+                --}}
             </div>
         </div>
     </div>
@@ -20,46 +25,67 @@
         </div>
     @endif
 
+    @if(request()->hasAny(['plant_id', 'status', 'has_delay']))
+        <div class="alert alert-info alert-dismissible fade show">
+            <i class="fas fa-info-circle"></i> 
+            <strong>Filtros activos:</strong>
+            @if(request('plant_id'))
+                Planta: {{ $plants->find(request('plant_id'))->name ?? 'N/A' }} | 
+            @endif
+            @if(request('status'))
+                Estado: {{ ucfirst(request('status')) }} | 
+            @endif
+            @if(request('has_delay'))
+                Retraso: {{ request('has_delay') == '1' ? 'Sí' : 'No' }}
+            @endif
+            <a href="{{ route('processing.production-orders.index') }}" class="btn btn-sm btn-outline-light ms-2">
+                <i class="fas fa-times"></i> Limpiar filtros
+            </a>
+        </div>
+    @endif
+
     <!-- Filtros -->
     <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="fas fa-filter"></i> Filtros de Búsqueda</h5>
+        </div>
         <div class="card-body">
-            <form method="GET" action="{{ route('processing.production-orders.index') }}" class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label">Planta</label>
-                    <select name="plant_id" class="form-select">
-                        <option value="">Todas</option>
-                        @foreach(\App\Models\Plant::where('is_active', true)->get() as $plant)
+            <form method="GET" action="{{ route('processing.production-orders.index') }}" class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Planta de Procesamiento *</label>
+                    <select name="plant_id" class="form-control">
+                        <option value="">Todas las plantas</option>
+                        @foreach($plants as $plant)
                             <option value="{{ $plant->id }}" {{ request('plant_id') == $plant->id ? 'selected' : '' }}>
                                 {{ $plant->name }}
                             </option>
                         @endforeach
                     </select>
+                    <small class="text-muted">Filtro principal para ver envíos por planta</small>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3 mb-3">
                     <label class="form-label">Estado</label>
-                    <select name="status" class="form-select">
-                        <option value="">Todos</option>
+                    <select name="status" class="form-control">
+                        <option value="">Todos los estados</option>
                         <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pendiente</option>
                         <option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}>En Proceso</option>
                         <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completado</option>
                         <option value="delayed" {{ request('status') == 'delayed' ? 'selected' : '' }}>Retrasado</option>
+                        <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelado</option>
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3 mb-3">
                     <label class="form-label">Con Retraso</label>
-                    <select name="has_delay" class="form-select">
+                    <select name="has_delay" class="form-control">
                         <option value="">Todos</option>
                         <option value="1" {{ request('has_delay') == '1' ? 'selected' : '' }}>Sí</option>
                         <option value="0" {{ request('has_delay') == '0' ? 'selected' : '' }}>No</option>
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label">&nbsp;</label>
-                    <div>
-                        <button type="submit" class="btn btn-info w-100">
-                            <i class="fas fa-filter"></i> Filtrar
-                        </button>
-                    </div>
+                <div class="col-md-2 mb-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-info w-100">
+                        <i class="fas fa-search"></i> Filtrar
+                    </button>
                 </div>
             </form>
         </div>
@@ -152,7 +178,16 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="21" class="text-center">No hay órdenes de producción registradas</td>
+                                <td colspan="21" class="text-center py-5">
+                                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted mb-0">
+                                        @if(request('plant_id') || request('status') || request('has_delay'))
+                                            No se encontraron órdenes con los filtros aplicados
+                                        @else
+                                            No hay órdenes de producción registradas en el histórico
+                                        @endif
+                                    </p>
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>

@@ -77,20 +77,105 @@
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-8 mb-3">
-                        <label for="product_description" class="form-label">Descripción del Producto</label>
-                        <input type="text" class="form-control" id="product_description" name="product_description" value="{{ old('product_description') }}" placeholder="Ej: NATURAL CONDITION, CONCENTRADO">
+                    <div class="col-md-6 mb-3">
+                        <label for="raw_material" class="form-label">Materia Prima</label>
+                        <input type="text" class="form-control" id="raw_material" name="raw_material" value="{{ old('raw_material') }}" placeholder="Ej: 70/80 COFRUPA TEMP 2025">
                     </div>
-                    <div class="col-md-2 mb-3">
+                    <div class="col-md-6 mb-3">
+                        <label for="product" class="form-label">Producto</label>
+                        <input type="text" class="form-control" id="product" name="product" value="{{ old('product') }}" placeholder="Ej: TIERNIZADO">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="type" class="form-label">Tipo</label>
+                        <input type="text" class="form-control" id="type" name="type" value="{{ old('type') }}" placeholder="Ej: SIN CAROZO">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="caliber" class="form-label">Calibre</label>
+                        <input type="text" class="form-control" id="caliber" name="caliber" value="{{ old('caliber') }}" placeholder="Ej: EX 60/70">
+                    </div>
+                    <div class="col-md-4 mb-3">
                         <label for="quantity" class="form-label">Cantidad</label>
-                        <input type="number" step="0.01" class="form-control" id="quantity" name="quantity" value="{{ old('quantity') }}" min="0">
+                        <input type="number" step="0.01" class="form-control" id="quantity" name="quantity" value="{{ old('quantity') }}" min="0" placeholder="Ej: 21.500">
+                        <small class="text-muted">KILOS</small>
                     </div>
-                    <div class="col-md-2 mb-3">
-                        <label for="unit" class="form-label">Unidad</label>
-                        <select class="form-control" id="unit" name="unit">
-                            <option value="kg" {{ old('unit', 'kg') == 'kg' ? 'selected' : '' }}>kg</option>
-                            <option value="ton" {{ old('unit') == 'ton' ? 'selected' : '' }}>ton</option>
-                        </select>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="kilos_sent" class="form-label">Kilos Enviados</label>
+                        <input type="number" step="0.01" class="form-control" id="kilos_sent" name="kilos_sent" value="{{ old('kilos_sent') }}" min="0" placeholder="Ej: 21.500">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="kilos_produced" class="form-label">Kilos Producidos</label>
+                        <input type="number" step="0.01" class="form-control" id="kilos_produced" name="kilos_produced" value="{{ old('kilos_produced') }}" min="0" placeholder="Ej: 21.500">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="quality" class="form-label">Calidad</label>
+                        <input type="text" class="form-control" id="quality" name="quality" value="{{ old('quality') }}" placeholder="Ej: GRADO 1 USDA A CAT-1">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="labeling" class="form-label">Etiquetado</label>
+                        <input type="text" class="form-control" id="labeling" name="labeling" value="{{ old('labeling') }}" placeholder="Ej: ADJUNTA">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="packaging" class="form-label">Envases</label>
+                        <input type="text" class="form-control" id="packaging" name="packaging" value="{{ old('packaging') }}" placeholder="Ej: CAIAS 10 KLS COFRUPA">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="potassium_sorbate" class="form-label">Sorbato de potasio</label>
+                        <input type="text" class="form-control" id="potassium_sorbate" name="potassium_sorbate" value="{{ old('potassium_sorbate') }}" placeholder="Ej: 800 PPM MAX">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="humidity" class="form-label">Humedad</label>
+                        <input type="text" class="form-control" id="humidity" name="humidity" value="{{ old('humidity') }}" placeholder="Ej: 30% +-1 máximo">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="stone_percentage" class="form-label">% de Carozo</label>
+                        <input type="text" class="form-control" id="stone_percentage" name="stone_percentage" value="{{ old('stone_percentage') }}" placeholder="Ej: 0,5% Máx">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="oil" class="form-label">Aceite</label>
+                        <input type="text" class="form-control" id="oil" name="oil" value="{{ old('oil') }}" placeholder="Ej: SIN ACEITE">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="damage" class="form-label">Daños</label>
+                        <input type="text" class="form-control" id="damage" name="damage" value="{{ old('damage') }}" placeholder="Ej: 5,0 % MAXIMO">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="plant_print" class="form-label">Impresión Planta</label>
+                        <input type="text" class="form-control" id="plant_print" name="plant_print" value="{{ old('plant_print') }}" placeholder="Ej: ADJUNTA">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="destination" class="form-label">Destino</label>
+                        <input type="text" class="form-control" id="destination" name="destination" value="{{ old('destination') }}" placeholder="Ej: Turquia">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="loading_date" class="form-label">Fecha de carga</label>
+                        <input type="text" class="form-control" id="loading_date" name="loading_date" value="{{ old('loading_date') }}" placeholder="Ej: Semana 18/19">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="sag" class="form-label">SAG</label>
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" id="sag" name="sag" value="1" {{ old('sag') ? 'checked' : '' }}>
+                            <label class="form-check-label" for="sag">Sí</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label for="product_description" class="form-label">Descripción del Producto (adicional)</label>
+                        <input type="text" class="form-control" id="product_description" name="product_description" value="{{ old('product_description') }}" placeholder="Ej: NATURAL CONDITION, CONCENTRADO">
                     </div>
                 </div>
             </div>

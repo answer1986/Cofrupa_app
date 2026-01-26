@@ -41,4 +41,9 @@ class Broker extends Model
     {
         return $this->hasMany(BrokerPayment::class);
     }
+
+    public function contacts()
+    {
+        return $this->morphMany(EntityContact::class, 'entity')->orderBy('order');
+    }
 }

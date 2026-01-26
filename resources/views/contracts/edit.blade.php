@@ -9,6 +9,22 @@
                 <i class="fas fa-arrow-left"></i> Volver
             </a>
         </div>
+
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="alert-heading mb-2"><i class="fas fa-language"></i> Traducción Automática</h5>
+                    <p class="mb-0">Activa o desactiva la traducción automática de campos al inglés al guardar el contrato.</p>
+                </div>
+                <div class="form-check form-switch ms-3">
+                    <input class="form-check-input" type="checkbox" id="autoTranslateToggle" name="auto_translate" value="1" {{ old('auto_translate', false) ? 'checked' : '' }} style="transform: scale(1.5);">
+                    <label class="form-check-label" for="autoTranslateToggle">
+                        <strong id="translateStatus">Desactivado</strong>
+                    </label>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
     </div>
 </div>
 
@@ -713,6 +729,33 @@ document.addEventListener('DOMContentLoaded', function() {
     commissionInput.addEventListener('input', calculateTotals);
     
     calculateTotals();
+
+    // Toggle de traducción automática
+    const autoTranslateToggle = document.getElementById('autoTranslateToggle');
+    const translateStatus = document.getElementById('translateStatus');
+    
+    if (autoTranslateToggle) {
+        autoTranslateToggle.addEventListener('change', function() {
+            if (this.checked) {
+                translateStatus.textContent = 'Activado';
+                translateStatus.classList.remove('text-danger');
+                translateStatus.classList.add('text-success');
+            } else {
+                translateStatus.textContent = 'Desactivado';
+                translateStatus.classList.remove('text-success');
+                translateStatus.classList.add('text-danger');
+            }
+        });
+
+        // Inicializar estado visual
+        if (autoTranslateToggle.checked) {
+            translateStatus.classList.add('text-success');
+            translateStatus.textContent = 'Activado';
+        } else {
+            translateStatus.classList.add('text-danger');
+            translateStatus.textContent = 'Desactivado';
+        }
+    }
 });
 </script>
 

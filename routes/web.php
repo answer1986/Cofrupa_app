@@ -71,6 +71,7 @@ Route::middleware(['auth', '2fa'])->group(function () {
     Route::resource('clients', App\Http\Controllers\ClientController::class);
     Route::post('/clients/conversations/store', [App\Http\Controllers\ClientController::class, 'storeConversation'])->name('clients.conversations.store');
     Route::resource('brokers', App\Http\Controllers\BrokerController::class);
+    Route::resource('customs-agencies', App\Http\Controllers\CustomsAgencyController::class);
     
     // Contracts routes
     Route::resource('contracts', App\Http\Controllers\ContractController::class);
@@ -86,6 +87,7 @@ Route::middleware(['auth', '2fa'])->group(function () {
     // porque sino Laravel interpreta /documents/quality-certificate como /documents/{id}
     // Certificado de Calidad - China
     Route::get('/documents/quality-certificate', [App\Http\Controllers\DocumentGeneratorController::class, 'listQualityCertificates'])->name('documents.quality-certificate.list');
+    Route::get('/documents/quality-certificate/create', [App\Http\Controllers\DocumentGeneratorController::class, 'createQualityCertificate'])->name('documents.quality-certificate.create');
     Route::get('/documents/quality-certificate/{contract}/edit', [App\Http\Controllers\DocumentGeneratorController::class, 'editQualityCertificate'])->name('documents.quality-certificate.edit');
     Route::post('/documents/quality-certificate/{contract}/preview', [App\Http\Controllers\DocumentGeneratorController::class, 'previewQualityCertificate'])->name('documents.quality-certificate.preview');
     Route::post('/documents/quality-certificate/{contract}/send', [App\Http\Controllers\DocumentGeneratorController::class, 'sendQualityCertificate'])->name('documents.quality-certificate.send');
@@ -93,24 +95,28 @@ Route::middleware(['auth', '2fa'])->group(function () {
     
     // Certificado de Calidad - Unión Europea
     Route::get('/documents/quality-certificate-eu', [App\Http\Controllers\DocumentGeneratorController::class, 'listQualityCertificatesEU'])->name('documents.quality-certificate-eu.list');
+    Route::get('/documents/quality-certificate-eu/create', [App\Http\Controllers\DocumentGeneratorController::class, 'createQualityCertificateEU'])->name('documents.quality-certificate-eu.create');
     Route::get('/documents/quality-certificate-eu/{contract}/edit', [App\Http\Controllers\DocumentGeneratorController::class, 'editQualityCertificateEU'])->name('documents.quality-certificate-eu.edit');
     Route::post('/documents/quality-certificate-eu/{contract}/preview', [App\Http\Controllers\DocumentGeneratorController::class, 'previewQualityCertificateEU'])->name('documents.quality-certificate-eu.preview');
     Route::post('/documents/quality-certificate-eu/{contract}/send', [App\Http\Controllers\DocumentGeneratorController::class, 'sendQualityCertificateEU'])->name('documents.quality-certificate-eu.send');
     Route::post('/documents/quality-certificate-eu/{contract}', [App\Http\Controllers\DocumentGeneratorController::class, 'storeQualityCertificateEU'])->name('documents.quality-certificate-eu.store');
     
     Route::get('/documents/shipping-instructions', [App\Http\Controllers\DocumentGeneratorController::class, 'listShippingInstructions'])->name('documents.shipping-instructions.list');
+    Route::get('/documents/shipping-instructions/create', [App\Http\Controllers\DocumentGeneratorController::class, 'createShippingInstructions'])->name('documents.shipping-instructions.create');
     Route::get('/documents/shipping-instructions/{contract}/edit', [App\Http\Controllers\DocumentGeneratorController::class, 'editShippingInstructions'])->name('documents.shipping-instructions.edit');
     Route::post('/documents/shipping-instructions/{contract}/preview', [App\Http\Controllers\DocumentGeneratorController::class, 'previewShippingInstructions'])->name('documents.shipping-instructions.preview');
     Route::post('/documents/shipping-instructions/{contract}/send', [App\Http\Controllers\DocumentGeneratorController::class, 'sendShippingInstructions'])->name('documents.shipping-instructions.send');
     Route::post('/documents/shipping-instructions/{contract}', [App\Http\Controllers\DocumentGeneratorController::class, 'storeShippingInstructions'])->name('documents.shipping-instructions.store');
     
     Route::get('/documents/transport-instructions', [App\Http\Controllers\DocumentGeneratorController::class, 'listTransportInstructions'])->name('documents.transport-instructions.list');
+    Route::get('/documents/transport-instructions/create', [App\Http\Controllers\DocumentGeneratorController::class, 'createTransportInstructions'])->name('documents.transport-instructions.create');
     Route::get('/documents/transport-instructions/{contract}/edit', [App\Http\Controllers\DocumentGeneratorController::class, 'editTransportInstructions'])->name('documents.transport-instructions.edit');
     Route::post('/documents/transport-instructions/{contract}/preview', [App\Http\Controllers\DocumentGeneratorController::class, 'previewTransportInstructions'])->name('documents.transport-instructions.preview');
     Route::post('/documents/transport-instructions/{contract}/send', [App\Http\Controllers\DocumentGeneratorController::class, 'sendTransportInstructions'])->name('documents.transport-instructions.send');
     Route::post('/documents/transport-instructions/{contract}', [App\Http\Controllers\DocumentGeneratorController::class, 'storeTransportInstructions'])->name('documents.transport-instructions.store');
     
     Route::get('/documents/dispatch-guides', [App\Http\Controllers\DocumentGeneratorController::class, 'listDispatchGuides'])->name('documents.dispatch-guides.list');
+    Route::get('/documents/dispatch-guides/create', [App\Http\Controllers\DocumentGeneratorController::class, 'createDispatchGuide'])->name('documents.dispatch-guides.create');
     Route::get('/documents/dispatch-guides/{contract}/edit', [App\Http\Controllers\DocumentGeneratorController::class, 'editDispatchGuide'])->name('documents.dispatch-guides.edit');
     Route::post('/documents/dispatch-guides/{contract}', [App\Http\Controllers\DocumentGeneratorController::class, 'storeDispatchGuide'])->name('documents.dispatch-guides.store');
     
@@ -156,16 +162,32 @@ Route::middleware(['auth', '2fa'])->group(function () {
     
     // Módulo de Procesamiento
     Route::prefix('processing')->name('processing.')->group(function () {
+        // Mantenciones de Máquinas (ruta principal /processing/)
+        Route::get('/', [App\Http\Controllers\MachineMaintenanceController::class, 'index'])->name('maintenances.index');
+        Route::resource('maintenances', App\Http\Controllers\MachineMaintenanceController::class)->except(['index']);
+        
+        // Gestión de Máquinas Internas
+        Route::resource('machines', App\Http\Controllers\MachineController::class);
+        
         // Mantenedor de Plantas
         Route::resource('plants', App\Http\Controllers\PlantController::class);
         
-        // Programa de Producción (Seguimiento de Producción)
-        Route::resource('production-orders', App\Http\Controllers\PlantProductionOrderController::class);
+        // Programa de Producción (Histórico de Envíos a Producción)
+        // COMENTADO: Funcionalidad de crear deshabilitada - solo histórico
+        Route::get('/production-orders', [App\Http\Controllers\PlantProductionOrderController::class, 'index'])->name('production-orders.index');
+        Route::get('/production-orders/{productionOrder}', [App\Http\Controllers\PlantProductionOrderController::class, 'show'])->name('production-orders.show');
+        Route::get('/production-orders/{productionOrder}/edit', [App\Http\Controllers\PlantProductionOrderController::class, 'edit'])->name('production-orders.edit');
+        Route::put('/production-orders/{productionOrder}', [App\Http\Controllers\PlantProductionOrderController::class, 'update'])->name('production-orders.update');
+        Route::delete('/production-orders/{productionOrder}', [App\Http\Controllers\PlantProductionOrderController::class, 'destroy'])->name('production-orders.destroy');
+        // Route::get('/production-orders/create', [App\Http\Controllers\PlantProductionOrderController::class, 'create'])->name('production-orders.create'); // COMENTADO
+        // Route::post('/production-orders', [App\Http\Controllers\PlantProductionOrderController::class, 'store'])->name('production-orders.store'); // COMENTADO
         
         // Envío de Órdenes
         Route::resource('orders', App\Http\Controllers\ProcessOrderController::class);
         Route::post('/orders/{order}/update-progress', [App\Http\Controllers\ProcessOrderController::class, 'updateProgress'])->name('orders.update-progress');
         Route::post('/orders/{order}/send-alert', [App\Http\Controllers\ProcessOrderController::class, 'sendAlert'])->name('orders.send-alert');
+        Route::get('/orders/{order}/preview-pdf', [App\Http\Controllers\ProcessOrderController::class, 'previewPdf'])->name('orders.preview-pdf');
+        Route::post('/orders/{order}/send-to-plant', [App\Http\Controllers\ProcessOrderController::class, 'sendToPlant'])->name('orders.send-to-plant');
         
         // Facturas de Proceso
         Route::resource('invoices', App\Http\Controllers\ProcessInvoiceController::class);

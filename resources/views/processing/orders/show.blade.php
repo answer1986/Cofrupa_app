@@ -7,6 +7,14 @@
             <div class="d-flex justify-content-between align-items-center">
                 <h2><i class="fas fa-eye"></i> Orden de Proceso: {{ $order->order_number }}</h2>
                 <div>
+                    @if($order->plant)
+                        <a href="{{ route('processing.orders.preview-pdf', $order->id) }}" target="_blank" class="btn btn-info">
+                            <i class="fas fa-file-pdf"></i> Ver PDF
+                        </a>
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#sendOrderModal">
+                            <i class="fas fa-paper-plane"></i> Enviar a Planta
+                        </button>
+                    @endif
                     <a href="{{ route('processing.orders.edit', $order->id) }}" class="btn btn-warning">
                         <i class="fas fa-edit"></i> Editar
                     </a>
@@ -17,6 +25,20 @@
             </div>
         </div>
     </div>
+
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
 
     <div class="row">
         <div class="col-md-6 mb-4">
@@ -104,28 +126,126 @@
     </div>
 
     <div class="row">
-        <div class="col-md-6 mb-4">
+        <div class="col-md-12 mb-4">
             <div class="card">
                 <div class="card-header bg-info text-white">
                     <h5 class="mb-0">Detalles del Producto</h5>
                 </div>
                 <div class="card-body">
-                    <table class="table table-borderless">
-                        <tr>
-                            <th width="40%">Descripción:</th>
-                            <td>{{ $order->product_description ?? 'N/A' }}</td>
-                        </tr>
-                        <tr>
-                            <th>Cantidad:</th>
-                            <td>
-                                @if($order->quantity)
-                                    {{ number_format($order->quantity, 0, ',', '.') }} {{ $order->unit }}
-                                @else
-                                    N/A
-                                @endif
-                            </td>
-                        </tr>
-                    </table>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="40%">Materia Prima:</th>
+                                    <td>{{ $order->raw_material ?? 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Producto:</th>
+                                    <td>{{ $order->product ?? 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Tipo:</th>
+                                    <td>{{ $order->type ?? 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Calibre:</th>
+                                    <td>{{ $order->caliber ?? 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Cantidad:</th>
+                                    <td>
+                                        @if($order->quantity)
+                                            {{ number_format($order->quantity, 3, ',', '.') }} KILOS
+                                        @else
+                                            N/A
+                                        @endif
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Kilos Enviados:</th>
+                                    <td>
+                                        @if($order->kilos_sent)
+                                            {{ number_format($order->kilos_sent, 3, ',', '.') }} KILOS
+                                        @else
+                                            N/A
+                                        @endif
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Kilos Producidos:</th>
+                                    <td>
+                                        @if($order->kilos_produced)
+                                            {{ number_format($order->kilos_produced, 3, ',', '.') }} KILOS
+                                        @else
+                                            N/A
+                                        @endif
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Calidad:</th>
+                                    <td>{{ $order->quality ?? 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Etiquetado:</th>
+                                    <td>{{ $order->labeling ?? 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Envases:</th>
+                                    <td>{{ $order->packaging ?? 'N/A' }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="40%">Sorbato de potasio:</th>
+                                    <td>{{ $order->potassium_sorbate ?? 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Humedad:</th>
+                                    <td>{{ $order->humidity ?? 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>% de Carozo:</th>
+                                    <td>{{ $order->stone_percentage ?? 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Aceite:</th>
+                                    <td>{{ $order->oil ?? 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Daños:</th>
+                                    <td>{{ $order->damage ?? 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Impresión Planta:</th>
+                                    <td>{{ $order->plant_print ?? 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Destino:</th>
+                                    <td>{{ $order->destination ?? 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Fecha de carga:</th>
+                                    <td>{{ $order->loading_date ?? 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>SAG:</th>
+                                    <td>
+                                        @if($order->sag)
+                                            <span class="badge bg-success">Sí</span>
+                                        @else
+                                            <span class="badge bg-secondary">No</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Descripción (adicional):</th>
+                                    <td>{{ $order->product_description ?? 'N/A' }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -182,6 +302,99 @@
                 </div>
             </div>
         </div>
+    @endif
+
+    @if($order->plant)
+    <!-- Modal para enviar orden a planta -->
+    <div class="modal fade" id="sendOrderModal" tabindex="-1" aria-labelledby="sendOrderModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="sendOrderModalLabel">
+                        <i class="fas fa-paper-plane"></i> Enviar Orden a Planta
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ route('processing.orders.send-to-plant', $order->id) }}" method="POST">
+                    @csrf
+                    <div class="modal-body">
+                        @if(session('error'))
+                            <div class="alert alert-danger alert-dismissible fade show">
+                                {{ session('error') }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        @endif
+
+                        <div class="mb-3">
+                            <label for="contact_email" class="form-label">Seleccionar Contacto de la Planta</label>
+                            <select class="form-control" id="contact_email" name="contact_email" required>
+                                <option value="">Seleccione un contacto...</option>
+                                @foreach($order->plant->contacts as $contact)
+                                    @if($contact->email)
+                                        <option value="{{ $contact->email }}">
+                                            {{ $contact->contact_person ?? 'Sin nombre' }} - {{ $contact->email }}
+                                            @if($contact->phone)
+                                                ({{ $contact->phone }})
+                                            @endif
+                                        </option>
+                                    @endif
+                                @endforeach
+                            </select>
+                            <small class="text-muted">O ingrese un email manualmente abajo</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="manual_email" class="form-label">O Ingresar Email Manualmente</label>
+                            <input type="email" class="form-control" id="manual_email" name="manual_email" placeholder="correo@planta.com">
+                            <small class="text-muted">Si ingresa un email aquí, se usará este en lugar del seleccionado arriba</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="contact_name" class="form-label">Nombre del Contacto (opcional)</label>
+                            <input type="text" class="form-control" id="contact_name" name="contact_name" placeholder="Nombre del destinatario">
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> Se enviará un correo con la orden de proceso adjunta en formato PDF.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success" id="sendEmailBtn">
+                            <i class="fas fa-paper-plane"></i> Enviar Orden
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const contactSelect = document.getElementById('contact_email');
+        const manualEmail = document.getElementById('manual_email');
+        const form = document.querySelector('#sendOrderModal form');
+
+        // Cuando se envía el formulario, usar el email manual si está lleno, sino el del select
+        form.addEventListener('submit', function(e) {
+            if (manualEmail.value.trim()) {
+                // Si hay email manual, cambiar el valor del select
+                contactSelect.value = manualEmail.value.trim();
+            } else if (!contactSelect.value) {
+                e.preventDefault();
+                alert('Por favor, seleccione un contacto o ingrese un email manualmente');
+                return false;
+            }
+        });
+
+        // Limpiar email manual cuando se selecciona un contacto
+        contactSelect.addEventListener('change', function() {
+            if (this.value) {
+                manualEmail.value = '';
+            }
+        });
+    });
+    </script>
     @endif
 </div>
 @endsection

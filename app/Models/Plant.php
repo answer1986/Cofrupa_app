@@ -22,4 +22,9 @@ class Plant extends Model
     {
         return $this->hasMany(ProcessOrder::class);
     }
+
+    public function contacts()
+    {
+        return $this->hasMany(PlantContact::class)->orderBy('order');
+    }
 }

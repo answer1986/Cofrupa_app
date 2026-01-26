@@ -21,6 +21,8 @@
     <form action="{{ route('documents.transport-instructions.store', $contract->id) }}" method="POST">
         @csrf
         
+        @include('documents.partials.contract_fields')
+
         <!-- Información General -->
         <div class="card mb-4">
             <div class="card-header bg-primary text-white">

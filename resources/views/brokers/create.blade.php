@@ -43,7 +43,7 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="email" class="form-label">Email</label>
+                            <label for="email" class="form-label">Email Principal</label>
                             <input type="email" class="form-control @error('email') is-invalid @enderror"
                                    id="email" name="email" value="{{ old('email') }}" 
                                    autocomplete="email">
@@ -53,7 +53,7 @@
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label for="phone" class="form-label">Teléfono</label>
+                            <label for="phone" class="form-label">Teléfono Principal</label>
                             <input type="text" class="form-control @error('phone') is-invalid @enderror"
                                    id="phone" name="phone" value="{{ old('phone') }}" 
                                    pattern="^\+[0-9]{11}$" 
@@ -63,6 +63,44 @@
                             @error('phone')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
+                        </div>
+                    </div>
+
+                    <!-- Contactos -->
+                    <hr class="my-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0"><i class="fas fa-users"></i> Contactos Adicionales</h5>
+                        <button type="button" class="btn btn-sm btn-success" id="addContactBtn">
+                            <i class="fas fa-plus"></i> Agregar Contacto
+                        </button>
+                    </div>
+                    <div id="contactsContainer">
+                        <!-- Contacto 1 (siempre visible) -->
+                        <div class="contact-row mb-3 p-3 border rounded" data-contact-index="0">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">Contacto 1</h6>
+                                <button type="button" class="btn btn-sm btn-danger remove-contact" style="display: none;">
+                                    <i class="fas fa-trash"></i> Eliminar
+                                </button>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-3 mb-2">
+                                    <label class="form-label">Persona de Contacto</label>
+                                    <input type="text" class="form-control" name="contacts[0][contact_person]" value="{{ old('contacts.0.contact_person') }}" placeholder="Nombre completo">
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <label class="form-label">Cargo/Posición</label>
+                                    <input type="text" class="form-control" name="contacts[0][position]" value="{{ old('contacts.0.position') }}" placeholder="Ej: Gerente">
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <label class="form-label">Teléfono</label>
+                                    <input type="text" class="form-control" name="contacts[0][phone]" value="{{ old('contacts.0.phone') }}" placeholder="Ej: +56 9 1234 5678">
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control" name="contacts[0][email]" value="{{ old('contacts.0.email') }}" placeholder="ejemplo@correo.com">
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -164,28 +202,135 @@ document.addEventListener('DOMContentLoaded', function() {
     
     phoneInput.addEventListener('input', function(e) {
         let value = e.target.value;
-        // Solo permitir números y el signo + al inicio
         value = value.replace(/[^0-9+]/g, '');
-        
-        // Asegurar que el + esté al inicio
         if (value.length > 0 && value[0] !== '+') {
             value = '+' + value.replace(/\+/g, '');
         }
-        
-        // Limitar a 12 caracteres (+ y 11 números)
         if (value.length > 12) {
             value = value.substring(0, 12);
         }
-        
         e.target.value = value;
     });
     
     phoneInput.addEventListener('keypress', function(e) {
-        // Si ya hay un + y se intenta escribir otro, prevenir
         if (e.key === '+' && this.value.includes('+')) {
             e.preventDefault();
         }
     });
+
+    // Gestión de contactos múltiples
+    const contactsContainer = document.getElementById('contactsContainer');
+    const addContactBtn = document.getElementById('addContactBtn');
+    let contactIndex = 1;
+    const maxContacts = 5;
+
+    function updateContactNumbers() {
+        const contactRows = contactsContainer.querySelectorAll('.contact-row');
+        contactRows.forEach((row, index) => {
+            const title = row.querySelector('h6');
+            title.textContent = `Contacto ${index + 1}`;
+            
+            const removeBtn = row.querySelector('.remove-contact');
+            if (contactRows.length > 1) {
+                removeBtn.style.display = 'block';
+            } else {
+                removeBtn.style.display = 'none';
+            }
+        });
+
+        if (contactRows.length >= maxContacts) {
+            addContactBtn.disabled = true;
+            addContactBtn.classList.add('disabled');
+        } else {
+            addContactBtn.disabled = false;
+            addContactBtn.classList.remove('disabled');
+        }
+    }
+
+    addContactBtn.addEventListener('click', function() {
+        const contactRows = contactsContainer.querySelectorAll('.contact-row');
+        
+        if (contactRows.length >= maxContacts) {
+            alert('Solo se pueden agregar hasta ' + maxContacts + ' contactos');
+            return;
+        }
+
+        const newContactHtml = `
+            <div class="contact-row mb-3 p-3 border rounded" data-contact-index="${contactIndex}">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0">Contacto ${contactIndex + 1}</h6>
+                    <button type="button" class="btn btn-sm btn-danger remove-contact">
+                        <i class="fas fa-trash"></i> Eliminar
+                    </button>
+                </div>
+                <div class="row">
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label">Persona de Contacto</label>
+                        <input type="text" class="form-control" name="contacts[${contactIndex}][contact_person]" value="" placeholder="Nombre completo">
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label">Cargo/Posición</label>
+                        <input type="text" class="form-control" name="contacts[${contactIndex}][position]" value="" placeholder="Ej: Gerente">
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label">Teléfono</label>
+                        <input type="text" class="form-control" name="contacts[${contactIndex}][phone]" value="" placeholder="Ej: +56 9 1234 5678">
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="contacts[${contactIndex}][email]" value="" placeholder="ejemplo@correo.com">
+                    </div>
+                </div>
+            </div>
+        `;
+
+        contactsContainer.insertAdjacentHTML('beforeend', newContactHtml);
+        contactIndex++;
+        updateContactNumbers();
+
+        const newRow = contactsContainer.lastElementChild;
+        const removeBtn = newRow.querySelector('.remove-contact');
+        removeBtn.addEventListener('click', function() {
+            removeContact(newRow);
+        });
+    });
+
+    function removeContact(row) {
+        const contactRows = contactsContainer.querySelectorAll('.contact-row');
+        
+        if (contactRows.length <= 1) {
+            alert('Debe haber al menos un contacto');
+            return;
+        }
+
+        row.remove();
+        updateContactNumbers();
+        reindexContacts();
+    }
+
+    function reindexContacts() {
+        const contactRows = contactsContainer.querySelectorAll('.contact-row');
+        contactRows.forEach((row, newIndex) => {
+            const inputs = row.querySelectorAll('input');
+            inputs.forEach(input => {
+                const name = input.getAttribute('name');
+                if (name) {
+                    const newName = name.replace(/contacts\[\d+\]/, `contacts[${newIndex}]`);
+                    input.setAttribute('name', newName);
+                }
+            });
+        });
+        updateContactNumbers();
+    }
+
+    contactsContainer.querySelectorAll('.remove-contact').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const row = this.closest('.contact-row');
+            removeContact(row);
+        });
+    });
+
+    updateContactNumbers();
 });
 </script>
 @endsection

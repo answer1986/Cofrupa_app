@@ -27,9 +27,33 @@ class ShippingLineController extends Controller
             'contact_email' => 'nullable|email|max:255',
             'contact_phone' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
+            'is_active' => 'boolean',
+            'tax_id' => 'nullable|string|max:255',
+            'bank_name' => 'nullable|string|max:255',
+            'bank_account_type' => 'nullable|string|max:255',
+            'bank_account_number' => 'nullable|string|max:255',
+            'contacts' => 'nullable|array|max:5',
+            'contacts.*.contact_person' => 'nullable|string|max:255',
+            'contacts.*.phone' => 'nullable|string|max:255',
+            'contacts.*.email' => 'nullable|email|max:255',
+            'contacts.*.position' => 'nullable|string|max:255',
         ]);
 
-        ShippingLine::create($validated);
+        $shippingLine = ShippingLine::create($validated);
+
+        if ($request->has('contacts')) {
+            foreach ($request->contacts as $index => $contact) {
+                if (!empty($contact['contact_person']) || !empty($contact['phone']) || !empty($contact['email'])) {
+                    $shippingLine->contacts()->create([
+                        'contact_person' => $contact['contact_person'] ?? null,
+                        'phone' => $contact['phone'] ?? null,
+                        'email' => $contact['email'] ?? null,
+                        'position' => $contact['position'] ?? null,
+                        'order' => $index,
+                    ]);
+                }
+            }
+        }
 
         return redirect()->route('shipping-lines.index')->with('success', 'Naviera creada exitosamente.');
     }
@@ -42,7 +66,7 @@ class ShippingLineController extends Controller
 
     public function edit($id)
     {
-        $shippingLine = ShippingLine::findOrFail($id);
+        $shippingLine = ShippingLine::with('contacts')->findOrFail($id);
         return view('shipping-lines.edit', compact('shippingLine'));
     }
 
@@ -58,9 +82,34 @@ class ShippingLineController extends Controller
             'contact_phone' => 'nullable|string|max:255',
             'is_active' => 'boolean',
             'notes' => 'nullable|string',
+            'tax_id' => 'nullable|string|max:255',
+            'bank_name' => 'nullable|string|max:255',
+            'bank_account_type' => 'nullable|string|max:255',
+            'bank_account_number' => 'nullable|string|max:255',
+            'contacts' => 'nullable|array|max:5',
+            'contacts.*.contact_person' => 'nullable|string|max:255',
+            'contacts.*.phone' => 'nullable|string|max:255',
+            'contacts.*.email' => 'nullable|email|max:255',
+            'contacts.*.position' => 'nullable|string|max:255',
         ]);
 
         $shippingLine->update($validated);
+
+        // Eliminar contactos existentes y crear nuevos
+        $shippingLine->contacts()->delete();
+        if ($request->has('contacts')) {
+            foreach ($request->contacts as $index => $contact) {
+                if (!empty($contact['contact_person']) || !empty($contact['phone']) || !empty($contact['email'])) {
+                    $shippingLine->contacts()->create([
+                        'contact_person' => $contact['contact_person'] ?? null,
+                        'phone' => $contact['phone'] ?? null,
+                        'email' => $contact['email'] ?? null,
+                        'position' => $contact['position'] ?? null,
+                        'order' => $index,
+                    ]);
+                }
+            }
+        }
 
         return redirect()->route('shipping-lines.index')->with('success', 'Naviera actualizada exitosamente.');
     }

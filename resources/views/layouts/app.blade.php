@@ -341,12 +341,17 @@
                             <i class="fas fa-industry"></i> Procesamiento
                         </button>
                     </div>
-                    <div id="procesamientoAccordion" class="accordion-collapse {{ request()->is('processing*') ? 'show' : '' }}">
+                        <div id="procesamientoAccordion" class="accordion-collapse {{ request()->is('processing*') ? 'show' : '' }}">
                         <div class="accordion-body">
                             <ul class="sidebar-menu">
                                 <li>
+                                    <a href="{{ route('processing.maintenances.index') }}" class="{{ request()->is('processing') && !request()->is('processing/*') ? 'active' : (request()->is('processing/maintenances*') ? 'active' : '') }}">
+                                        <i class="fas fa-tools"></i> Mantenciones de Máquinas
+                                    </a>
+                                </li>
+                                <li>
                                     <a href="{{ route('processing.plants.index') }}" class="{{ request()->is('processing/plants*') ? 'active' : '' }}">
-                                        <i class="fas fa-building"></i> Mantenedor de Plantas
+                                        <i class="fas fa-building"></i>Plantas de servicios
                                     </a>
                                 </li>
                                 <li>
@@ -366,7 +371,7 @@
                                 </li>
                                 <li>
                                     <a href="{{ route('processing.accounting.index') }}" class="{{ request()->is('processing/accounting*') ? 'active' : '' }}">
-                                        <i class="fas fa-calculator"></i> Módulo de Contabilidad
+                                        <i class="fas fa-calculator"></i> Módulo de Finanzas
                                     </a>
                                 </li>
                             </ul>

@@ -8,8 +8,11 @@ use App\Models\Supplier;
 use App\Models\Contract;
 use App\Models\ProcessedBin;
 use App\Models\BinTraceability;
+use App\Mail\ProcessOrderMail;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Mail;
 
 class ProcessOrderController extends Controller
 {
@@ -56,6 +59,24 @@ class ProcessOrderController extends Controller
             'quantity' => 'nullable|numeric|min:0',
             'unit' => 'nullable|string',
             'notes' => 'nullable|string',
+            'raw_material' => 'nullable|string',
+            'product' => 'nullable|string',
+            'type' => 'nullable|string',
+            'caliber' => 'nullable|string',
+            'quality' => 'nullable|string',
+            'labeling' => 'nullable|string',
+            'packaging' => 'nullable|string',
+            'potassium_sorbate' => 'nullable|string',
+            'humidity' => 'nullable|string',
+            'stone_percentage' => 'nullable|string',
+            'oil' => 'nullable|string',
+            'damage' => 'nullable|string',
+            'plant_print' => 'nullable|string',
+            'destination' => 'nullable|string',
+            'loading_date' => 'nullable|string',
+            'sag' => 'boolean',
+            'kilos_sent' => 'nullable|numeric|min:0',
+            'kilos_produced' => 'nullable|numeric|min:0',
         ]);
 
         // Calcular fecha de término esperada si se proporcionaron días de producción
@@ -72,8 +93,43 @@ class ProcessOrderController extends Controller
 
     public function show(ProcessOrder $order)
     {
-        $order->load(['plant', 'supplier', 'invoices']);
+        $order->load(['plant.contacts', 'supplier', 'invoices']);
         return view('processing.orders.show', compact('order'));
+    }
+
+    /**
+     * Generar preview PDF de la orden
+     */
+    public function previewPdf(ProcessOrder $order)
+    {
+        $order->load(['plant', 'supplier']);
+        $pdf = Pdf::loadView('processing.orders.pdf', compact('order'));
+        return $pdf->stream('Orden_Proceso_' . $order->order_number . '.pdf');
+    }
+
+    /**
+     * Enviar orden por email a la planta
+     */
+    public function sendToPlant(Request $request, ProcessOrder $order)
+    {
+        $request->validate([
+            'contact_email' => 'required|email',
+            'manual_email' => 'nullable|email',
+            'contact_name' => 'nullable|string',
+        ]);
+
+        try {
+            $order->load(['plant', 'supplier']);
+            
+            // Usar email manual si está presente, sino el del select
+            $emailToSend = $request->manual_email ?: $request->contact_email;
+            
+            Mail::to($emailToSend)->send(new ProcessOrderMail($order));
+            
+            return back()->with('success', 'Orden enviada exitosamente a ' . $emailToSend);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error al enviar el correo: ' . $e->getMessage());
+        }
     }
 
     public function edit(ProcessOrder $order)
@@ -103,6 +159,24 @@ class ProcessOrderController extends Controller
             'quantity' => 'nullable|numeric|min:0',
             'unit' => 'nullable|string',
             'notes' => 'nullable|string',
+            'raw_material' => 'nullable|string',
+            'product' => 'nullable|string',
+            'type' => 'nullable|string',
+            'caliber' => 'nullable|string',
+            'quality' => 'nullable|string',
+            'labeling' => 'nullable|string',
+            'packaging' => 'nullable|string',
+            'potassium_sorbate' => 'nullable|string',
+            'humidity' => 'nullable|string',
+            'stone_percentage' => 'nullable|string',
+            'oil' => 'nullable|string',
+            'damage' => 'nullable|string',
+            'plant_print' => 'nullable|string',
+            'destination' => 'nullable|string',
+            'loading_date' => 'nullable|string',
+            'sag' => 'boolean',
+            'kilos_sent' => 'nullable|numeric|min:0',
+            'kilos_produced' => 'nullable|numeric|min:0',
         ]);
 
         // Calcular fecha de término esperada si se proporcionaron días de producción

@@ -24,18 +24,33 @@ class PlantController extends Controller
             'name' => 'required|string|max:255',
             'code' => 'required|string|max:50|unique:plants,code',
             'address' => 'nullable|string',
-            'phone' => 'nullable|string',
-            'email' => 'nullable|email',
-            'contact_person' => 'nullable|string',
             'notes' => 'nullable|string',
             'is_active' => 'boolean',
             'tax_id' => 'nullable|string',
             'bank_name' => 'nullable|string',
             'bank_account_type' => 'nullable|string',
             'bank_account_number' => 'nullable|string',
+            'contacts' => 'nullable|array|max:3',
+            'contacts.*.contact_person' => 'nullable|string|max:255',
+            'contacts.*.phone' => 'nullable|string|max:255',
+            'contacts.*.email' => 'nullable|email|max:255',
         ]);
 
-        Plant::create($validated);
+        $plant = Plant::create($validated);
+
+        // Guardar contactos
+        if ($request->has('contacts')) {
+            foreach ($request->contacts as $index => $contact) {
+                if (!empty($contact['contact_person']) || !empty($contact['phone']) || !empty($contact['email'])) {
+                    $plant->contacts()->create([
+                        'contact_person' => $contact['contact_person'] ?? null,
+                        'phone' => $contact['phone'] ?? null,
+                        'email' => $contact['email'] ?? null,
+                        'order' => $index,
+                    ]);
+                }
+            }
+        }
 
         return redirect()->route('processing.plants.index')
             ->with('success', 'Planta creada exitosamente');
@@ -49,6 +64,7 @@ class PlantController extends Controller
 
     public function edit(Plant $plant)
     {
+        $plant->load('contacts');
         return view('processing.plants.edit', compact('plant'));
     }
 
@@ -58,18 +74,36 @@ class PlantController extends Controller
             'name' => 'required|string|max:255',
             'code' => 'required|string|max:50|unique:plants,code,' . $plant->id,
             'address' => 'nullable|string',
-            'phone' => 'nullable|string',
-            'email' => 'nullable|email',
-            'contact_person' => 'nullable|string',
             'notes' => 'nullable|string',
             'is_active' => 'boolean',
             'tax_id' => 'nullable|string',
             'bank_name' => 'nullable|string',
             'bank_account_type' => 'nullable|string',
             'bank_account_number' => 'nullable|string',
+            'contacts' => 'nullable|array|max:3',
+            'contacts.*.contact_person' => 'nullable|string|max:255',
+            'contacts.*.phone' => 'nullable|string|max:255',
+            'contacts.*.email' => 'nullable|email|max:255',
         ]);
 
         $plant->update($validated);
+
+        // Eliminar contactos existentes
+        $plant->contacts()->delete();
+
+        // Guardar nuevos contactos
+        if ($request->has('contacts')) {
+            foreach ($request->contacts as $index => $contact) {
+                if (!empty($contact['contact_person']) || !empty($contact['phone']) || !empty($contact['email'])) {
+                    $plant->contacts()->create([
+                        'contact_person' => $contact['contact_person'] ?? null,
+                        'phone' => $contact['phone'] ?? null,
+                        'email' => $contact['email'] ?? null,
+                        'order' => $index,
+                    ]);
+                }
+            }
+        }
 
         return redirect()->route('processing.plants.index')
             ->with('success', 'Planta actualizada exitosamente');

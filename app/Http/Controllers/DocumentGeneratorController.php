@@ -11,6 +11,39 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class DocumentGeneratorController extends Controller
 {
     /**
+     * Actualizar campos del contrato desde los datos del formulario
+     */
+    private function updateContractFields(Contract $contract, Request $request)
+    {
+        $contractUpdates = [];
+        
+        if ($request->has('contract_product_description')) {
+            $contractUpdates['product_description'] = $request->contract_product_description;
+        }
+        if ($request->has('contract_packing')) {
+            $contractUpdates['packing'] = $request->contract_packing;
+        }
+        if ($request->has('contract_crop_year')) {
+            $contractUpdates['crop_year'] = $request->contract_crop_year;
+        }
+        if ($request->has('contract_quality_specification')) {
+            $contractUpdates['quality_specification'] = $request->contract_quality_specification;
+        }
+        if ($request->has('contract_humidity')) {
+            $contractUpdates['humidity'] = $request->contract_humidity;
+        }
+        if ($request->has('contract_total_defects')) {
+            $contractUpdates['total_defects'] = $request->contract_total_defects;
+        }
+        
+        if (!empty($contractUpdates)) {
+            $contract->update($contractUpdates);
+            return true;
+        }
+        
+        return false;
+    }
+    /**
      * Listar contratos disponibles para Certificado de Calidad
      */
     public function listQualityCertificates()
@@ -71,11 +104,21 @@ class DocumentGeneratorController extends Controller
             'size_result' => 'nullable|string',
             'moisture_result' => 'nullable|string',
             'defects_result' => 'nullable|string',
+            // Campos del contrato
+            'contract_product_description' => 'nullable|string',
+            'contract_packing' => 'nullable|string|max:255',
+            'contract_crop_year' => 'nullable|string|max:255',
+            'contract_quality_specification' => 'nullable|string',
+            'contract_humidity' => 'nullable|string|max:255',
+            'contract_total_defects' => 'nullable|string|max:255',
         ]);
+
+        // Actualizar campos del contrato si se proporcionaron
+        $this->updateContractFields($contract, $request);
 
         // Generar PDF con los datos editados
         $pdf = Pdf::loadView('documents.pdfs.quality_certificate', [
-            'contract' => $contract,
+            'contract' => $contract->fresh(), // Recargar para tener los datos actualizados
             'certificate' => $validated
         ]);
 
@@ -98,7 +141,7 @@ class DocumentGeneratorController extends Controller
         ]);
 
         return redirect()->route('exportations.index')
-            ->with('success', 'Certificado de Calidad generado y guardado en la carpeta del contrato ' . $contract->contract_number);
+            ->with('success', 'Certificado de Calidad generado y guardado. El contrato ha sido actualizado con los nuevos datos.');
     }
 
     /**
@@ -319,11 +362,21 @@ class DocumentGeneratorController extends Controller
             'aflatoxine_total' => 'required|string',
             'production_date' => 'required|string',
             'expiry_date' => 'required|string',
+            // Campos del contrato
+            'contract_product_description' => 'nullable|string',
+            'contract_packing' => 'nullable|string|max:255',
+            'contract_crop_year' => 'nullable|string|max:255',
+            'contract_quality_specification' => 'nullable|string',
+            'contract_humidity' => 'nullable|string|max:255',
+            'contract_total_defects' => 'nullable|string|max:255',
         ]);
+
+        // Actualizar campos del contrato si se proporcionaron
+        $this->updateContractFields($contract, $request);
 
         // Generar PDF con los datos editados
         $pdf = Pdf::loadView('documents.pdfs.quality_certificate_eu', [
-            'contract' => $contract,
+            'contract' => $contract->fresh(),
             'certificate' => $validated
         ]);
 
@@ -346,7 +399,7 @@ class DocumentGeneratorController extends Controller
         ]);
 
         return redirect()->route('exportations.index')
-            ->with('success', 'Certificado de Calidad EU generado y guardado en la carpeta del contrato ' . $contract->contract_number);
+            ->with('success', 'Certificado de Calidad EU generado y guardado. El contrato ha sido actualizado con los nuevos datos.');
     }
 
     /**
@@ -563,9 +616,12 @@ class DocumentGeneratorController extends Controller
         
         $validated = $request->except(['_token']);
 
+        // Actualizar campos del contrato si se proporcionaron
+        $this->updateContractFields($contract, $request);
+
         // Generar PDF
         $pdf = Pdf::loadView('documents.pdfs.shipping_instructions', [
-            'contract' => $contract,
+            'contract' => $contract->fresh(),
             'shipping' => $validated
         ]);
 
@@ -587,7 +643,7 @@ class DocumentGeneratorController extends Controller
         ]);
 
         return redirect()->route('exportations.index')
-            ->with('success', 'Instructivo de Embarque generado y guardado en la carpeta del contrato ' . $contract->contract_number);
+            ->with('success', 'Instructivo de Embarque generado y guardado. El contrato ha sido actualizado con los nuevos datos.');
     }
 
     /**
@@ -699,6 +755,9 @@ class DocumentGeneratorController extends Controller
     {
         $contract = Contract::with('client')->findOrFail($contractId);
         
+        // Actualizar campos del contrato si se proporcionaron
+        $this->updateContractFields($contract, $request);
+        
         $transport = [
             'emission_date' => $request->input('emission_date'),
             'transport_company' => $request->input('transport_company'),
@@ -727,7 +786,7 @@ class DocumentGeneratorController extends Controller
 
         // Generar PDF
         $pdf = Pdf::loadView('documents.pdfs.transport_instructions', [
-            'contract' => $contract,
+            'contract' => $contract->fresh(),
             'transport' => $transport
         ]);
 
@@ -749,7 +808,7 @@ class DocumentGeneratorController extends Controller
         ]);
 
         return redirect()->route('exportations.index')
-            ->with('success', 'Instructivo de Transporte generado y guardado en la carpeta del contrato ' . $contract->contract_number);
+            ->with('success', 'Instructivo de Transporte generado y guardado. El contrato ha sido actualizado con los nuevos datos.');
     }
 
     /**
@@ -882,9 +941,43 @@ class DocumentGeneratorController extends Controller
      */
     public function storeDispatchGuide(Request $request, $contractId)
     {
-        // Implementar según necesidades
+        $contract = Contract::with('client')->findOrFail($contractId);
+        
+        $validated = $request->validate([
+            'dispatch_date' => 'required|date',
+            'dispatch_number' => 'required|string|max:255',
+            'origin_location' => 'required|string',
+            'client_name' => 'required|string',
+            'consignee' => 'nullable|string',
+            'product_description' => 'required|string',
+            'quantity' => 'required|numeric|min:0',
+            'packing' => 'nullable|string',
+            'destination' => 'required|string',
+            'vessel' => 'nullable|string',
+            'notes' => 'nullable|string',
+            // Campos del contrato
+            'contract_product_description' => 'nullable|string',
+            'contract_packing' => 'nullable|string|max:255',
+            'contract_crop_year' => 'nullable|string|max:255',
+            'contract_quality_specification' => 'nullable|string',
+            'contract_humidity' => 'nullable|string|max:255',
+            'contract_total_defects' => 'nullable|string|max:255',
+        ]);
+
+        // Actualizar campos del contrato si se proporcionaron
+        $this->updateContractFields($contract, $request);
+
+        // Generar PDF (implementar cuando se tenga la vista PDF)
+        // $pdf = Pdf::loadView('documents.pdfs.dispatch_guide', [
+        //     'contract' => $contract->fresh(),
+        //     'dispatch' => $validated
+        // ]);
+
+        // Guardar documento
+        // ContractDocument::create([...]);
+
         return redirect()->route('exportations.index')
-            ->with('success', 'Guía de Despacho generada');
+            ->with('success', 'Guía de Despacho guardada. El contrato ha sido actualizado con los nuevos datos.');
     }
 
     /**

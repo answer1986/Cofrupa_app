@@ -34,12 +34,16 @@ class AccountingRecordController extends Controller
         $totalCostosLogistica = Contract::whereIn('status', ['active', 'completed'])
             ->sum('freight_amount');
 
+        // Calcular costos de camión (COSTOS) - truck_cost está en shipments
+        $totalCostosCamion = Shipment::whereNotNull('truck_cost')
+            ->sum('truck_cost');
+
         // Calcular ventas (INGRESOS)
         $totalVentas = Contract::whereIn('status', ['active', 'completed'])
             ->sum(DB::raw('stock_committed * price'));
 
         // MARGEN BRUTO
-        $totalCostos = $totalCompras + $totalCostoProceso + $totalComisionesBroker + $totalCostosLogistica;
+        $totalCostos = $totalCompras + $totalCostoProceso + $totalComisionesBroker + $totalCostosLogistica + $totalCostosCamion;
         $margenBruto = $totalVentas - $totalCostos;
         $porcentajeMargen = $totalVentas > 0 ? ($margenBruto / $totalVentas) * 100 : 0;
 
@@ -70,6 +74,7 @@ class AccountingRecordController extends Controller
             'total_procesos_pendientes' => $totalProcesosPendientes,
             'total_comisiones_broker' => $totalComisionesBroker,
             'total_costos_logistica' => $totalCostosLogistica,
+            'total_costos_camion' => $totalCostosCamion,
             'total_ventas' => $totalVentas,
             'total_costos' => $totalCostos,
             'margen_bruto' => $margenBruto,

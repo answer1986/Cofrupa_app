@@ -26,3 +26,21 @@ Route::get('/supplier/{supplier}/bins', [App\Http\Controllers\BinReceptionContro
 
 // Get delivered bins for a supplier
 Route::get('/supplier/{supplier}/delivered-bins', [App\Http\Controllers\BinReceptionController::class, 'getDeliveredBins']);
+
+// Translation endpoint
+Route::post('/translate', function (Request $request) {
+    $text = $request->input('text');
+    $source = $request->input('source', 'es');
+    $target = $request->input('target', 'en');
+    
+    if (empty($text)) {
+        return response()->json(['error' => 'No text provided'], 400);
+    }
+    
+    try {
+        $translated = \App\Services\TranslationService::translateToEnglish($text);
+        return response()->json(['translatedText' => $translated]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Translation failed'], 500);
+    }
+});

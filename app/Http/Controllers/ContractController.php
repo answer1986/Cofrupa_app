@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\TranslationService;
 
 class ContractController extends Controller
 {
@@ -108,6 +109,11 @@ class ContractController extends Controller
 
         // Validación automática de cifras
         $this->validateContractFigures($validated);
+
+        // Auto-traducir campos al inglés si está activado
+        if ($request->has('auto_translate') && $request->auto_translate == '1') {
+            $validated = TranslationService::translateContractFields($validated);
+        }
 
         $contract = Contract::create($validated);
 
@@ -217,6 +223,11 @@ class ContractController extends Controller
 
         // Validación automática de cifras
         $this->validateContractFigures($validated);
+
+        // Auto-traducir campos al inglés si está activado
+        if ($request->has('auto_translate') && $request->auto_translate == '1') {
+            $validated = TranslationService::translateContractFields($validated);
+        }
 
         // Registrar cambios en historial
         $this->logContractChanges($contract, $validated);

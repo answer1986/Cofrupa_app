@@ -42,6 +42,10 @@
                             <dt class="col-4">Teléfono:</dt>
                             <dd class="col-8">{{ $client->phone }}</dd>
                         @endif
+                        @if($client->customs_agency)
+                            <dt class="col-4">Agencia de Aduana:</dt>
+                            <dd class="col-8">{{ $client->customs_agency }}</dd>
+                        @endif
                         @if($client->address)
                             <dt class="col-4">Dirección:</dt>
                             <dd class="col-8">{{ $client->address }}</dd>

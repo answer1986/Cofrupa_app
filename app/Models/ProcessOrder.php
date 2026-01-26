@@ -12,7 +12,11 @@ class ProcessOrder extends Model
     protected $fillable = [
         'plant_id', 'supplier_id', 'contract_id', 'order_number', 'csg_code', 'production_days',
         'order_date', 'expected_completion_date', 'actual_completion_date',
-        'status', 'progress_percentage', 'product_description', 'quantity', 'unit', 'notes', 'alert_sent'
+        'status', 'progress_percentage', 'product_description', 'quantity', 'unit', 'notes', 'alert_sent',
+        'raw_material', 'product', 'type', 'caliber', 'quality', 'labeling',
+        'packaging', 'potassium_sorbate', 'humidity', 'stone_percentage',
+        'oil', 'damage', 'plant_print', 'destination', 'loading_date', 'sag',
+        'kilos_sent', 'kilos_produced'
     ];
 
     protected $casts = [
@@ -22,7 +26,10 @@ class ProcessOrder extends Model
         'production_days' => 'integer',
         'progress_percentage' => 'integer',
         'quantity' => 'decimal:2',
+        'kilos_sent' => 'decimal:2',
+        'kilos_produced' => 'decimal:2',
         'alert_sent' => 'boolean',
+        'sag' => 'boolean',
     ];
 
     public function plant()

@@ -70,6 +70,15 @@
                     </div>
 
                     <div class="mb-3">
+                        <label for="customs_agency" class="form-label">Agencia de Aduana</label>
+                        <input type="text" class="form-control @error('customs_agency') is-invalid @enderror"
+                               id="customs_agency" name="customs_agency" value="{{ old('customs_agency', $client->customs_agency) }}">
+                        @error('customs_agency')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="mb-3">
                         <label for="address" class="form-label">Dirección</label>
                         <textarea class="form-control @error('address') is-invalid @enderror"
                                   id="address" name="address" rows="3">{{ old('address', $client->address) }}</textarea>

@@ -20,8 +20,9 @@ class ClientController extends Controller
         $conversations = Conversation::with(['client', 'broker', 'user'])->latest()->paginate(15);
         $shippingLines = ShippingLine::with('shipments')->paginate(15);
         $logisticsCompanies = LogisticsCompany::with('shipments')->paginate(15);
+        $customsAgencies = \App\Models\CustomsAgency::paginate(15);
         
-        return view('clients.index', compact('clients', 'brokers', 'conversations', 'shippingLines', 'logisticsCompanies'));
+        return view('clients.index', compact('clients', 'brokers', 'conversations', 'shippingLines', 'logisticsCompanies', 'customsAgencies'));
     }
 
     public function create()
@@ -36,6 +37,7 @@ class ClientController extends Controller
             'type' => 'required|in:constant,new',
             'email' => 'nullable|email:rfc,dns|max:255',
             'phone' => ['nullable', 'string', 'max:20', 'regex:/^\+[0-9]{11}$/'],
+            'customs_agency' => 'nullable|string|max:255',
             'address' => 'nullable|string',
             'notes' => 'nullable|string',
         ], [
@@ -67,6 +69,7 @@ class ClientController extends Controller
             'type' => 'required|in:constant,new',
             'email' => 'nullable|email:rfc,dns|max:255',
             'phone' => ['nullable', 'string', 'max:20', 'regex:/^\+[0-9]{11}$/'],
+            'customs_agency' => 'nullable|string|max:255',
             'address' => 'nullable|string',
             'notes' => 'nullable|string',
         ], [

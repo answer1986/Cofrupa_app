@@ -182,6 +182,16 @@
                         @enderror
                     </div>
 
+                    <div class="mb-3">
+                        <label for="truck_cost" class="form-label">Costo del Camión</label>
+                        <input type="number" step="0.01" min="0" class="form-control @error('truck_cost') is-invalid @enderror"
+                               id="truck_cost" name="truck_cost" value="{{ old('truck_cost') }}">
+                        @error('truck_cost')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="form-text text-muted">Ingrese el costo del transporte terrestre (camión)</small>
+                    </div>
+
                     <hr>
                     <h5 class="mb-3"><i class="fas fa-clock"></i> Control de Tiempos</h5>
 

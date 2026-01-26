@@ -18,6 +18,22 @@
             <p class="mb-0"><small><strong>Tip:</strong> Completa todos los campos del formulario para que los documentos PDF se generen con información completa.</small></p>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
+
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="alert-heading mb-2"><i class="fas fa-language"></i> Traducción Automática</h5>
+                    <p class="mb-0">Activa o desactiva la traducción automática de campos al inglés al guardar el contrato.</p>
+                </div>
+                <div class="form-check form-switch ms-3">
+                    <input class="form-check-input" type="checkbox" id="autoTranslateToggle" name="auto_translate" value="1" {{ old('auto_translate', true) ? 'checked' : '' }} style="transform: scale(1.5);">
+                    <label class="form-check-label" for="autoTranslateToggle">
+                        <strong id="translateStatus">Activado</strong>
+                    </label>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
     </div>
 </div>
 
@@ -168,7 +184,7 @@
                     <h5 class="mb-3"><i class="fas fa-file-contract"></i> Información del Contrato</h5>
 
                     <div class="row">
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-3">
                             <label for="contract_number" class="form-label">Número de Contrato</label>
                             <input type="text" class="form-control @error('contract_number') is-invalid @enderror"
                                    id="contract_number" name="contract_number" value="{{ old('contract_number') }}" placeholder="Ej: 57.2025">
@@ -177,7 +193,16 @@
                             @enderror
                         </div>
 
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-3">
+                            <label for="contract_ref" class="form-label">Contract Ref</label>
+                            <input type="text" class="form-control @error('contract_ref') is-invalid @enderror"
+                                   id="contract_ref" name="contract_ref" value="{{ old('contract_ref') }}">
+                            @error('contract_ref')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="col-md-3 mb-3">
                             <label for="contract_date" class="form-label">Fecha del Contrato</label>
                             <input type="date" class="form-control @error('contract_date') is-invalid @enderror"
                                    id="contract_date" name="contract_date" value="{{ old('contract_date') }}">
@@ -186,7 +211,7 @@
                             @enderror
                         </div>
 
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-3">
                             <label for="customer_reference" class="form-label">Referencia del Cliente (PO#)</label>
                             <input type="text" class="form-control @error('customer_reference') is-invalid @enderror"
                                    id="customer_reference" name="customer_reference" value="{{ old('customer_reference') }}" placeholder="Ej: 139341-139342">
@@ -379,7 +404,7 @@
                     <h5 class="mb-3"><i class="fas fa-building"></i> Vendedor (Seller)</h5>
 
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label for="seller_name" class="form-label">Nombre del Vendedor</label>
                             <input type="text" class="form-control @error('seller_name') is-invalid @enderror"
                                    id="seller_name" name="seller_name" value="{{ old('seller_name', 'COFRUPA Export SPA') }}">
@@ -388,11 +413,20 @@
                             @enderror
                         </div>
 
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label for="seller_tax_id" class="form-label">RUT / Tax ID del Vendedor</label>
                             <input type="text" class="form-control @error('seller_tax_id') is-invalid @enderror"
                                    id="seller_tax_id" name="seller_tax_id" value="{{ old('seller_tax_id', '76.505.934-8') }}" placeholder="Ej: 76.505.934-8">
                             @error('seller_tax_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label for="seller_date" class="form-label">Seller Date</label>
+                            <input type="date" class="form-control @error('seller_date') is-invalid @enderror"
+                                   id="seller_date" name="seller_date" value="{{ old('seller_date') }}">
+                            @error('seller_date')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
@@ -413,12 +447,19 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="seller_address" class="form-label">Dirección del Vendedor</label>
-                        <textarea class="form-control @error('seller_address') is-invalid @enderror"
-                                  id="seller_address" name="seller_address" rows="2">{{ old('seller_address', 'Cam Lo Mackenna PC 7-A, Buin') }}</textarea>
+                        <label for="seller_address" class="form-label">Dirección del Vendedor (Español)</label>
+                        <div class="input-group">
+                            <textarea class="form-control @error('seller_address') is-invalid @enderror"
+                                      id="seller_address" name="seller_address" rows="2">{{ old('seller_address', 'Camino Lo Mackenna Parcela 7A, Buin, Chile') }}</textarea>
+                            <button type="button" class="btn btn-outline-secondary translate-btn" data-source="seller_address" data-target="seller_address_english" title="Traducir al inglés">
+                                <i class="fas fa-language"></i>
+                            </button>
+                        </div>
                         @error('seller_address')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
+                        <input type="hidden" id="seller_address_english" name="seller_address_english" value="{{ old('seller_address_english') }}">
+                        <small class="text-muted" id="seller_address_translate_note">Versión en inglés se genera automáticamente al guardar (si auto-traducción está activada)</small>
                     </div>
 
                     <hr>
@@ -478,6 +519,48 @@
                     </div>
 
                     <hr>
+                    <h5 class="mb-3"><i class="fas fa-user-check"></i> Beneficiario (Beneficiary)</h5>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="beneficiary" class="form-label">Beneficiario</label>
+                            <input type="text" class="form-control @error('beneficiary') is-invalid @enderror"
+                                   id="beneficiary" name="beneficiary" value="{{ old('beneficiary', 'COFRUPA EXPORT SPA') }}">
+                            @error('beneficiary')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="beneficiary_bank_account" class="form-label">Banco (Bank Account)</label>
+                            <input type="text" class="form-control @error('beneficiary_bank_account') is-invalid @enderror"
+                                   id="beneficiary_bank_account" name="beneficiary_bank_account" value="{{ old('beneficiary_bank_account') }}" placeholder="Ej: BANCO SANTANDER">
+                            @error('beneficiary_bank_account')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="beneficiary_account_number_swift" class="form-label">Número de Cuenta - Swift (Account Number - Swift)</label>
+                        <input type="text" class="form-control @error('beneficiary_account_number_swift') is-invalid @enderror"
+                               id="beneficiary_account_number_swift" name="beneficiary_account_number_swift" value="{{ old('beneficiary_account_number_swift') }}" placeholder="Ej: 5100166293 - BSCHCLRM">
+                        @error('beneficiary_account_number_swift')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="commercial_details" class="form-label">Detalles Comerciales (Commercial Details)</label>
+                        <textarea class="form-control @error('commercial_details') is-invalid @enderror"
+                                  id="commercial_details" name="commercial_details" rows="3" placeholder="Ej: COFRUPA EXPORT SPA - Camino Lo Mackenna Parcela 7A, Buin - Santiago, Chile">{{ old('commercial_details') }}</textarea>
+                        @error('commercial_details')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <input type="hidden" id="commercial_details_english" name="commercial_details_english" value="{{ old('commercial_details_english') }}">
+                    </div>
+
+                    <hr>
                     <h5 class="mb-3"><i class="fas fa-box"></i> Información del Producto</h5>
 
                     <div class="mb-3">
@@ -499,24 +582,45 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="crop_year" class="form-label">Año de Cosecha</label>
+                        <div class="col-md-3 mb-3">
+                            <label for="crop_year" class="form-label">Año de Cosecha (Quality)</label>
                             <input type="text" class="form-control @error('crop_year') is-invalid @enderror"
-                                   id="crop_year" name="crop_year" value="{{ old('crop_year', date('Y')) }}" placeholder="Ej: 2025">
+                                   id="crop_year" name="crop_year" value="{{ old('crop_year', 'CROP ' . date('Y')) }}" placeholder="Ej: CROP 2025">
                             @error('crop_year')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
-                        <div class="col-md-4 mb-3">
-                            <label for="packing" class="form-label">Empaque</label>
+                        <div class="col-md-3 mb-3">
+                            <label for="packing" class="form-label">Empaque (Packing)</label>
                             <input type="text" class="form-control @error('packing') is-invalid @enderror"
-                                   id="packing" name="packing" value="{{ old('packing') }}" placeholder="Ej: 25 kg bags">
+                                   id="packing" name="packing" value="{{ old('packing') }}" placeholder="Ej: 25 kg x 1000 bag = 25000 kg per container x 5 FCL">
                             @error('packing')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <input type="hidden" id="packing_english" name="packing_english" value="{{ old('packing_english') }}">
+                        </div>
+
+                        <div class="col-md-3 mb-3">
+                            <label for="humidity" class="form-label">Humedad (Humidity)</label>
+                            <input type="text" class="form-control @error('humidity') is-invalid @enderror"
+                                   id="humidity" name="humidity" value="{{ old('humidity') }}" placeholder="Ej: >15% < 21%">
+                            @error('humidity')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
+                        <div class="col-md-3 mb-3">
+                            <label for="total_defects" class="form-label">Defectos Totales</label>
+                            <input type="text" class="form-control @error('total_defects') is-invalid @enderror"
+                                   id="total_defects" name="total_defects" value="{{ old('total_defects') }}" placeholder="Ej: Max 5%">
+                            @error('total_defects')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="row">
                         <div class="col-md-4 mb-3">
                             <label for="label_info" class="form-label">Información de Etiqueta</label>
                             <input type="text" class="form-control @error('label_info') is-invalid @enderror"
@@ -595,10 +699,19 @@
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label for="total_amount" class="form-label">Monto Total (USD)</label>
+                            <label for="total_amount" class="form-label">Monto Total (Total Amount)</label>
                             <input type="number" step="0.01" class="form-control @error('total_amount') is-invalid @enderror"
                                    id="total_amount" name="total_amount" value="{{ old('total_amount') }}" placeholder="Ej: 154000.00">
                             @error('total_amount')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="payment_per_container" class="form-label">Pago por Contenedor (Payment per container)</label>
+                            <input type="number" step="0.01" class="form-control @error('payment_per_container') is-invalid @enderror"
+                                   id="payment_per_container" name="payment_per_container" value="{{ old('payment_per_container') }}" placeholder="Ej: 30800.00">
+                            @error('payment_per_container')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
@@ -866,6 +979,93 @@ document.addEventListener('DOMContentLoaded', function() {
     commissionInput.addEventListener('input', calculateTotals);
     
     calculateTotals();
+
+    // Toggle de traducción automática
+    const autoTranslateToggle = document.getElementById('autoTranslateToggle');
+    const translateStatus = document.getElementById('translateStatus');
+    
+    function updateTranslateStatus() {
+        if (autoTranslateToggle.checked) {
+            translateStatus.textContent = 'Activado';
+            translateStatus.classList.remove('text-danger');
+            translateStatus.classList.add('text-success');
+            // Ocultar botones de traducción manual cuando auto-traducción está activa
+            document.querySelectorAll('.translate-btn').forEach(btn => {
+                btn.style.display = 'none';
+            });
+            // Actualizar mensajes
+            const notes = document.querySelectorAll('[id$="_translate_note"]');
+            notes.forEach(note => {
+                if (note) note.style.display = 'block';
+            });
+        } else {
+            translateStatus.textContent = 'Desactivado';
+            translateStatus.classList.remove('text-success');
+            translateStatus.classList.add('text-danger');
+            // Mostrar botones de traducción manual cuando auto-traducción está desactivada
+            document.querySelectorAll('.translate-btn').forEach(btn => {
+                btn.style.display = 'block';
+            });
+            // Ocultar mensajes de auto-traducción
+            const notes = document.querySelectorAll('[id$="_translate_note"]');
+            notes.forEach(note => {
+                if (note) note.style.display = 'none';
+            });
+        }
+    }
+    
+    autoTranslateToggle.addEventListener('change', updateTranslateStatus);
+    
+    // Inicializar estado visual
+    updateTranslateStatus();
+
+    // Traducción automática
+    document.querySelectorAll('.translate-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const sourceField = document.getElementById(this.dataset.source);
+            const targetField = document.getElementById(this.dataset.target);
+            
+            if (!sourceField || !sourceField.value) {
+                alert('Por favor, ingrese texto para traducir');
+                return;
+            }
+
+            // Mostrar indicador de carga
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            // Llamar a la API de traducción
+            fetch('/api/translate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    text: sourceField.value,
+                    source: 'es',
+                    target: 'en'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.translatedText) {
+                    targetField.value = data.translatedText;
+                    alert('Traducción completada. Se guardará al enviar el formulario.');
+                } else {
+                    alert('Error en la traducción. Se intentará traducir automáticamente al guardar.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error en la traducción. Se intentará traducir automáticamente al guardar.');
+            })
+            .finally(() => {
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-language"></i>';
+            });
+        });
+    });
 });
 </script>
 @endsection

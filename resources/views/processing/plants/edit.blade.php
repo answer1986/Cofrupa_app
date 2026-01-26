@@ -29,19 +29,45 @@
                         <textarea class="form-control" id="address" name="address" rows="2">{{ old('address', $plant->address) }}</textarea>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label for="phone" class="form-label">Teléfono</label>
-                        <input type="text" class="form-control" id="phone" name="phone" value="{{ old('phone', $plant->phone) }}">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" value="{{ old('email', $plant->email) }}">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="contact_person" class="form-label">Persona de Contacto</label>
-                        <input type="text" class="form-control" id="contact_person" name="contact_person" value="{{ old('contact_person', $plant->contact_person) }}">
-                    </div>
+                <!-- Contactos -->
+                <hr class="my-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0"><i class="fas fa-users"></i> Contactos</h5>
+                    <button type="button" class="btn btn-sm btn-success" id="addContactBtn">
+                        <i class="fas fa-plus"></i> Agregar Contacto
+                    </button>
+                </div>
+                <div id="contactsContainer">
+                    @php
+                        $contacts = old('contacts', $plant->contacts->toArray());
+                        if (empty($contacts)) {
+                            $contacts = [['contact_person' => '', 'phone' => '', 'email' => '']];
+                        }
+                    @endphp
+                    @foreach($contacts as $index => $contact)
+                        <div class="contact-row mb-3 p-3 border rounded" data-contact-index="{{ $index }}">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">Contacto {{ $index + 1 }}</h6>
+                                <button type="button" class="btn btn-sm btn-danger remove-contact" style="{{ count($contacts) <= 1 ? 'display: none;' : '' }}">
+                                    <i class="fas fa-trash"></i> Eliminar
+                                </button>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-2">
+                                    <label class="form-label">Persona de Contacto</label>
+                                    <input type="text" class="form-control" name="contacts[{{ $index }}][contact_person]" value="{{ old("contacts.$index.contact_person", $contact['contact_person'] ?? '') }}" placeholder="Nombre completo">
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <label class="form-label">Teléfono</label>
+                                    <input type="text" class="form-control" name="contacts[{{ $index }}][phone]" value="{{ old("contacts.$index.phone", $contact['phone'] ?? '') }}" placeholder="Ej: +56 9 1234 5678">
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control" name="contacts[{{ $index }}][email]" value="{{ old("contacts.$index.email", $contact['email'] ?? '') }}" placeholder="ejemplo@correo.com">
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
                 <div class="row">
                     <div class="col-md-12 mb-3">
@@ -113,5 +139,130 @@
         </div>
     </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const contactsContainer = document.getElementById('contactsContainer');
+    const addContactBtn = document.getElementById('addContactBtn');
+    let contactIndex = {{ count($contacts) }};
+    const maxContacts = 3;
+
+    // Función para actualizar el número de contacto y mostrar/ocultar botones de eliminar
+    function updateContactNumbers() {
+        const contactRows = contactsContainer.querySelectorAll('.contact-row');
+        contactRows.forEach((row, index) => {
+            const title = row.querySelector('h6');
+            title.textContent = `Contacto ${index + 1}`;
+            
+            const removeBtn = row.querySelector('.remove-contact');
+            // Mostrar botón eliminar solo si hay más de un contacto
+            if (contactRows.length > 1) {
+                removeBtn.style.display = 'block';
+            } else {
+                removeBtn.style.display = 'none';
+            }
+        });
+
+        // Deshabilitar botón agregar si ya hay 3 contactos
+        if (contactRows.length >= maxContacts) {
+            addContactBtn.disabled = true;
+            addContactBtn.classList.add('disabled');
+        } else {
+            addContactBtn.disabled = false;
+            addContactBtn.classList.remove('disabled');
+        }
+    }
+
+    // Agregar nuevo contacto
+    addContactBtn.addEventListener('click', function() {
+        const contactRows = contactsContainer.querySelectorAll('.contact-row');
+        
+        if (contactRows.length >= maxContacts) {
+            alert('Solo se pueden agregar hasta ' + maxContacts + ' contactos');
+            return;
+        }
+
+        const newContactHtml = `
+            <div class="contact-row mb-3 p-3 border rounded" data-contact-index="${contactIndex}">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0">Contacto ${contactIndex + 1}</h6>
+                    <button type="button" class="btn btn-sm btn-danger remove-contact">
+                        <i class="fas fa-trash"></i> Eliminar
+                    </button>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-2">
+                        <label class="form-label">Persona de Contacto</label>
+                        <input type="text" class="form-control" name="contacts[${contactIndex}][contact_person]" value="" placeholder="Nombre completo">
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <label class="form-label">Teléfono</label>
+                        <input type="text" class="form-control" name="contacts[${contactIndex}][phone]" value="" placeholder="Ej: +56 9 1234 5678">
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="contacts[${contactIndex}][email]" value="" placeholder="ejemplo@correo.com">
+                    </div>
+                </div>
+            </div>
+        `;
+
+        contactsContainer.insertAdjacentHTML('beforeend', newContactHtml);
+        contactIndex++;
+        updateContactNumbers();
+
+        // Agregar evento al nuevo botón de eliminar
+        const newRow = contactsContainer.lastElementChild;
+        const removeBtn = newRow.querySelector('.remove-contact');
+        removeBtn.addEventListener('click', function() {
+            removeContact(newRow);
+        });
+    });
+
+    // Eliminar contacto
+    function removeContact(row) {
+        const contactRows = contactsContainer.querySelectorAll('.contact-row');
+        
+        if (contactRows.length <= 1) {
+            alert('Debe haber al menos un contacto');
+            return;
+        }
+
+        row.remove();
+        updateContactNumbers();
+        
+        // Reindexar los contactos restantes
+        reindexContacts();
+    }
+
+    // Reindexar contactos después de eliminar
+    function reindexContacts() {
+        const contactRows = contactsContainer.querySelectorAll('.contact-row');
+        contactRows.forEach((row, newIndex) => {
+            // Actualizar los nombres de los campos
+            const inputs = row.querySelectorAll('input');
+            inputs.forEach(input => {
+                const name = input.getAttribute('name');
+                if (name) {
+                    const newName = name.replace(/contacts\[\d+\]/, `contacts[${newIndex}]`);
+                    input.setAttribute('name', newName);
+                }
+            });
+        });
+        updateContactNumbers();
+    }
+
+    // Agregar eventos a los botones de eliminar existentes
+    contactsContainer.querySelectorAll('.remove-contact').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const row = this.closest('.contact-row');
+            removeContact(row);
+        });
+    });
+
+    // Inicializar
+    updateContactNumbers();
+});
+</script>
 @endsection
 

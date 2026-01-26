@@ -32,4 +32,9 @@ class LogisticsCompany extends Model
     {
         return $this->hasMany(Shipment::class, 'transport_company_id');
     }
+
+    public function contacts()
+    {
+        return $this->morphMany(EntityContact::class, 'entity')->orderBy('order');
+    }
 }

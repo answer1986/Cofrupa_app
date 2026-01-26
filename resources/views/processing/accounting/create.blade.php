@@ -4,7 +4,7 @@
 <div class="container">
     <div class="row">
         <div class="col-12">
-            <h2><i class="fas fa-plus"></i> Nuevo Registro Contable</h2>
+            <h2><i class="fas fa-plus"></i> Nuevo Registro Financiero</h2>
         </div>
     </div>
 

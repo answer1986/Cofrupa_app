@@ -31,4 +31,9 @@ class ShippingLine extends Model
     {
         return $this->hasMany(Shipment::class);
     }
+
+    public function contacts()
+    {
+        return $this->morphMany(EntityContact::class, 'entity')->orderBy('order');
+    }
 }

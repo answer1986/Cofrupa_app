@@ -25,6 +25,7 @@ class Shipment extends Model
         'transport_email',
         'transport_request_number',
         'transport_notes',
+        'truck_cost',
         'plant_pickup_scheduled',
         'plant_pickup_actual',
         'customs_loading_scheduled',
@@ -39,6 +40,7 @@ class Shipment extends Model
     protected $casts = [
         'scheduled_date' => 'date',
         'actual_date' => 'date',
+        'truck_cost' => 'decimal:2',
         'plant_pickup_scheduled' => 'datetime',
         'plant_pickup_actual' => 'datetime',
         'customs_loading_scheduled' => 'datetime',

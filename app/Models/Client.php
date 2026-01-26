@@ -14,8 +14,13 @@ class Client extends Model
         'type',
         'email',
         'phone',
+        'customs_agency',
         'address',
         'notes',
+        'tax_id',
+        'bank_name',
+        'bank_account_type',
+        'bank_account_number',
     ];
 
     // Relationships
@@ -27,6 +32,11 @@ class Client extends Model
     public function contracts()
     {
         return $this->hasMany(Contract::class);
+    }
+
+    public function contacts()
+    {
+        return $this->morphMany(EntityContact::class, 'entity')->orderBy('order');
     }
 
     // Accessors
