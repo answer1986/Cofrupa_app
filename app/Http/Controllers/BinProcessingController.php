@@ -43,7 +43,9 @@ class BinProcessingController extends Controller
             $purchase = Purchase::find($request->purchase_id);
         }
 
-        return view('bin_processing.create', compact('availableBins', 'purchase'));
+        $suppliers = Supplier::orderBy('name')->get();
+
+        return view('bin_processing.create', compact('availableBins', 'purchase', 'suppliers'));
     }
 
     /**
@@ -54,6 +56,7 @@ class BinProcessingController extends Controller
         $request->validate([
             'source_bin_ids' => 'required|array|min:1',
             'source_bin_ids.*' => 'exists:processed_bins,id',
+            'supplier_id' => 'required|exists:suppliers,id',
             'new_bin_number' => 'required|string|max:50|unique:processed_bins,current_bin_number',
             'numero_tarja' => 'nullable|string|max:100',
             'processed_calibre' => [
@@ -66,6 +69,19 @@ class BinProcessingController extends Controller
             'calibre_promedio' => 'nullable|string|max:20',
             'dano_total' => 'nullable|numeric|min:0|max:100',
             'numero_lote' => 'nullable|string|max:100',
+            'processing_start_date' => 'required|date',
+            'processing_end_date' => 'nullable|date|after_or_equal:processing_start_date',
+            'bins_processed_per_day' => 'nullable|string',
+            'defect_notes' => 'nullable|string|max:1000',
+            'observations' => 'nullable|string|max:1000',
+            'fruit_type' => 'nullable|string|max:100',
+            'csg_code' => 'nullable|string|max:100',
+            'net_weight' => 'nullable|numeric|min:0',
+            'cofrupa_plastic_bins_count' => 'nullable|integer|min:0',
+            'external_service' => 'nullable|boolean',
+            'external_service_client' => 'nullable|string|max:255|required_if:external_service,1',
+            'external_service_period_start' => 'nullable|date|required_if:external_service,1',
+            'external_service_period_end' => 'nullable|date|after_or_equal:external_service_period_start|required_if:external_service,1',
             'notes' => 'nullable|string|max:500',
         ]);
 
@@ -79,30 +95,49 @@ class BinProcessingController extends Controller
         // Calculate total weight from all source bins
         $totalWeight = $sourceBins->sum('current_weight');
 
+        // Parse bins processed per day
+        $binsPerDay = [];
+        if ($request->bins_processed_per_day) {
+            $binsPerDay = json_decode($request->bins_processed_per_day, true) ?? [];
+        }
+
         // Create new processed bin (this represents the mixed result)
         $processedBin = ProcessedBin::create([
-            'supplier_id' => $sourceBins->first()->supplier_id, // Primary supplier
-            'entry_date' => now(), // Processing date becomes entry for new bin
+            'supplier_id' => $request->supplier_id,
+            'entry_date' => $request->processing_start_date,
             'original_bin_number' => $request->new_bin_number,
             'current_bin_number' => $request->new_bin_number,
             'tarja_number' => $request->numero_tarja,
-            'original_weight' => $totalWeight,
-            'processed_weight' => $totalWeight,
+            'original_weight' => $request->net_weight ?? $totalWeight,
+            'processed_weight' => $request->net_weight ?? $totalWeight,
+            'net_fruit_weight' => $request->net_weight ?? $totalWeight,
             'original_calibre' => $request->processed_calibre,
             'processed_calibre' => $request->processed_calibre,
             'unidades_per_pound_avg' => $request->calibre_promedio,
             'damage_percentage' => $request->dano_total,
             'lote' => $request->numero_lote,
+            'processing_start_date' => $request->processing_start_date,
+            'processing_end_date' => $request->processing_end_date,
+            'bins_processed_per_day' => $binsPerDay,
+            'defect_notes' => $request->defect_notes,
+            'observations' => $request->observations,
+            'fruit_type' => $request->fruit_type,
+            'csg_code' => $request->csg_code,
+            'cofrupa_plastic_bins_count' => $request->cofrupa_plastic_bins_count ?? 0,
+            'external_service' => $request->has('external_service') && $request->external_service == '1',
+            'external_service_client' => $request->external_service_client,
+            'external_service_period_start' => $request->external_service_period_start,
+            'external_service_period_end' => $request->external_service_period_end,
             'status' => 'processed',
             'received_at' => now(),
-            'processing_date' => now(),
-            'processed_at' => now(),
+            'processing_date' => $request->processing_start_date,
+            'processed_at' => $request->processing_end_date ?? now(),
             'processing_history' => [
                 [
                     'date' => now()->format('Y-m-d H:i:s'),
                     'action' => 'created_from_mixing',
                     'source_bins' => $sourceBins->pluck('current_bin_number')->toArray(),
-                    'total_weight' => $totalWeight,
+                    'total_weight' => $request->net_weight ?? $totalWeight,
                     'calibre' => $request->processed_calibre,
                 ]
             ],
