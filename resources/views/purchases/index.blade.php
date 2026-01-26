@@ -5,9 +5,14 @@
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2><i class="fas fa-shopping-cart"></i> Gestión de Compras</h2>
-            <a href="{{ route('purchases.create') }}" class="btn btn-success">
-                <i class="fas fa-plus"></i> Nueva Compra
-            </a>
+            <div>
+                <a href="{{ route('purchases.quick-create') }}" class="btn btn-warning me-2">
+                    <i class="fas fa-bolt"></i> Compra Rápida
+                </a>
+                <a href="{{ route('purchases.create') }}" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Nueva Compra
+                </a>
+            </div>
         </div>
     </div>
 </div>
@@ -39,6 +44,7 @@
                             <tr>
                                 <th><i class="fas fa-calendar"></i> Fecha</th>
                                 <th><i class="fas fa-file-invoice"></i> Orden</th>
+                                <th><i class="fas fa-building"></i> Comprador</th>
                                 <th><i class="fas fa-truck"></i> Proveedor</th>
                                 <th><i class="fas fa-boxes"></i> Bins</th>
                                 <th><i class="fas fa-weight"></i> Peso (kg)</th>
@@ -53,6 +59,9 @@
                             <tr>
                                 <td>{{ $purchase->purchase_date->format('d/m/Y') }}</td>
                                 <td>{{ $purchase->purchase_order ?: 'N/A' }}</td>
+                                <td>
+                                    <span class="badge bg-primary">{{ $purchase->buyer ?? 'Cofrupa' }}</span>
+                                </td>
                                 <td>
                                     <strong>{{ $purchase->supplier->name }}</strong>
                                 </td>
@@ -86,7 +95,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="9" class="text-center text-muted py-4">
+                                <td colspan="10" class="text-center text-muted py-4">
                                     <i class="fas fa-shopping-cart fa-2x mb-2"></i>
                                     <br>
                                     No hay compras registradas aún.

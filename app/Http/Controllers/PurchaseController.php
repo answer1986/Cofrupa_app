@@ -38,6 +38,64 @@ class PurchaseController extends Controller
     }
 
     /**
+     * Show the form for quick purchase creation (minimal fields).
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function quickCreate()
+    {
+        $suppliers = Supplier::orderBy('name')->get();
+        return view('purchases.quick-create', compact('suppliers'));
+    }
+
+    /**
+     * Store a quick purchase with minimal data.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function quickStore(Request $request)
+    {
+        $request->validate([
+            'supplier_id' => 'required|exists:suppliers,id',
+            'buyer' => 'required|in:LG,Cofrupa,Comercializadora',
+            'purchase_type' => 'required|string|max:255',
+            'purchase_date' => 'required|date',
+            'weight_purchased' => 'required|numeric|min:0',
+            'calibre' => [
+                'required',
+                Rule::in([
+                    '80-90', '120-x', '90-100', '70-90',
+                    'Grande 50-60', 'Mediana 40-50', 'Pequeña 30-40'
+                ])
+            ],
+            'units_per_pound' => 'required|integer|min:1',
+        ]);
+
+        // Create purchase with minimal data
+        // Note: Financial data is set to 0/null and will be updated when completing the purchase
+        $purchase = Purchase::create([
+            'supplier_id' => $request->supplier_id,
+            'buyer' => $request->buyer,
+            'purchase_type' => $request->purchase_type,
+            'purchase_date' => $request->purchase_date,
+            'weight_purchased' => $request->weight_purchased,
+            'calibre' => $request->calibre,
+            'units_per_pound' => $request->units_per_pound,
+            'unit_price' => null,
+            'total_amount' => null,
+            'amount_paid' => null,
+            'amount_owed' => null,
+            'payment_status' => 'pending',
+            'currency' => 'CLP',
+        ]);
+
+        // Don't update supplier debt here - it will be updated when completing the purchase details
+        // Redirect to edit page to complete the details
+        return redirect()->route('purchases.edit', $purchase)->with('success', 'Compra rápida creada. Complete los detalles a continuación.');
+    }
+
+    /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -47,7 +105,7 @@ class PurchaseController extends Controller
     {
         $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
-            'buyer' => 'required|in:LG,Cofrupa',
+            'buyer' => 'required|in:LG,Cofrupa,Comercializadora',
             'purchase_order' => 'nullable|string|max:50',
             'purchase_type' => 'required|in:fruta,pure_fruta,descarte',
             'purchase_date' => 'required|date',
@@ -66,6 +124,7 @@ class PurchaseController extends Controller
             'notes' => 'nullable|string|max:500',
             'supplier_bins_count' => 'nullable|integer|min:0',
             'supplier_bins_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'bins_to_send' => 'nullable|string',
             'price_in_usd' => 'nullable|boolean',
         ]);
 
@@ -107,6 +166,7 @@ class PurchaseController extends Controller
             'notes' => $request->notes,
             'supplier_bins_count' => $request->supplier_bins_count,
             'supplier_bins_photo' => $photoPath,
+            'bins_to_send' => $request->bins_to_send ? (is_string($request->bins_to_send) ? json_decode($request->bins_to_send, true) : $request->bins_to_send) : null,
             'currency' => $request->price_in_usd ? 'USD' : 'CLP',
         ]);
 
@@ -159,6 +219,8 @@ class PurchaseController extends Controller
     {
         $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
+            'buyer' => 'required|in:LG,Cofrupa,Comercializadora',
+            'purchase_type' => 'required|string|max:50',
             'purchase_order' => 'nullable|string|max:255',
             'purchase_date' => 'required|date',
             'weight_purchased' => 'required|numeric|min:0',
@@ -168,6 +230,9 @@ class PurchaseController extends Controller
             'total_amount' => 'nullable|numeric|min:0',
             'amount_paid' => 'nullable|numeric|min:0',
             'payment_due_date' => 'nullable|date|after:today',
+            'supplier_bins_count' => 'nullable|integer|min:0',
+            'supplier_bins_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'bins_to_send' => 'nullable|string',
             'bin_ids' => 'required|array|min:1',
             'bin_ids.*' => 'exists:bins,id',
             'notes' => 'nullable|string',
@@ -192,9 +257,17 @@ class PurchaseController extends Controller
             $paymentStatus = 'partial';
         }
 
+        // Handle photo upload if new file is provided
+        $photoPath = $purchase->supplier_bins_photo;
+        if ($request->hasFile('supplier_bins_photo')) {
+            $photoPath = $request->file('supplier_bins_photo')->store('supplier_bins_photos', 'public');
+        }
+
         // Update purchase
         $purchase->update([
             'supplier_id' => $request->supplier_id,
+            'buyer' => $request->buyer,
+            'purchase_type' => $request->purchase_type,
             'purchase_order' => $request->purchase_order,
             'purchase_date' => $request->purchase_date,
             'weight_purchased' => $request->weight_purchased,
@@ -207,6 +280,9 @@ class PurchaseController extends Controller
             'payment_status' => $paymentStatus,
             'payment_due_date' => $request->payment_due_date,
             'notes' => $request->notes,
+            'supplier_bins_count' => $request->supplier_bins_count,
+            'supplier_bins_photo' => $photoPath,
+            'bins_to_send' => $request->bins_to_send ? (is_string($request->bins_to_send) ? json_decode($request->bins_to_send, true) : $request->bins_to_send) : null,
         ]);
 
         // Update financial tracking for supplier

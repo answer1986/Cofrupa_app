@@ -58,7 +58,7 @@
                             <tr>
                                 <td>{{ $bin->entry_date->format('d/m/Y') }}</td>
                                 <td>
-                                    <strong>{{ $bin->bin_number }}</strong>
+                                    <strong>{{ $bin->display_bin_number }}</strong>
                                     @if($bin->purchase && $bin->purchase->id)
                                         <br><small class="text-muted">Compra #{{ $bin->purchase->id }}</small>
                                     @else
@@ -66,7 +66,7 @@
                                     @endif
                                 </td>
                                 <td>{{ $bin->supplier->name }}</td>
-                                <td>{{ number_format($bin->weight, 2) }}</td>
+                                <td>{{ number_format($bin->current_weight, 2) }}</td>
                                 <td>{{ $bin->calibre_display }}</td>
                                 <td>{{ $bin->destination ?: 'N/A' }}</td>
                                 <td>
@@ -131,7 +131,7 @@
     <div class="col-md-3">
         <div class="card text-center">
             <div class="card-body">
-                <h3 class="text-info">{{ number_format($processedBins->sum('weight'), 2) }}</h3>
+                <h3 class="text-info">{{ number_format($processedBins->sum('current_weight'), 2) }}</h3>
                 <p class="text-muted mb-0">Total Peso (kg)</p>
             </div>
         </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Supplier;
 use App\Models\ProcessedBin;
+use App\Models\BinTraceability;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -42,6 +43,7 @@ class BinReceptionController extends Controller
             'entry_date' => 'required|date',
             'vehicle_plate' => 'required|string|max:20',
             'reception_weight_per_truck' => 'nullable|numeric|min:0',
+            'guide_number' => 'nullable|string|max:100',
             'existing_bins' => 'nullable|array',
             'existing_bins.*.bin_ids' => 'required_with:existing_bins|array|min:1|max:5',
             'existing_bins.*.bin_ids.*' => 'exists:bins,id',
@@ -60,6 +62,7 @@ class BinReceptionController extends Controller
             'existing_bins.*.unidades_per_pound_avg' => 'nullable|numeric|min:0',
             'existing_bins.*.humidity' => 'nullable|numeric|min:0|max:100',
             'existing_bins.*.damage_percentage' => 'nullable|numeric|min:0|max:100',
+            'existing_bins.*.notes' => 'nullable|string|max:500',
             'lote' => 'nullable|string|max:100',
             'bins' => 'nullable|array',
             'bins.*.bin_number' => 'nullable|string|max:255',
@@ -78,6 +81,7 @@ class BinReceptionController extends Controller
             'bins.*.unidades_per_pound_avg' => 'nullable|numeric|min:0',
             'bins.*.humidity' => 'nullable|numeric|min:0|max:100',
             'bins.*.damage_percentage' => 'nullable|numeric|min:0|max:100',
+            'bins.*.notes' => 'nullable|string|max:500',
             'notes' => 'nullable|string|max:500',
         ]);
 
@@ -164,6 +168,7 @@ class BinReceptionController extends Controller
                     'supplier_id' => $supplier->id,
                     'entry_date' => $request->entry_date,
                     'vehicle_plate' => strtoupper($request->vehicle_plate),
+                    'guide_number' => $request->guide_number,
                     'original_bin_number' => $binNumbers,
                     'bin_type' => $binType,
                     'trash_level' => $groupData['trash_level'] ?? 'mediano',
@@ -185,7 +190,7 @@ class BinReceptionController extends Controller
                     'damage_percentage' => $groupData['damage_percentage'] ?? null,
                     'status' => 'received',
                     'received_at' => now(),
-                    'notes' => $request->notes,
+                    'notes' => $groupData['notes'] ?? $request->notes,
                 ]);
 
                 // Generate tarja number if not set
@@ -196,6 +201,15 @@ class BinReceptionController extends Controller
                 
                 // Generate initial QR code
                 $processedBin->generateInitialQrCode();
+
+                // Registrar trazabilidad inicial (recepción)
+                BinTraceability::record(BinTraceability::OPERATION_INITIAL, [
+                    'target_bin_id' => $processedBin->id,
+                    'purchase_id' => $processedBin->purchase_id,
+                    'weight_kg' => $netWeight,
+                    'operation_date' => now(),
+                    'notes' => "Recepción inicial - Lote: {$request->lote}, Placa: {$request->vehicle_plate}",
+                ]);
 
                 // Update existing bins status to returned
                 foreach ($existingBins as $existingBin) {
@@ -241,6 +255,7 @@ class BinReceptionController extends Controller
                     'supplier_id' => $supplier->id,
                     'entry_date' => $request->entry_date,
                     'vehicle_plate' => strtoupper($request->vehicle_plate),
+                    'guide_number' => $request->guide_number,
                     'original_bin_number' => $binNumber,
                     'bin_type' => $binType,
                     'trash_level' => $binData['trash_level'],
@@ -262,7 +277,7 @@ class BinReceptionController extends Controller
                     'damage_percentage' => $binData['damage_percentage'] ?? null,
                     'status' => 'received',
                     'received_at' => now(),
-                    'notes' => $request->notes,
+                    'notes' => $binData['notes'] ?? $request->notes,
                 ]);
 
                 // Generate tarja number if not set
@@ -273,6 +288,15 @@ class BinReceptionController extends Controller
                 
                 // Generate initial QR code
                 $bin->generateInitialQrCode();
+
+                // Registrar trazabilidad inicial (recepción)
+                BinTraceability::record(BinTraceability::OPERATION_INITIAL, [
+                    'target_bin_id' => $bin->id,
+                    'purchase_id' => $bin->purchase_id,
+                    'weight_kg' => $netWeight,
+                    'operation_date' => now(),
+                    'notes' => "Recepción inicial - Lote: {$request->lote}, Placa: {$request->vehicle_plate}",
+                ]);
 
                 $receivedBins[] = $bin;
             }

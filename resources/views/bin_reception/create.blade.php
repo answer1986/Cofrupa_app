@@ -1,10 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
 <div class="row">
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2><i class="fas fa-truck-loading"></i> Nueva Recepción de Bins</h2>
+            <h2><i class="fas fa-truck-loading"></i> Nueva Recepción de Productos</h2>
             <a href="{{ route('bin_reception.index') }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Volver
             </a>
@@ -65,7 +68,7 @@
                                     <input type="text" class="form-control" id="supplier_csg_code" readonly>
                                 </div>
                                 <div class="input-group mt-2">
-                                    <span class="input-group-text"><i class="fas fa-hashtag"></i> Interno:</span>
+                                    <span class="input-group-text"><i class="fas fa-hashtag"></i>Lote interno:</span>
                                     <input type="text" class="form-control" id="supplier_internal_code" readonly>
                                 </div>
                             </div>
@@ -116,9 +119,9 @@
                                 <label for="lote" class="form-label">
                                     <i class="fas fa-tag"></i> Lote
                                 </label>
-                                <input type="text" class="form-control @error('lote') is-invalid @enderror" 
-                                       id="lote" name="lote" 
-                                       value="{{ old('lote') }}" 
+                                <input type="text" class="form-control @error('lote') is-invalid @enderror"
+                                       id="lote" name="lote"
+                                       value="{{ old('lote') }}"
                                        placeholder="Ej: LOTE-2025-001">
                                 @error('lote')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -126,12 +129,30 @@
                             </div>
                         </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="notes" class="form-label">Notas</label>
-                        <textarea class="form-control @error('notes') is-invalid @enderror" id="notes" name="notes" rows="3" placeholder="Observaciones de la recepción">{{ old('notes') }}</textarea>
-                        @error('notes')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="guide_number" class="form-label">
+                                    <i class="fas fa-file-alt"></i> N° Guía o Factura
+                                </label>
+                                <input type="text" class="form-control @error('guide_number') is-invalid @enderror"
+                                       id="guide_number" name="guide_number"
+                                       value="{{ old('guide_number') }}"
+                                       placeholder="Ej: GUIA-001 o FACT-001">
+                                @error('guide_number')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="notes" class="form-label">Notas</label>
+                                <textarea class="form-control @error('notes') is-invalid @enderror" id="notes" name="notes" rows="3" placeholder="Observaciones de la recepción">{{ old('notes') }}</textarea>
+                                @error('notes')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -460,7 +481,7 @@ function addWeighingGroup() {
                         <small class="text-muted">Promedio de unidades por libra</small>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <!--<div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label">Humedad (%)</label>
                         <input type="number" step="0.01" class="form-control" 
@@ -479,7 +500,7 @@ function addWeighingGroup() {
                                min="0" max="100">
                         <small class="text-muted">Porcentaje de daño de la fruta</small>
                     </div>
-                </div>
+                </div>-->
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label class="form-label">
@@ -514,6 +535,20 @@ function addWeighingGroup() {
                     </div>
                 </div>
             </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-comment"></i> Notas / Comentarios
+                        </label>
+                        <textarea class="form-control" 
+                                  name="bins[${binCount}][notes]" 
+                                  rows="2" 
+                                  placeholder="Agregar notas o comentarios sobre este grupo de pesaje (opcional)"></textarea>
+                        <small class="text-muted">Información adicional sobre este grupo de pesaje</small>
+                    </div>
+                </div>
+            </div>
             <div class="alert alert-info mb-0">
                 <small>
                     <i class="fas fa-info-circle"></i> 
@@ -528,7 +563,7 @@ function addWeighingGroup() {
 }
 
 function removeBin(binId) {
-    const binElement = document.getElementById(`bin-${binId}`);
+    const binElement = document.getElementById(`group-${binId}`);
     if (binElement) {
         binElement.remove();
         updateSummary();
@@ -798,6 +833,20 @@ function createWeighingGroupFromSelected() {
             </div>
             <div class="row">
                 <div class="col-md-12">
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-comment"></i> Notas / Comentarios
+                        </label>
+                        <textarea class="form-control" 
+                                  name="existing_bins[${existingBinGroupsCount}][notes]" 
+                                  rows="2" 
+                                  placeholder="Agregar notas o comentarios sobre este grupo de pesaje (opcional)"></textarea>
+                        <small class="text-muted">Información adicional sobre este grupo de pesaje</small>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
                     ${selectedBins.map(bin => `
                         <input type="hidden" name="existing_bins[${existingBinGroupsCount}][bin_ids][]" value="${bin.id}">
                     `).join('')}
@@ -900,25 +949,73 @@ function loadDeliveredBins(supplierId) {
 }
 
 // Setup supplier change listener and form validation
-document.addEventListener('DOMContentLoaded', function() {
-    const supplierSelect = document.getElementById('supplier_id');
-    
-    supplierSelect.addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
-        const csgCode = selectedOption.getAttribute('data-csg') || '';
-        const internalCode = selectedOption.getAttribute('data-internal') || '';
+// Wait for jQuery and DOM to be ready
+(function() {
+    function initSelect2() {
+        if (typeof jQuery === 'undefined' || typeof jQuery.fn.select2 === 'undefined') {
+            // Retry after a short delay if jQuery/Select2 not loaded yet
+            setTimeout(initSelect2, 100);
+            return;
+        }
         
-        document.getElementById('supplier_csg_code').value = csgCode;
-        document.getElementById('supplier_internal_code').value = internalCode;
+        // Initialize Select2 for supplier dropdown
+        jQuery('#supplier_id').select2({
+            theme: 'bootstrap-5',
+            placeholder: 'Buscar o seleccionar proveedor...',
+            allowClear: true,
+            language: {
+                noResults: function() {
+                    return "No se encontraron resultados";
+                },
+                searching: function() {
+                    return "Buscando...";
+                }
+            }
+        });
         
-        loadExistingBins(this.value);
-    });
-    
-    // Initialize codes if supplier is pre-selected
-    if (supplierSelect.value) {
-        supplierSelect.dispatchEvent(new Event('change'));
+        const supplierSelect = document.getElementById('supplier_id');
+        
+        // Listen for Select2 change event
+        jQuery('#supplier_id').on('select2:select', function (e) {
+            const selectedOption = jQuery(this).find('option:selected');
+            const csgCode = selectedOption.data('csg') || '';
+            const internalCode = selectedOption.data('internal') || '';
+            
+            document.getElementById('supplier_csg_code').value = csgCode;
+            document.getElementById('supplier_internal_code').value = internalCode;
+            
+            loadExistingBins(jQuery(this).val());
+        });
+        
+        // Listen for Select2 clear event
+        jQuery('#supplier_id').on('select2:clear', function (e) {
+            document.getElementById('supplier_csg_code').value = '';
+            document.getElementById('supplier_internal_code').value = '';
+            loadExistingBins(null);
+        });
+        
+        // Initialize codes if supplier is pre-selected
+        if (supplierSelect && supplierSelect.value) {
+            const selectedOption = jQuery(supplierSelect).find('option:selected');
+            const csgCode = selectedOption.data('csg') || '';
+            const internalCode = selectedOption.data('internal') || '';
+            
+            document.getElementById('supplier_csg_code').value = csgCode;
+            document.getElementById('supplier_internal_code').value = internalCode;
+            
+            loadExistingBins(supplierSelect.value);
+        }
     }
     
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSelect2);
+    } else {
+        initSelect2();
+    }
+})();
+
+// Setup other form listeners
+document.addEventListener('DOMContentLoaded', function() {
     // Update summary when weight per truck changes
     document.getElementById('reception_weight_per_truck').addEventListener('input', updateSummary);
 
@@ -958,4 +1055,8 @@ document.addEventListener('DOMContentLoaded', function() {
     updateSelectedBinsCount();
 });
 </script>
+
+<!-- jQuery and Select2 JS (loaded at the end) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 @endsection

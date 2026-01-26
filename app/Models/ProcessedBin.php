@@ -119,6 +119,194 @@ class ProcessedBin extends Model
             ->withTimestamps();
     }
 
+    // Trazabilidad: bins que fueron fuente para crear este bin
+    public function sourceTraceability()
+    {
+        return $this->hasMany(BinTraceability::class, 'target_bin_id');
+    }
+
+    // Trazabilidad: bins que fueron creados desde este bin
+    public function targetTraceability()
+    {
+        return $this->hasMany(BinTraceability::class, 'source_bin_id');
+    }
+
+    // Obtener todos los bins fuente (hacia atrás en la cadena)
+    public function getSourceBins()
+    {
+        $sourceBins = collect();
+        $traceability = $this->sourceTraceability()->with('sourceBin')->get();
+        
+        foreach ($traceability as $trace) {
+            if ($trace->sourceBin) {
+                $sourceBins->push($trace->sourceBin);
+                // Recursivamente obtener bins fuente de los bins fuente
+                $sourceBins = $sourceBins->merge($trace->sourceBin->getSourceBins());
+            }
+        }
+        
+        return $sourceBins->unique('id');
+    }
+
+    // Obtener todos los bins destino (hacia adelante en la cadena)
+    public function getTargetBins()
+    {
+        $targetBins = collect();
+        $traceability = $this->targetTraceability()->with('targetBin')->get();
+        
+        foreach ($traceability as $trace) {
+            if ($trace->targetBin) {
+                $targetBins->push($trace->targetBin);
+                // Recursivamente obtener bins destino de los bins destino
+                $targetBins = $targetBins->merge($trace->targetBin->getTargetBins());
+            }
+        }
+        
+        return $targetBins->unique('id');
+    }
+
+    // Obtener órdenes de procesamiento relacionadas
+    public function getProcessOrders()
+    {
+        $orders = collect();
+        $traceability = $this->targetTraceability()->with('processOrder')->get();
+        
+        foreach ($traceability as $trace) {
+            if ($trace->processOrder) {
+                $orders->push($trace->processOrder);
+            }
+        }
+        
+        // También incluir órdenes directas
+        $orders = $orders->merge($this->orders);
+        
+        return $orders->unique('id');
+    }
+
+    // Obtener cadena completa de trazabilidad (árbol completo)
+    public function getFullTraceabilityTree()
+    {
+        return [
+            'bin' => $this,
+            'sources' => $this->getSourceBins()->map(function($bin) {
+                return [
+                    'bin' => $bin,
+                    'traceability' => $bin->getFullTraceabilityTree()
+                ];
+            }),
+            'targets' => $this->getTargetBins()->map(function($bin) {
+                return [
+                    'bin' => $bin,
+                    'traceability' => $bin->getFullTraceabilityTree()
+                ];
+            }),
+            'process_orders' => $this->getProcessOrders(),
+        ];
+    }
+
+    // Obtener proveedor original (el primero en la cadena de trazabilidad)
+    public function getOriginalSupplier()
+    {
+        // Si este bin tiene trazabilidad hacia atrás, buscar el proveedor del bin más antiguo
+        $sourceBins = $this->getSourceBins();
+        
+        if ($sourceBins->isEmpty()) {
+            // Este es el bin original, retornar su proveedor
+            return $this->supplier;
+        }
+        
+        // Buscar recursivamente el proveedor original
+        $originalSupplier = null;
+        foreach ($sourceBins as $sourceBin) {
+            $supplier = $sourceBin->getOriginalSupplier();
+            if ($supplier) {
+                $originalSupplier = $supplier;
+                break; // Tomar el primero encontrado
+            }
+        }
+        
+        return $originalSupplier ?? $this->supplier;
+    }
+
+    // Obtener todos los proveedores involucrados en la cadena
+    public function getAllSuppliersInChain()
+    {
+        $suppliers = collect();
+        
+        // Agregar el proveedor de este bin
+        if ($this->supplier) {
+            $suppliers->push($this->supplier);
+        }
+        
+        // Agregar proveedores de bins fuente
+        $sourceBins = $this->getSourceBins();
+        foreach ($sourceBins as $sourceBin) {
+            $suppliers = $suppliers->merge($sourceBin->getAllSuppliersInChain());
+        }
+        
+        return $suppliers->unique('id');
+    }
+
+    // Obtener información de trazabilidad simplificada con proveedor
+    public function getTraceabilityInfo()
+    {
+        $originalSupplier = $this->getOriginalSupplier();
+        $sourceBins = $this->getSourceBins();
+        $targetBins = $this->getTargetBins();
+        $processOrders = $this->getProcessOrders();
+        
+        return [
+            'current_bin' => [
+                'id' => $this->id,
+                'bin_number' => $this->current_bin_number,
+                'tarja_number' => $this->tarja_number,
+                'weight' => $this->current_weight,
+                'calibre' => $this->current_calibre,
+                'status' => $this->status,
+                'supplier' => $this->supplier ? [
+                    'id' => $this->supplier->id,
+                    'name' => $this->supplier->name,
+                    'internal_code' => $this->supplier->internal_code,
+                    'csg_code' => $this->supplier->csg_code,
+                ] : null,
+            ],
+            'original_supplier' => $originalSupplier ? [
+                'id' => $originalSupplier->id,
+                'name' => $originalSupplier->name,
+                'internal_code' => $originalSupplier->internal_code,
+                'csg_code' => $originalSupplier->csg_code,
+            ] : null,
+            'all_suppliers' => $this->getAllSuppliersInChain()->map(function($supplier) {
+                return [
+                    'id' => $supplier->id,
+                    'name' => $supplier->name,
+                    'internal_code' => $supplier->internal_code,
+                    'csg_code' => $supplier->csg_code,
+                ];
+            }),
+            'source_bins_count' => $sourceBins->count(),
+            'source_bins' => $sourceBins->map(function($bin) {
+                return [
+                    'id' => $bin->id,
+                    'bin_number' => $bin->current_bin_number,
+                    'tarja_number' => $bin->tarja_number,
+                    'weight' => $bin->current_weight,
+                    'supplier' => $bin->supplier ? $bin->supplier->name : null,
+                ];
+            }),
+            'target_bins_count' => $targetBins->count(),
+            'process_orders_count' => $processOrders->count(),
+            'process_orders' => $processOrders->map(function($order) {
+                return [
+                    'id' => $order->id,
+                    'order_number' => $order->order_number,
+                    'plant' => $order->plant ? $order->plant->name : null,
+                    'status' => $order->status,
+                ];
+            }),
+        ];
+    }
+
     // Get calibre display name
     public function getCalibreDisplayAttribute()
     {

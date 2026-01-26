@@ -26,7 +26,10 @@ class StockController extends Controller
 
         // Filtro por calibre
         if ($request->filled('caliber')) {
-            $query->where('caliber', 'like', '%' . $request->caliber . '%');
+            $query->where(function($q) use ($request) {
+                $q->where('original_calibre', 'like', '%' . $request->caliber . '%')
+                  ->orWhere('processed_calibre', 'like', '%' . $request->caliber . '%');
+            });
         }
 
         // Filtro por lote

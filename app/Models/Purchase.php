@@ -27,6 +27,7 @@ class Purchase extends Model
         'notes',
         'supplier_bins_count',
         'supplier_bins_photo',
+        'bins_to_send',
         'currency',
         'purchase_type',
         'buyer',
@@ -42,6 +43,7 @@ class Purchase extends Model
         'payment_date' => 'date',
         'payment_due_date' => 'date',
         'bin_ids' => 'array', // Cast to array for multiple bins
+        'bins_to_send' => 'array', // Cast to array for multiple bin requests
     ];
 
     // Relationship with supplier

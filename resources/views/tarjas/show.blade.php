@@ -135,7 +135,7 @@
                 </div>
                 
                 <div class="tarja-field">
-                    <div class="tarja-label"><i class="fas fa-star"></i> Daño / Suciedad</div>
+                    <div class="tarja-label"><i class="fas fa-star"></i> Daño</div>
                     <div class="tarja-value">
                         <div class="d-flex align-items-center justify-content-between">
                             <div>

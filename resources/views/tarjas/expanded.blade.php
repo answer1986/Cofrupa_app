@@ -142,7 +142,7 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-4 mb-3">
+                        <!--<div class="col-md-4 mb-3">
                             <strong>Nivel de Suciedad:</strong><br>
                             <span class="badge bg-{{ $processedBin->trash_level === 'limpio' ? 'success' : ($processedBin->trash_level === 'bajo' ? 'info' : ($processedBin->trash_level === 'mediano' ? 'warning' : 'danger')) }} fs-6">
                                 {{ ucfirst($processedBin->trash_level_display) }}
@@ -153,7 +153,7 @@
                             <span class="h4 text-warning">
                                 {{ str_repeat('★', $processedBin->trash_level_stars) }}{{ str_repeat('☆', 4 - $processedBin->trash_level_stars) }}
                             </span>
-                        </div>
+                        </div>-->
                         <div class="col-md-4 mb-3">
                             <strong>Porcentaje de Daño:</strong><br>
                             <span class="h4 text-danger">

@@ -4,7 +4,7 @@
 <div class="row">
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2><i class="fas fa-balance-scale"></i> Bins Procesados</h2>
+            <h2><i class="fas fa-balance-scale"></i> Proceso de calibración</h2>
             <a href="{{ route('bin_processing.create') }}" class="btn btn-success">
                 <i class="fas fa-plus"></i> Nuevo Procesamiento
             </a>
@@ -23,7 +23,7 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-list"></i> Bins Procesados</h5>
+                <h5 class="mb-0"><i class="fas fa-list"></i> Proceso de calibración</h5>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -63,6 +63,9 @@
                                 <td>
                                     <a href="{{ route('bin_processing.show', $bin) }}" class="btn btn-sm btn-info" title="Ver detalles">
                                         <i class="fas fa-eye"></i> Ver
+                                    </a>
+                                    <a href="{{ route('bin_processing.traceability', $bin) }}" class="btn btn-sm btn-primary" title="Ver trazabilidad">
+                                        <i class="fas fa-search"></i> Trazabilidad
                                     </a>
                                 </td>
                             </tr>

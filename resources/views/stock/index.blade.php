@@ -131,7 +131,7 @@
                                 <td>{{ $tarja->supplier->name ?? 'N/A' }}</td>
                                 <td>{{ $tarja->supplier_internal_code ?? 'N/A' }}</td>
                                 <td>{{ $tarja->lote ?? 'N/A' }}</td>
-                                <td>{{ $tarja->caliber ?? 'N/A' }}</td>
+                                <td>{{ $tarja->current_calibre ?? 'N/A' }}</td>
                                 <td>{{ number_format($tarja->net_fruit_weight, 0, ',', '.') }} kg</td>
                                 <td class="text-success fw-bold">
                                     {{ $tarja->available_kg ? number_format($tarja->available_kg, 0, ',', '.') : '0' }} kg

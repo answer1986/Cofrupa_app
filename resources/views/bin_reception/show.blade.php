@@ -25,6 +25,7 @@
                         <p><strong>Número del Bin:</strong> {{ $bin->current_bin_number }}</p>
                         <p><strong>Fecha de Recepción:</strong> {{ $bin->entry_date->format('d/m/Y') }}</p>
                         <p><strong>Peso:</strong> {{ number_format($bin->current_weight, 2) }} kg</p>
+                        <p><strong>N° Guía o Factura:</strong> {{ $bin->guide_number ?: 'N/A' }}</p>
                     </div>
                     <div class="col-md-6">
                         <p><strong>Calibre:</strong> {{ $bin->current_calibre_display }}</p>

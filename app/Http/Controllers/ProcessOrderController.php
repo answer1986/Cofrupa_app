@@ -6,6 +6,8 @@ use App\Models\ProcessOrder;
 use App\Models\Plant;
 use App\Models\Supplier;
 use App\Models\Contract;
+use App\Models\ProcessedBin;
+use App\Models\BinTraceability;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -147,5 +149,43 @@ class ProcessOrderController extends Controller
         $order->update(['alert_sent' => true]);
         
         return redirect()->back()->with('success', 'Alerta enviada exitosamente');
+    }
+
+    /**
+     * Asignar tarjas (processed bins) a una orden de procesamiento
+     */
+    public function assignTarjas(Request $request, ProcessOrder $order)
+    {
+        $validated = $request->validate([
+            'tarja_ids' => 'required|array|min:1',
+            'tarja_ids.*' => 'exists:processed_bins,id',
+            'quantities' => 'required|array',
+            'quantities.*' => 'numeric|min:0.01',
+        ]);
+
+        $tarjaIds = $validated['tarja_ids'];
+        $quantities = $validated['quantities'];
+
+        // Sincronizar tarjas con la orden
+        $syncData = [];
+        foreach ($tarjaIds as $index => $tarjaId) {
+            $quantity = $quantities[$index] ?? 0;
+            if ($quantity > 0) {
+                $syncData[$tarjaId] = ['quantity_kg' => $quantity];
+                
+                // Registrar trazabilidad: bin -> orden de procesamiento
+                BinTraceability::record(BinTraceability::OPERATION_PROCESSING, [
+                    'source_bin_id' => $tarjaId,
+                    'process_order_id' => $order->id,
+                    'weight_kg' => $quantity,
+                    'operation_date' => now(),
+                    'notes' => "Asignado a orden de procesamiento: {$order->order_number}",
+                ]);
+            }
+        }
+
+        $order->tarjas()->sync($syncData);
+
+        return redirect()->back()->with('success', 'Tarjas asignadas exitosamente a la orden.');
     }
 }

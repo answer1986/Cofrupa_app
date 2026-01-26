@@ -32,13 +32,20 @@ Route::middleware(['auth', '2fa'])->group(function () {
     Route::resource('users', App\Http\Controllers\UserController::class)->middleware('can:manage users');
     Route::resource('suppliers', App\Http\Controllers\SupplierController::class);
     Route::resource('bins', App\Http\Controllers\BinController::class);
+    // Quick purchase route (must be before resource route)
+    Route::get('/purchases/quick-create', [App\Http\Controllers\PurchaseController::class, 'quickCreate'])->name('purchases.quick-create');
+    Route::post('/purchases/quick-store', [App\Http\Controllers\PurchaseController::class, 'quickStore'])->name('purchases.quick-store');
     Route::resource('purchases', App\Http\Controllers\PurchaseController::class);
 
     // Bin Reception (initial QR generation for received bins)
     Route::resource('bin_reception', App\Http\Controllers\BinReceptionController::class)->middleware('can:manage processed bins');
 
+    // Processed Bins (management after reception)
+    Route::resource('processed_bins', App\Http\Controllers\ProcessedBinController::class)->middleware('can:manage processed bins');
+
     // Bin Processing (mixing and calibration)
     Route::resource('bin_processing', App\Http\Controllers\BinProcessingController::class)->middleware('can:manage processed bins');
+    Route::get('/bin_processing/{id}/traceability', [App\Http\Controllers\BinProcessingController::class, 'traceability'])->name('bin_processing.traceability')->middleware('can:manage processed bins');
     
     // Stock/Inventory Management
     Route::get('/stock', [App\Http\Controllers\StockController::class, 'index'])->name('stock.index');

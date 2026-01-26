@@ -36,9 +36,9 @@
                 <div class="row">
                     <div class="col-md-6">
                         <p><strong>Fecha de Ingreso:</strong> {{ $processedBin->entry_date->format('d/m/Y') }}</p>
-                        <p><strong>Número del Bin:</strong> {{ $processedBin->bin_number }}</p>
+                        <p><strong>Número del Bin:</strong> {{ $processedBin->display_bin_number }}</p>
                         <p><strong>Proveedor:</strong> {{ $processedBin->supplier->name }}</p>
-                        <p><strong>Peso Real:</strong> {{ number_format($processedBin->weight, 2) }} kg</p>
+                        <p><strong>Peso Real:</strong> {{ number_format($processedBin->current_weight, 2) }} kg</p>
                     </div>
                     <div class="col-md-6">
                         <p><strong>Calibre:</strong> {{ $processedBin->calibre_display }}</p>
@@ -207,7 +207,7 @@ function editStatus() {
 function downloadQR() {
     const link = document.createElement('a');
     link.href = '{{ $processedBin->qr_code_url }}';
-    link.download = 'QR_{{ $processedBin->bin_number }}.png';
+    link.download = 'QR_{{ $processedBin->display_bin_number }}.png';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

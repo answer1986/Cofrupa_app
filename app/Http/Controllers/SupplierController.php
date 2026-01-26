@@ -45,6 +45,10 @@ class SupplierController extends Controller
             'location' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20',
             'business_type' => 'nullable|string|max:255',
+            'tax_id' => 'nullable|string|max:255',
+            'bank_name' => 'nullable|string|max:255',
+            'bank_account_type' => 'nullable|string|max:255',
+            'bank_account_number' => 'nullable|string|max:255',
         ]);
 
         $data = $request->all();
@@ -124,6 +128,10 @@ class SupplierController extends Controller
             'location' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20',
             'business_type' => 'nullable|string|max:255',
+            'tax_id' => 'nullable|string|max:255',
+            'bank_name' => 'nullable|string|max:255',
+            'bank_account_type' => 'nullable|string|max:255',
+            'bank_account_number' => 'nullable|string|max:255',
         ]);
 
         $data = $request->all();

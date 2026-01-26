@@ -36,6 +36,9 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
+                        <p><strong>Comprador:</strong> 
+                            <span class="badge bg-primary">{{ $purchase->buyer ?? 'Cofrupa' }}</span>
+                        </p>
                         <p><strong>Fecha de Compra:</strong> {{ $purchase->purchase_date->format('d/m/Y') }}</p>
                         <p><strong>Orden de Compra:</strong> {{ $purchase->purchase_order ?: 'N/A' }}</p>
                         <p><strong>Proveedor:</strong> {{ $purchase->supplier->name }}</p>

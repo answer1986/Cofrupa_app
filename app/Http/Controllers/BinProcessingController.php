@@ -6,6 +6,7 @@ use App\Models\Purchase;
 use App\Models\ProcessedBin;
 use App\Models\Supplier;
 use App\Models\Bin;
+use App\Models\BinTraceability;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -54,6 +55,7 @@ class BinProcessingController extends Controller
             'source_bin_ids' => 'required|array|min:1',
             'source_bin_ids.*' => 'exists:processed_bins,id',
             'new_bin_number' => 'required|string|max:50|unique:processed_bins,current_bin_number',
+            'numero_tarja' => 'nullable|string|max:100',
             'processed_calibre' => [
                 'required',
                 Rule::in([
@@ -61,6 +63,9 @@ class BinProcessingController extends Controller
                     'Grande 50-60', 'Mediana 40-50', 'Pequeña 30-40'
                 ])
             ],
+            'calibre_promedio' => 'nullable|string|max:20',
+            'dano_total' => 'nullable|numeric|min:0|max:100',
+            'numero_lote' => 'nullable|string|max:100',
             'notes' => 'nullable|string|max:500',
         ]);
 
@@ -80,10 +85,14 @@ class BinProcessingController extends Controller
             'entry_date' => now(), // Processing date becomes entry for new bin
             'original_bin_number' => $request->new_bin_number,
             'current_bin_number' => $request->new_bin_number,
+            'tarja_number' => $request->numero_tarja,
             'original_weight' => $totalWeight,
             'processed_weight' => $totalWeight,
             'original_calibre' => $request->processed_calibre,
             'processed_calibre' => $request->processed_calibre,
+            'unidades_per_pound_avg' => $request->calibre_promedio,
+            'damage_percentage' => $request->dano_total,
+            'lote' => $request->numero_lote,
             'status' => 'processed',
             'received_at' => now(),
             'processing_date' => now(),
@@ -117,6 +126,15 @@ class BinProcessingController extends Controller
                 'processing_history' => $history,
                 'status' => 'processed', // Mark as processed/used
             ]);
+
+            // Registrar trazabilidad: bin fuente -> bin destino (mezcla)
+            BinTraceability::record(BinTraceability::OPERATION_MIXING, [
+                'source_bin_id' => $sourceBin->id,
+                'target_bin_id' => $processedBin->id,
+                'weight_kg' => $sourceBin->current_weight,
+                'operation_date' => now(),
+                'notes' => "Mezclado en bin {$request->new_bin_number}",
+            ]);
         }
 
         return redirect()->route('bin_processing.index')
@@ -131,6 +149,17 @@ class BinProcessingController extends Controller
         $processedBin = ProcessedBin::with(['purchase', 'supplier'])->findOrFail($id);
 
         return view('processed_bins.show', compact('processedBin'));
+    }
+
+    /**
+     * Mostrar trazabilidad de un bin procesado
+     */
+    public function traceability($id)
+    {
+        $processedBin = ProcessedBin::with(['supplier', 'purchase'])->findOrFail($id);
+        $traceabilityInfo = $processedBin->getTraceabilityInfo();
+
+        return view('bin_processing.traceability', compact('processedBin', 'traceabilityInfo'));
     }
 
     /**

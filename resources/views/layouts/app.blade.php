@@ -310,12 +310,12 @@
                                 @can('manage processed bins')
                                 <li>
                                     <a href="{{ route('bin_reception.index') }}" class="{{ request()->is('bin_reception*') ? 'active' : '' }}">
-                                        <i class="fas fa-truck-loading"></i> Recepción de Bins
+                                        <i class="fas fa-truck-loading"></i> Recepción de Productos
                                     </a>
                                 </li>
                                 <li>
                                     <a href="{{ route('bin_processing.index') }}" class="{{ request()->is('bin_processing*') ? 'active' : '' }}">
-                                        <i class="fas fa-balance-scale"></i> Procesamiento de Bins
+                                        <i class="fas fa-balance-scale"></i> Procesamiento de Fruta
                                     </a>
                                 </li>
                                 <li>

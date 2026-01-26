@@ -49,7 +49,38 @@
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="processed_calibre" class="form-label">Calibre Resultante <span class="text-danger">*</span></label>
+                                <label for="numero_tarja" class="form-label">Número de Tarja</label>
+                                <input type="text" class="form-control @error('numero_tarja') is-invalid @enderror" id="numero_tarja" name="numero_tarja" value="{{ old('numero_tarja') }}" placeholder="Ej: TARJA-001">
+                                @error('numero_tarja')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="numero_lote" class="form-label">Número de Lote</label>
+                                <input type="text" class="form-control @error('numero_lote') is-invalid @enderror" id="numero_lote" name="numero_lote" value="{{ old('numero_lote') }}" placeholder="Ej: LOTE-PROC-001">
+                                @error('numero_lote')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="dano_total" class="form-label">Daño Total (%)</label>
+                                <input type="number" step="0.01" min="0" max="100" class="form-control @error('dano_total') is-invalid @enderror" id="dano_total" name="dano_total" value="{{ old('dano_total') }}" placeholder="Ej: 5.5">
+                                @error('dano_total')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="processed_calibre" class="form-label">Calibre Final <span class="text-danger">*</span></label>
                                 <select class="form-select @error('processed_calibre') is-invalid @enderror" id="processed_calibre" name="processed_calibre" required>
                                     <option value="">Seleccionar calibre</option>
                                     <option value="80-90">80-90 unidades/libra</option>
@@ -61,6 +92,26 @@
                                     <option value="Pequeña 30-40">Pequeña (30-40 unidades/libra)</option>
                                 </select>
                                 @error('processed_calibre')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="calibre_promedio" class="form-label">Calibre Promedio</label>
+                                <select class="form-select @error('calibre_promedio') is-invalid @enderror" id="calibre_promedio" name="calibre_promedio">
+                                    <option value="">Seleccionar calibre promedio</option>
+                                    <option value="40-50">40-50 unidades/libra</option>
+                                    <option value="50-60">50-60 unidades/libra</option>
+                                    <option value="60-70">60-70 unidades/libra</option>
+                                    <option value="70-80">70-80 unidades/libra</option>
+                                    <option value="80-90">80-90 unidades/libra</option>
+                                    <option value="90-100">90-100 unidades/libra</option>
+                                    <option value="100-110">100-110 unidades/libra</option>
+                                    <option value="110-120">110-120 unidades/libra</option>
+                                    <option value="120">120+ unidades/libra</option>
+                                </select>
+                                @error('calibre_promedio')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
