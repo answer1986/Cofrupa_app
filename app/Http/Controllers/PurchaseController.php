@@ -56,8 +56,7 @@ class PurchaseController extends Controller
      */
     public function quickStore(Request $request)
     {
-        $request->validate([
-            'supplier_id' => 'required|exists:suppliers,id',
+        $rules = [
             'buyer' => 'required|in:LG,Cofrupa,Comercializadora',
             'purchase_type' => 'required|string|max:255',
             'purchase_date' => 'required|date',
@@ -70,25 +69,60 @@ class PurchaseController extends Controller
                 ])
             ],
             'units_per_pound' => 'required|integer|min:1',
-        ]);
+            'unit_price' => 'nullable|numeric|min:0',
+            'notes' => 'nullable|string',
+        ];
+
+        // Conditional validation based on new_supplier check
+        if ($request->has('new_supplier_check')) {
+            $rules['new_supplier_name'] = 'required|string|max:255';
+        } else {
+            $rules['supplier_id'] = 'required|exists:suppliers,id';
+        }
+
+        $request->validate($rules);
+        
+        // Handle supplier resolution
+        if ($request->has('new_supplier_check')) {
+            $supplier = Supplier::create([
+                'name' => $request->new_supplier_name,
+                'is_incomplete' => true,
+                'location' => null, // Explicitly null to trigger alert
+            ]);
+            $supplierId = $supplier->id;
+        } else {
+            $supplierId = $request->supplier_id;
+        }
+
+        // Calculate total amount and owed amount if unit price is provided
+        $totalAmount = $request->unit_price ? $request->unit_price * $request->weight_purchased : 0;
+        $amountOwed = $totalAmount; // Assuming no payment is made during quick create
 
         // Create purchase with minimal data
-        // Note: Financial data is set to 0/null and will be updated when completing the purchase
+        // Note: Financial data is updated if provided
         $purchase = Purchase::create([
-            'supplier_id' => $request->supplier_id,
+            'supplier_id' => $supplierId,
             'buyer' => $request->buyer,
             'purchase_type' => $request->purchase_type,
             'purchase_date' => $request->purchase_date,
             'weight_purchased' => $request->weight_purchased,
             'calibre' => $request->calibre,
             'units_per_pound' => $request->units_per_pound,
-            'unit_price' => null,
-            'total_amount' => null,
-            'amount_paid' => null,
-            'amount_owed' => null,
+            'unit_price' => $request->unit_price,
+            'total_amount' => $totalAmount ?: null,
+            'amount_paid' => 0,
+            'amount_owed' => $amountOwed ?: null,
             'payment_status' => 'pending',
+            'notes' => $request->notes,
             'currency' => 'CLP',
         ]);
+
+        // Update supplier debt if there's an amount owed
+        if ($amountOwed > 0) {
+            $supplier = Supplier::find($supplierId);
+            $supplier->total_debt += $amountOwed;
+            $supplier->save();
+        }
 
         // Don't update supplier debt here - it will be updated when completing the purchase details
         // Redirect to edit page to complete the details

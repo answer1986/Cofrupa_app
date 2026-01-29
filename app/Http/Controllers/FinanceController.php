@@ -15,7 +15,26 @@ class FinanceController extends Controller
     public function index(Request $request)
     {
         $company = $request->get('company', 'cofrupa');
-        $tab = $request->get('tab', 'purchases'); // purchases o sales
+        $tab = $request->get('tab', 'dashboard'); // Default to dashboard
+
+        if ($tab === 'dashboard') {
+            // Dashboard Data Logic
+            // 1. Debt by Bank (only for purchases not paid)
+            $debtsByBank = FinancePurchase::where('company', $company)
+                ->where('status', '!=', 'paid')
+                ->selectRaw('bank, SUM(final_total) as total_debt') // Assuming debt is based on final_total (or total_usd depending on requirement)
+                ->whereNotNull('bank')
+                ->groupBy('bank')
+                ->get();
+
+            // 2. Main Table Data (Recent Purchases)
+            // Matching columns: Date, Invoice, Supplier, Caliber, Type, Kilos, T/C, Unit $, Unit US$, Total Net $, Total Net US$, IVA, Total $, Total US$, Balance
+            $records = FinancePurchase::where('company', $company)
+                ->orderBy('purchase_date', 'desc')
+                ->paginate(50); // Larger pagination for spreadsheet view
+
+            return view('finance.index', compact('company', 'tab', 'debtsByBank', 'records'));
+        }
 
         $query = $tab === 'purchases' 
             ? FinancePurchase::where('company', $company)
@@ -80,8 +99,47 @@ class FinanceController extends Controller
             'status' => 'required|in:pending,paid,partial,cancelled',
             'with_iva' => 'boolean',
             'notes' => 'nullable|string',
+            'bank' => 'nullable|string|max:255',
+            'exchange_rate' => 'nullable|numeric|min:0',
         ]);
 
+        // Auto-Calculation Logic
+        $kilos = $validated['kilos'];
+        $unitPriceClp = $validated['unit_price_clp'] ?? 0;
+        $unitPriceUsd = $validated['unit_price_usd'] ?? 0;
+        $exchangeRate = $validated['exchange_rate'] ?? null;
+
+        // 1. Calculate Unit Prices if Exchange Rate is present
+        if ($exchangeRate > 0) {
+            if ($unitPriceClp > 0 && $unitPriceUsd == 0) {
+                $unitPriceUsd = $unitPriceClp / $exchangeRate;
+                $validated['unit_price_usd'] = $unitPriceUsd;
+            } elseif ($unitPriceUsd > 0 && $unitPriceClp == 0) {
+                $unitPriceClp = $unitPriceUsd * $exchangeRate;
+                $validated['unit_price_clp'] = $unitPriceClp;
+            }
+        }
+
+        // 2. Calculate Net Totals
+        $validated['total_net_clp'] = $kilos * $unitPriceClp;
+        $validated['total_net_usd'] = $kilos * $unitPriceUsd;
+
+        // 3. Calculate IVA
+        if ($request->has('with_iva') && $request->with_iva) {
+            $validated['iva'] = $validated['total_net_clp'] * 0.19;
+        } else {
+            $validated['iva'] = 0;
+        }
+
+        // 4. Calculate Totals (Net + IVA)
+        $validated['total_clp'] = $validated['total_net_clp'] + $validated['iva'];
+        $validated['total_usd'] = $validated['total_net_usd']; // IVA usually doesn't apply to USD total in this context, or is separate. Assuming simple logic for now.
+
+        // 5. Final Total (Total + Other Costs)
+        $otherCosts = $validated['other_costs'] ?? 0;
+        $validated['final_total'] = $validated['total_clp'] + $otherCosts; // Defaulting final total to CLP basis? Or depends on currency?
+        // Let's assume final_total is the display total, usually in CLP for local accounting
+        
         FinancePurchase::create($validated);
 
         return redirect()->route('finance.index', ['company' => $validated['company'], 'tab' => 'purchases'])
@@ -120,7 +178,40 @@ class FinanceController extends Controller
             'status' => 'required|in:pending,paid,partial,cancelled',
             'with_iva' => 'boolean',
             'notes' => 'nullable|string',
+            'bank' => 'nullable|string|max:255',
+            'exchange_rate' => 'nullable|numeric|min:0',
         ]);
+
+        // Auto-Calculation Logic (Same as store)
+        $kilos = $validated['kilos'];
+        $unitPriceClp = $validated['unit_price_clp'] ?? 0;
+        $unitPriceUsd = $validated['unit_price_usd'] ?? 0;
+        $exchangeRate = $validated['exchange_rate'] ?? null;
+
+        if ($exchangeRate > 0) {
+            if ($unitPriceClp > 0 && $unitPriceUsd == 0) {
+                $unitPriceUsd = $unitPriceClp / $exchangeRate;
+                $validated['unit_price_usd'] = $unitPriceUsd;
+            } elseif ($unitPriceUsd > 0 && $unitPriceClp == 0) {
+                $unitPriceClp = $unitPriceUsd * $exchangeRate;
+                $validated['unit_price_clp'] = $unitPriceClp;
+            }
+        }
+
+        $validated['total_net_clp'] = $kilos * $unitPriceClp;
+        $validated['total_net_usd'] = $kilos * $unitPriceUsd;
+
+        if ($request->has('with_iva') && $request->with_iva) {
+            $validated['iva'] = $validated['total_net_clp'] * 0.19;
+        } else {
+            $validated['iva'] = 0;
+        }
+
+        $validated['total_clp'] = $validated['total_net_clp'] + $validated['iva'];
+        $validated['total_usd'] = $validated['total_net_usd'];
+
+        $otherCosts = $validated['other_costs'] ?? 0;
+        $validated['final_total'] = $validated['total_clp'] + $otherCosts;
 
         $purchase->update($validated);
 

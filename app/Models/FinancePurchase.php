@@ -14,7 +14,7 @@ class FinancePurchase extends Model
         'kilos', 'unit_price_clp', 'unit_price_usd', 'total_net_clp', 'total_net_usd',
         'iva', 'total_clp', 'total_usd', 'commission_per_kilo', 'total_commission',
         'freight_per_kilo', 'total_freight', 'other_costs', 'final_total', 'average_per_kilo',
-        'status', 'with_iva', 'notes'
+        'status', 'with_iva', 'notes', 'exchange_rate', 'bank'
     ];
 
     protected $casts = [
@@ -34,6 +34,7 @@ class FinancePurchase extends Model
         'other_costs' => 'decimal:2',
         'final_total' => 'decimal:2',
         'average_per_kilo' => 'decimal:2',
+        'exchange_rate' => 'decimal:2',
         'with_iva' => 'boolean',
     ];
 

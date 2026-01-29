@@ -45,8 +45,13 @@
         </li>
     </ul>
 
-    <!-- Sub-pestañas: Compras / Ventas -->
+    <!-- Sub-pestañas: Compras / Ventas / Dashboard -->
     <ul class="nav nav-pills mb-4">
+        <li class="nav-item">
+            <a class="nav-link {{ $tab === 'dashboard' ? 'active' : '' }}" href="{{ route('finance.index', ['company' => $company, 'tab' => 'dashboard']) }}">
+                <i class="fas fa-chart-pie"></i> Panel General
+            </a>
+        </li>
         <li class="nav-item">
             <a class="nav-link {{ $tab === 'purchases' ? 'active' : '' }}" href="{{ route('finance.index', ['company' => $company, 'tab' => 'purchases']) }}">
                 <i class="fas fa-shopping-cart"></i> Compras
@@ -59,6 +64,7 @@
         </li>
     </ul>
 
+    @if($tab !== 'dashboard')
     <!-- Estadísticas -->
     <div class="row mb-4">
         <div class="col-md-4">
@@ -117,9 +123,12 @@
             </form>
         </div>
     </div>
+    @endif
 
     <!-- Tabla tipo Excel -->
-    @if($tab === 'purchases')
+    @if($tab === 'dashboard')
+        @include('finance.partials.dashboard', ['records' => $records, 'debts' => $debtsByBank])
+    @elseif($tab === 'purchases')
         @include('finance.partials.purchases_table', ['purchases' => $records, 'company' => $company])
     @else
         @include('finance.partials.sales_table', ['sales' => $records, 'company' => $company])

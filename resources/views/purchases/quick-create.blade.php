@@ -25,21 +25,41 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="supplier_id" class="form-label">
+                            <label class="form-label">
                                 <i class="fas fa-truck"></i> Proveedor *
                             </label>
-                            <select class="form-select @error('supplier_id') is-invalid @enderror" 
-                                    id="supplier_id" name="supplier_id" required>
-                                <option value="">Seleccione un proveedor</option>
-                                @foreach($suppliers as $supplier)
-                                    <option value="{{ $supplier->id }}" {{ old('supplier_id') == $supplier->id ? 'selected' : '' }}>
-                                        {{ $supplier->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('supplier_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="new_supplier_check" name="new_supplier_check" {{ old('new_supplier_check') ? 'checked' : '' }}>
+                                <label class="form-check-label" for="new_supplier_check">
+                                    Nuevo Proveedor
+                                </label>
+                            </div>
+
+                            <div id="existing_supplier_container" class="{{ old('new_supplier_check') ? 'd-none' : '' }}">
+                                <select class="form-select @error('supplier_id') is-invalid @enderror" 
+                                        id="supplier_id" name="supplier_id">
+                                    <option value="">Seleccione un proveedor</option>
+                                    @foreach($suppliers as $supplier)
+                                        <option value="{{ $supplier->id }}" {{ old('supplier_id') == $supplier->id ? 'selected' : '' }}>
+                                            {{ $supplier->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('supplier_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div id="new_supplier_container" class="{{ old('new_supplier_check') ? '' : 'd-none' }}">
+                                <input type="text" class="form-control @error('new_supplier_name') is-invalid @enderror"
+                                       id="new_supplier_name" name="new_supplier_name"
+                                       value="{{ old('new_supplier_name') }}"
+                                       placeholder="Ingrese el nombre del nuevo proveedor">
+                                @error('new_supplier_name')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
                         </div>
 
                         <div class="col-md-6 mb-3">
@@ -152,6 +172,32 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="unit_price" class="form-label">
+                                <i class="fas fa-money-bill-wave"></i> Valor del Negocio (Precio x Kg)
+                            </label>
+                            <input type="number" step="0.01" min="0" 
+                                   class="form-control @error('unit_price') is-invalid @enderror"
+                                   id="unit_price" name="unit_price" 
+                                   value="{{ old('unit_price') }}" 
+                                   placeholder="Ej: 500">
+                            @error('unit_price')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">
+                            <i class="fas fa-sticky-note"></i> Nota / Observaciones
+                        </label>
+                        <textarea class="form-control @error('notes') is-invalid @enderror" 
+                                  id="notes" name="notes" rows="2" 
+                                  placeholder="Ingrese detalles adicionales si es necesario...">{{ old('notes') }}</textarea>
+                        @error('notes')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
 
                     <div class="alert alert-info">
@@ -172,4 +218,34 @@
         </div>
     </div>
 </div>
+@section('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const check = document.getElementById('new_supplier_check');
+        const existingContainer = document.getElementById('existing_supplier_container');
+        const newContainer = document.getElementById('new_supplier_container');
+        const supplierSelect = document.getElementById('supplier_id');
+        const newSupplierInput = document.getElementById('new_supplier_name');
+
+        function toggleSupplierFields() {
+            if (check.checked) {
+                existingContainer.classList.add('d-none');
+                newContainer.classList.remove('d-none');
+                supplierSelect.removeAttribute('required');
+                newSupplierInput.setAttribute('required', 'required');
+            } else {
+                existingContainer.classList.remove('d-none');
+                newContainer.classList.add('d-none');
+                supplierSelect.setAttribute('required', 'required');
+                newSupplierInput.removeAttribute('required');
+            }
+        }
+
+        check.addEventListener('change', toggleSupplierFields);
+        
+        // Run on load in case of validation errors calling back old input
+        toggleSupplierFields();
+    });
+</script>
+@endsection
 @endsection

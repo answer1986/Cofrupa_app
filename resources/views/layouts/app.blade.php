@@ -559,8 +559,8 @@
                     $pendingTooltip = implode(', ', $parts);
                 }
             @endphp
-            <div class="sidebar-notifications dropdown" style="flex-shrink: 0; padding: 15px; display: flex; justify-content: flex-end; align-items: flex-end;">
-                <a href="javascript:void(0)" class="notification-bell dropdown-toggle" id="notificationBellDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="{{ $pendingTooltip }}" style="display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; width: 50px; height: 50px; background: rgba(255,255,255,0.1); border-radius: 50%; transition: all 0.3s; position: relative;">
+            <div class="sidebar-notifications dropup" style="flex-shrink: 0; padding: 15px; display: flex; justify-content: flex-end; align-items: flex-end;">
+                <a href="javascript:void(0)" class="notification-bell dropdown-toggle" id="notificationBellDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="{{ $pendingTooltip }}" data-bs-offset="10,20" style="display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; width: 50px; height: 50px; background: rgba(255,255,255,0.1); border-radius: 50%; transition: all 0.3s; position: relative;">
                     <i class="fas fa-bell" style="font-size: 22px;"></i>
                     @if($hasPending)
                     <span class="notification-badge" style="position: absolute; top: -5px; right: -5px; background: #ff4444; color: white; border-radius: 50%; min-width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; border: 2px solid #722f37; padding: 0 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
@@ -568,7 +568,7 @@
                     </span>
                     @endif
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="notificationBellDropdown" style="min-width: 280px; max-width: 320px;">
+                <ul class="dropdown-menu shadow" aria-labelledby="notificationBellDropdown" style="min-width: 280px; max-width: 320px; left: 0; bottom: 100%; margin-bottom: 10px;">
                     <li class="dropdown-header d-flex justify-content-between align-items-center">
                         <span><i class="fas fa-tasks"></i> Pendientes</span>
                         @if($hasPending)
