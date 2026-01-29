@@ -121,13 +121,33 @@ class PlantProductionOrderController extends Controller
         ]);
 
         $productionOrder->update($validated);
-        
-        // Recalcular atraso automáticamente después de actualizar
         $productionOrder->refresh();
+
+        // Descarte recuperable: entre lo que se manda (order_quantity_kg) y lo que se produce (produced_kilos)
+        $orderQty = (float) $productionOrder->order_quantity_kg;
+        $produced = (float) ($productionOrder->produced_kilos ?? 0);
+        $impliedDiscard = round(max(0, $orderQty - $produced), 2);
+        if ($impliedDiscard > 0) {
+            $currentStatus = $productionOrder->discard_status;
+            if (in_array($currentStatus, [null, 'pending'], true)) {
+                $productionOrder->update([
+                    'discard_kg' => $impliedDiscard,
+                    'discard_status' => 'pending',
+                    'discard_reason' => $productionOrder->discard_reason ?: 'Diferencia entre cantidad ordenada y producida (recuperable)',
+                ]);
+            } else {
+                $productionOrder->update(['discard_kg' => $impliedDiscard]);
+            }
+        } else {
+            if (in_array($productionOrder->discard_status, [null, 'pending'], true)) {
+                $productionOrder->update(['discard_kg' => 0, 'discard_status' => 'pending', 'discard_reason' => null]);
+            }
+        }
+
         $productionOrder->calculateDelay();
 
         return redirect()->route('processing.production-orders.index')
-            ->with('success', 'Orden de producción actualizada exitosamente');
+            ->with('success', 'Orden de producción actualizada exitosamente.');
     }
 
     public function destroy(PlantProductionOrder $productionOrder)

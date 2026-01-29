@@ -27,15 +27,41 @@
             width: 250px;
             background: linear-gradient(135deg, #722f37 0%, #8b4513 50%, #4a5d23 100%);
             color: white;
-            padding-top: 20px;
             z-index: 1000;
             box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
         .sidebar-logo {
             text-align: center;
             padding: 20px;
             border-bottom: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 20px;
+            flex-shrink: 0;
+        }
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            min-height: 0;
+        }
+        .sidebar-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        .sidebar-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        .sidebar-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+        .sidebar-content::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        .sidebar-content {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
         }
         .sidebar-logo img {
             max-width: 120px;
@@ -268,9 +294,13 @@
         
         <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
+            <!-- Logo fijo arriba -->
             <div class="sidebar-logo">
                 <img src="{{ asset('image/LOGO-sinfonfopng.png') }}" alt="Cofrupa Logo">
             </div>
+            
+            <!-- Contenido scrolleable -->
+            <div class="sidebar-content">
             <ul class="sidebar-menu">
                 <li>
                     <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">
@@ -355,8 +385,8 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('processing.production-orders.index') }}" class="{{ request()->is('processing/production-orders*') ? 'active' : '' }}">
-                                        <i class="fas fa-industry"></i> Programa de Producción
+                                    <a href="{{ route('processing.request.index') }}" class="{{ request()->is('processing/request*') ? 'active' : '' }}">
+                                        <i class="fas fa-clipboard-list"></i> Petición de cupos
                                     </a>
                                 </li>
                                 <li>
@@ -365,13 +395,48 @@
                                     </a>
                                 </li>
                                 <li>
+                                    <a href="{{ route('processing.production-orders.index') }}" class="{{ request()->is('processing/production-orders*') ? 'active' : '' }}">
+                                        <i class="fas fa-industry"></i> Programa de Producción
+                                    </a>
+                                </li>
+                                
+                                <li>
                                     <a href="{{ route('discards.index') }}" class="{{ request()->is('discards*') ? 'active' : '' }}">
                                         <i class="fas fa-recycle"></i> Gestión de Descartes
                                     </a>
                                 </li>
                                 <li>
                                     <a href="{{ route('processing.accounting.index') }}" class="{{ request()->is('processing/accounting*') ? 'active' : '' }}">
-                                        <i class="fas fa-calculator"></i> Módulo de Finanzas
+                                        <i class="fas fa-calculator"></i> Contabilidad de Procesos
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </li>
+
+                <li class="accordion-item">
+                    <div class="accordion-header">
+                        <button class="accordion-button {{ request()->is('finance*') ? '' : 'collapsed' }}" type="button" data-target="#finanzasAccordion" aria-expanded="{{ request()->is('finance*') ? 'true' : 'false' }}">
+                            <i class="fas fa-chart-line"></i> Finanzas
+                        </button>
+                    </div>
+                    <div id="finanzasAccordion" class="accordion-collapse {{ request()->is('finance*') ? 'show' : '' }}">
+                        <div class="accordion-body">
+                            <ul class="sidebar-menu">
+                                <li>
+                                    <a href="{{ route('finance.index', ['company' => 'cofrupa']) }}" class="{{ request()->is('finance*') && request()->get('company') === 'cofrupa' ? 'active' : '' }}">
+                                        <i class="fas fa-building"></i> Cofrupa Export
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('finance.index', ['company' => 'luis_gonzalez']) }}" class="{{ request()->is('finance*') && request()->get('company') === 'luis_gonzalez' ? 'active' : '' }}">
+                                        <i class="fas fa-user-tie"></i> Luis Gonzalez
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('finance.index', ['company' => 'comercializadora']) }}" class="{{ request()->is('finance*') && request()->get('company') === 'comercializadora' ? 'active' : '' }}">
+                                        <i class="fas fa-store"></i> Comercializadora
                                     </a>
                                 </li>
                             </ul>
@@ -464,46 +529,85 @@
                                         <i class="fas fa-chart-line"></i> Reportes del Sistema
                                     </a>
                                 </li>
+                                <li>
+                                    <a href="{{ route('users.access') }}" class="{{ request()->is('users-access*') ? 'active' : '' }}">
+                                        <i class="fas fa-user-lock"></i> Permisos de Usuarios
+                                    </a>
+                                </li>
                                 @endcan
                             </ul>
                         </div>
                     </div>
                 </li>
             </ul>
-        </div>
-                    </div>
-                </li>
-                @can('manage users')
-                <li class="accordion-item">
-                    <div class="accordion-header">
-                        <button class="accordion-button {{ request()->is('users*') || request()->is('logs*') || request()->is('reportes*') ? '' : 'collapsed' }}" type="button" data-target="#adminAccordion" aria-expanded="{{ request()->is('users*') || request()->is('logs*') || request()->is('reportes*') ? 'true' : 'false' }}">
-                            <i class="fas fa-cog"></i> Administración
-                        </button>
-                    </div>
-                    <div id="adminAccordion" class="accordion-collapse {{ request()->is('users*') || request()->is('logs*') || request()->is('reportes*') ? 'show' : '' }}">
-                        <div class="accordion-body">
-                            <ul class="sidebar-menu">
-                                <li>
-                                    <a href="{{ route('users.index') }}" class="{{ request()->is('users*') ? 'active' : '' }}">
-                                        <i class="fas fa-users"></i> Administrador de Usuarios
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('logs.index') }}" class="{{ request()->is('logs*') ? 'active' : '' }}">
-                                        <i class="fas fa-history"></i> Log de Conexiones
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" class="{{ request()->is('reportes*') ? 'active' : '' }}">
-                                        <i class="fas fa-chart-bar"></i> Reportes del sistema
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </li>
-                @endcan
-            </ul>
+            </div>
+            
+            <!-- Campana de Notificaciones - Pendientes (desglose al hacer clic o hover) -->
+            @auth
+            @php
+                $hasPending = isset($totalPendingCount) && $totalPendingCount > 0;
+                $pendingTooltip = $hasPending ? 'Pendientes: ' . $totalPendingCount . ' (clic para ver detalle)' : 'Sin pendientes';
+                if ($hasPending) {
+                    $parts = [];
+                    if (($pendingPurchasesCount ?? 0) > 0) $parts[] = ($pendingPurchasesCount ?? 0) . ' compras';
+                    if (($pendingProcessOrdersCount ?? 0) > 0) $parts[] = ($pendingProcessOrdersCount ?? 0) . ' órdenes proceso';
+                    if (($pendingPlantOrdersCount ?? 0) > 0) $parts[] = ($pendingPlantOrdersCount ?? 0) . ' órdenes producción';
+                    if (($pendingShipmentsCount ?? 0) > 0) $parts[] = ($pendingShipmentsCount ?? 0) . ' envíos';
+                    if (($draftContractsCount ?? 0) > 0) $parts[] = ($draftContractsCount ?? 0) . ' contratos borrador';
+                    if (($incompleteSuppliersCount ?? 0) > 0) $parts[] = ($incompleteSuppliersCount ?? 0) . ' proveedores incompletos';
+                    if (($incompleteClientsCount ?? 0) > 0) $parts[] = ($incompleteClientsCount ?? 0) . ' clientes incompletos';
+                    $pendingTooltip = implode(', ', $parts);
+                }
+            @endphp
+            <div class="sidebar-notifications dropdown" style="flex-shrink: 0; padding: 15px; display: flex; justify-content: flex-end; align-items: flex-end;">
+                <a href="javascript:void(0)" class="notification-bell dropdown-toggle" id="notificationBellDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="{{ $pendingTooltip }}" style="display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; width: 50px; height: 50px; background: rgba(255,255,255,0.1); border-radius: 50%; transition: all 0.3s; position: relative;">
+                    <i class="fas fa-bell" style="font-size: 22px;"></i>
+                    @if($hasPending)
+                    <span class="notification-badge" style="position: absolute; top: -5px; right: -5px; background: #ff4444; color: white; border-radius: 50%; min-width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; border: 2px solid #722f37; padding: 0 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                        {{ $totalPendingCount > 99 ? '99+' : $totalPendingCount }}
+                    </span>
+                    @endif
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="notificationBellDropdown" style="min-width: 280px; max-width: 320px;">
+                    <li class="dropdown-header d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-tasks"></i> Pendientes</span>
+                        @if($hasPending)
+                        <span class="badge bg-danger">{{ $totalPendingCount > 99 ? '99+' : $totalPendingCount }}</span>
+                        @endif
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    @if(($pendingPurchasesCount ?? 0) > 0)
+                    <li><a class="dropdown-item" href="{{ route('purchases.index') }}?filter=pending"><i class="fas fa-shopping-cart text-warning"></i> Compras pendientes <span class="badge bg-secondary">{{ $pendingPurchasesCount }}</span></a></li>
+                    @endif
+                    @if(($pendingProcessOrdersCount ?? 0) > 0)
+                    <li><a class="dropdown-item" href="{{ route('processing.orders.index') }}"><i class="fas fa-clipboard-list text-info"></i> Órdenes de proceso <span class="badge bg-secondary">{{ $pendingProcessOrdersCount }}</span></a></li>
+                    @endif
+                    @if(($pendingPlantOrdersCount ?? 0) > 0)
+                    <li><a class="dropdown-item" href="{{ route('processing.production-orders.index') }}"><i class="fas fa-industry text-info"></i> Órdenes de producción <span class="badge bg-secondary">{{ $pendingPlantOrdersCount }}</span></a></li>
+                    @endif
+                    @if(($pendingShipmentsCount ?? 0) > 0)
+                    <li><a class="dropdown-item" href="{{ route('shipments.index') }}"><i class="fas fa-truck text-primary"></i> Envíos en curso <span class="badge bg-secondary">{{ $pendingShipmentsCount }}</span></a></li>
+                    @endif
+                    @if(($draftContractsCount ?? 0) > 0)
+                    <li><a class="dropdown-item" href="{{ route('contracts.index') }}"><i class="fas fa-file-contract text-secondary"></i> Contratos en borrador <span class="badge bg-secondary">{{ $draftContractsCount }}</span></a></li>
+                    @endif
+                    @if(($incompleteSuppliersCount ?? 0) > 0)
+                    <li><a class="dropdown-item" href="{{ route('suppliers.create') }}"><i class="fas fa-truck text-success"></i> Proveedores por completar <span class="badge bg-secondary">{{ $incompleteSuppliersCount }}</span></a></li>
+                    @endif
+                    @if(($incompleteClientsCount ?? 0) > 0)
+                    <li><a class="dropdown-item" href="{{ route('clients.create') }}"><i class="fas fa-users text-success"></i> Clientes por completar <span class="badge bg-secondary">{{ $incompleteClientsCount }}</span></a></li>
+                    @endif
+                    @if(!$hasPending)
+                    <li><span class="dropdown-item text-muted"><i class="fas fa-check-circle text-success"></i> No hay pendientes</span></li>
+                    @else
+                    <li><hr class="dropdown-divider"></li>
+                    <li class="dropdown-header text-center small text-muted">
+                        <i class="fas fa-info-circle"></i> Total: {{ $totalPendingCount > 99 ? '99+' : $totalPendingCount }} {{ $totalPendingCount == 1 ? 'proceso pendiente' : 'procesos pendientes' }}
+                    </li>
+                    @endif
+                </ul>
+            </div>
+            @endauth
         </div>
         @endauth
 

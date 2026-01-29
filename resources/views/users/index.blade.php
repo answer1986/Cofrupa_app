@@ -5,9 +5,14 @@
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2><i class="fas fa-users"></i> Administrador de Usuarios</h2>
-            <a href="{{ route('users.create') }}" class="btn btn-success">
-                <i class="fas fa-plus"></i> Nuevo Usuario
-            </a>
+            <div>
+                <a href="{{ route('users.access') }}" class="btn btn-primary me-2">
+                    <i class="fas fa-user-lock"></i> Gestionar Permisos
+                </a>
+                <a href="{{ route('users.create') }}" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Nuevo Usuario
+                </a>
+            </div>
         </div>
     </div>
 </div>

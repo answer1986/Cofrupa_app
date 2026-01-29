@@ -27,7 +27,20 @@ class ClientController extends Controller
 
     public function create()
     {
-        return view('clients.create');
+        $incompleteClients = Client::where('is_incomplete', true)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $incompleteClientData = [];
+        $incompleteClient = $incompleteClients->first();
+        if ($incompleteClient) {
+            $incompleteClientData = [
+                'name' => $incompleteClient->name,
+                'client_id' => $incompleteClient->id,
+            ];
+        }
+
+        return view('clients.create', compact('incompleteClients', 'incompleteClientData'));
     }
 
     public function store(Request $request)
@@ -40,12 +53,25 @@ class ClientController extends Controller
             'customs_agency' => 'nullable|string|max:255',
             'address' => 'nullable|string',
             'notes' => 'nullable|string',
+            'incomplete_client_id' => 'nullable|exists:clients,id',
         ], [
             'phone.regex' => 'El teléfono debe comenzar con + seguido de exactamente 11 números (ejemplo: +56912345678)',
             'email.email' => 'El formato del correo electrónico no es válido',
         ]);
 
-        Client::create($request->all());
+        $data = $request->except('incomplete_client_id');
+
+        if ($request->filled('incomplete_client_id')) {
+            $incompleteClient = Client::find($request->incomplete_client_id);
+            if ($incompleteClient && $incompleteClient->is_incomplete) {
+                $data['is_incomplete'] = false;
+                $incompleteClient->update($data);
+                return redirect()->route('clients.index')->with('success', 'Cliente completado exitosamente.');
+            }
+        }
+
+        $data['is_incomplete'] = false;
+        Client::create($data);
 
         return redirect()->route('clients.index')->with('success', 'Cliente creado exitosamente.');
     }

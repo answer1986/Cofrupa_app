@@ -24,9 +24,29 @@ class SupplierController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(Request $request)
     {
-        return view('suppliers.create');
+        // Buscar proveedores incompletos creados desde recepción
+        $incompleteSuppliers = Supplier::where('is_incomplete', true)
+            ->where(function($q) {
+                $q->whereNull('location')
+                  ->orWhere('location', '');
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        // Si hay proveedores incompletos, usar el más reciente para prellenar
+        $incompleteSupplier = $incompleteSuppliers->first();
+        $incompleteSupplierData = [];
+        
+        if ($incompleteSupplier) {
+            $incompleteSupplierData = [
+                'name' => $incompleteSupplier->name,
+                'supplier_id' => $incompleteSupplier->id,
+            ];
+        }
+        
+        return view('suppliers.create', compact('incompleteSuppliers', 'incompleteSupplierData'));
     }
 
     /**
@@ -37,7 +57,7 @@ class SupplierController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $rules = [
             'name' => 'required|string|max:255',
             'business_name' => 'nullable|string|max:255',
             'csg_code' => 'nullable|string|max:255',
@@ -49,15 +69,36 @@ class SupplierController extends Controller
             'bank_name' => 'nullable|string|max:255',
             'bank_account_type' => 'nullable|string|max:255',
             'bank_account_number' => 'nullable|string|max:255',
-        ]);
+            'incomplete_supplier_id' => 'nullable|exists:suppliers,id',
+        ];
+        
+        // Si se está completando un proveedor incompleto, location es requerido
+        if ($request->has('incomplete_supplier_id') && $request->incomplete_supplier_id) {
+            $rules['location'] = 'required|string|max:255';
+        }
+        
+        $request->validate($rules);
 
-        $data = $request->all();
+        $data = $request->except('incomplete_supplier_id');
 
         // Generar código interno automáticamente si no se proporciona
         if (empty($data['internal_code'])) {
             $data['internal_code'] = $this->generateInternalCode();
         }
 
+        // Si se está actualizando un proveedor incompleto, marcarlo como completo
+        if ($request->has('incomplete_supplier_id') && $request->incomplete_supplier_id) {
+            $incompleteSupplier = Supplier::find($request->incomplete_supplier_id);
+            if ($incompleteSupplier && $incompleteSupplier->is_incomplete) {
+                // Actualizar el proveedor incompleto en lugar de crear uno nuevo
+                $data['is_incomplete'] = false;
+                $incompleteSupplier->update($data);
+                return redirect()->route('suppliers.index')->with('success', 'Proveedor completado exitosamente.');
+            }
+        }
+
+        // Si no es actualización de incompleto, crear nuevo
+        $data['is_incomplete'] = false;
         Supplier::create($data);
 
         return redirect()->route('suppliers.index')->with('success', 'Proveedor creado exitosamente.');

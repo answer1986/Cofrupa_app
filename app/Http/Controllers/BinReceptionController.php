@@ -376,4 +376,30 @@ class BinReceptionController extends Controller
 
         return response()->json(['bins' => $assignments]);
     }
+
+    /**
+     * Crear proveedor rápido desde recepción (solo con nombre)
+     */
+    public function quickCreateSupplier(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        // Crear proveedor solo con nombre, marcado como incompleto
+        $supplier = Supplier::create([
+            'name' => $request->name,
+            'location' => 'Pendiente', // Valor temporal, se completará después
+            'is_incomplete' => true, // Marcar como incompleto
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Proveedor creado exitosamente',
+            'supplier' => [
+                'id' => $supplier->id,
+                'name' => $supplier->name,
+            ]
+        ]);
+    }
 }

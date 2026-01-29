@@ -51,13 +51,16 @@
                                                 data-csg="{{ $supplier->csg_code ?? '' }}"
                                                 data-internal="{{ $supplier->internal_code ?? '' }}"
                                                 {{ old('supplier_id') == $supplier->id ? 'selected' : '' }}>
-                                            {{ $supplier->name }} - {{ $supplier->location }}
+                                            {{ $supplier->name }}@if($supplier->location && !empty($supplier->location)) - {{ $supplier->location }}@endif
                                         </option>
                                     @endforeach
                                 </select>
                                 @error('supplier_id')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
+                                <button type="button" class="btn btn-sm btn-success mt-2" data-bs-toggle="modal" data-bs-target="#quickSupplierModal" style="width: 100%;">
+                                    <i class="fas fa-plus"></i> Crear Proveedor Rápido
+                                </button>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -237,7 +240,7 @@
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h6 class="text-success mb-0">Grupos de Pesaje</h6>
                             <button type="button" class="btn btn-sm btn-success" onclick="addWeighingGroup()">
-                                <i class="fas fa-plus"></i> Agregar Grupo de Pesaje
+                                <i class="fas fa-plus"></i> Pesaje de fruta
                             </button>
                         </div>
                         <p class="text-muted small">Agrega grupos de bins pesados juntos. El sistema calculará automáticamente el peso neto de fruta restando el peso de los contenedores.</p>
@@ -958,18 +961,39 @@ function loadDeliveredBins(supplierId) {
             return;
         }
         
-        // Initialize Select2 for supplier dropdown
+        // Initialize Select2 for supplier dropdown: escribible y predictivo
         jQuery('#supplier_id').select2({
             theme: 'bootstrap-5',
-            placeholder: 'Buscar o seleccionar proveedor...',
+            placeholder: 'Escriba para buscar proveedor...',
             allowClear: true,
+            width: '100%',
+            minimumResultsForSearch: 0,  // Siempre mostrar caja de búsqueda para poder escribir
+            minimumInputLength: 0,        // Filtrar desde el primer carácter
             language: {
                 noResults: function() {
                     return "No se encontraron resultados";
                 },
                 searching: function() {
                     return "Buscando...";
+                },
+                inputTooShort: function() {
+                    return "Escriba para buscar";
                 }
+            },
+            matcher: function(params, data) {
+                // Búsqueda predictiva: coincide nombre o ubicación (sin distinguir mayúsculas/acentos)
+                if (params.term === undefined || params.term.trim() === '') {
+                    return data;
+                }
+                var stripAccents = function(s) {
+                    return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                };
+                var term = stripAccents(params.term);
+                var text = stripAccents(data.text);
+                if (text.indexOf(term) > -1) {
+                    return data;
+                }
+                return null;
             }
         });
         
@@ -1056,7 +1080,117 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+<!-- Modal para Crear Proveedor Rápido -->
+<div class="modal fade" id="quickSupplierModal" tabindex="-1" aria-labelledby="quickSupplierModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="quickSupplierModalLabel">
+                    <i class="fas fa-plus-circle"></i> Crear Proveedor Rápido
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="quickSupplierForm" action="{{ route('bin_reception.quick-create-supplier') }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Solo ingrese el nombre del proveedor. Podrá completar los demás datos después.
+                    </div>
+                    <div class="mb-3">
+                        <label for="quick_supplier_name" class="form-label">Nombre del Proveedor <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="quick_supplier_name" name="name" required placeholder="Ej: Juan Pérez">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Crear y Seleccionar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- jQuery and Select2 JS (loaded at the end) -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+// Manejar creación rápida de proveedor
+document.getElementById('quickSupplierForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando...';
+    
+    fetch(this.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Agregar el nuevo proveedor al select
+            const select = document.getElementById('supplier_id');
+            const option = document.createElement('option');
+            option.value = data.supplier.id;
+            option.textContent = data.supplier.name;
+            option.selected = true;
+            select.appendChild(option);
+            
+            // Actualizar Select2 si está inicializado
+            if (typeof jQuery !== 'undefined' && jQuery.fn.select2) {
+                jQuery(select).append(new Option(data.supplier.name, data.supplier.id, true, true)).trigger('change');
+            } else {
+                // Si Select2 no está inicializado, solo seleccionar
+                select.value = data.supplier.id;
+                select.dispatchEvent(new Event('change'));
+            }
+            
+            // Cerrar modal usando Bootstrap 5
+            const modalElement = document.getElementById('quickSupplierModal');
+            if (typeof bootstrap !== 'undefined') {
+                const modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) {
+                    modal.hide();
+                } else {
+                    const bsModal = new bootstrap.Modal(modalElement);
+                    bsModal.hide();
+                }
+            } else {
+                // Fallback si Bootstrap no está disponible
+                modalElement.classList.remove('show');
+                modalElement.style.display = 'none';
+                document.body.classList.remove('modal-open');
+                const backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) backdrop.remove();
+            }
+            
+            // Limpiar formulario
+            document.getElementById('quick_supplier_name').value = '';
+            
+            // Mostrar mensaje de éxito
+            alert('Proveedor creado exitosamente. Recuerde completar los datos en la sección de proveedores.');
+        } else {
+            alert('Error: ' + (data.message || 'No se pudo crear el proveedor'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al crear el proveedor. Por favor, intente nuevamente.');
+    })
+    .finally(() => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    });
+});
+</script>
 @endsection

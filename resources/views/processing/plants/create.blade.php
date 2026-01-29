@@ -87,6 +87,16 @@
                         <input type="text" class="form-control" id="tax_id" name="tax_id" value="{{ old('tax_id') }}"
                                placeholder="Ej: 77.706.225-5">
                     </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="payment_currency" class="form-label">
+                            <i class="fas fa-money-bill-wave"></i> Se paga en
+                        </label>
+                        <select class="form-select" id="payment_currency" name="payment_currency">
+                            <option value="">Seleccione...</option>
+                            <option value="usd" {{ old('payment_currency') == 'usd' ? 'selected' : '' }}>Dólares (USD)</option>
+                            <option value="clp" {{ old('payment_currency') == 'clp' ? 'selected' : '' }}>Pesos (CLP)</option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Información Bancaria -->

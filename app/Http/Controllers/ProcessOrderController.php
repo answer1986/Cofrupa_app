@@ -85,10 +85,16 @@ class ProcessOrderController extends Controller
             $validated['expected_completion_date'] = $orderDate->copy()->addDays($validated['production_days'])->format('Y-m-d');
         }
 
-        ProcessOrder::create($validated);
+        $order = ProcessOrder::create($validated);
+        
+        // Cargar relaciones necesarias para el PDF
+        $order->load(['plant', 'supplier']);
 
-        return redirect()->route('processing.orders.index')
-            ->with('success', 'Orden de proceso creada exitosamente');
+        // Generar PDF automáticamente
+        $pdf = Pdf::loadView('processing.orders.pdf', compact('order'));
+        $fileName = 'Orden_Proceso_' . $order->order_number . '.pdf';
+
+        return $pdf->download($fileName);
     }
 
     public function show(ProcessOrder $order)
@@ -177,6 +183,9 @@ class ProcessOrderController extends Controller
             'sag' => 'boolean',
             'kilos_sent' => 'nullable|numeric|min:0',
             'kilos_produced' => 'nullable|numeric|min:0',
+            'vehicle_plate' => 'nullable|string|max:20',
+            'shipment_date' => 'nullable|date',
+            'shipment_time' => 'nullable|date_format:H:i',
         ]);
 
         // Calcular fecha de término esperada si se proporcionaron días de producción

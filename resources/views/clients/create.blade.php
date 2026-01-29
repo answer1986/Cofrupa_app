@@ -19,13 +19,34 @@
                 <h5 class="mb-0"><i class="fas fa-user"></i> Información del Cliente</h5>
             </div>
             <div class="card-body">
+                @if(isset($incompleteClients) && $incompleteClients->count() > 0)
+                <div class="alert alert-warning mb-4">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Clientes pendientes de completar:</strong>
+                    Tiene {{ $incompleteClients->count() }} cliente(s) creado(s) desde procesamiento que necesitan completar sus datos.
+                    <ul class="mb-0 mt-2">
+                        @foreach($incompleteClients as $inc)
+                        <li>{{ $inc->name }} (creado el {{ $inc->created_at->format('d/m/Y H:i') }})</li>
+                        @endforeach
+                    </ul>
+                </div>
+                @endif
+
                 <form action="{{ route('clients.store') }}" method="POST">
                     @csrf
+
+                    @if(isset($incompleteClientData) && !empty($incompleteClientData))
+                    <input type="hidden" name="incomplete_client_id" value="{{ $incompleteClientData['client_id'] }}">
+                    <div class="alert alert-info mb-3">
+                        <i class="fas fa-info-circle"></i>
+                        Completando datos del cliente: <strong>{{ $incompleteClientData['name'] }}</strong>
+                    </div>
+                    @endif
 
                     <div class="mb-3">
                         <label for="name" class="form-label">Nombre del Cliente *</label>
                         <input type="text" class="form-control @error('name') is-invalid @enderror"
-                               id="name" name="name" value="{{ old('name') }}" required>
+                               id="name" name="name" value="{{ old('name') ?? ($incompleteClientData['name'] ?? '') }}" required>
                         @error('name')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror

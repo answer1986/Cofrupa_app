@@ -19,8 +19,29 @@
                 <h5 class="mb-0"><i class="fas fa-truck"></i> Información del Proveedor</h5>
             </div>
             <div class="card-body">
+                @if(isset($incompleteSuppliers) && $incompleteSuppliers->count() > 0)
+                <div class="alert alert-warning mb-4">
+                    <i class="fas fa-exclamation-triangle"></i> 
+                    <strong>Proveedores pendientes de completar:</strong> 
+                    Tiene {{ $incompleteSuppliers->count() }} proveedor(es) creado(s) desde recepción que necesitan completar sus datos.
+                    <ul class="mb-0 mt-2">
+                        @foreach($incompleteSuppliers as $inc)
+                        <li>{{ $inc->name }} (creado el {{ $inc->created_at->format('d/m/Y H:i') }})</li>
+                        @endforeach
+                    </ul>
+                </div>
+                @endif
+                
                 <form action="{{ route('suppliers.store') }}" method="POST">
                     @csrf
+                    
+                    @if(isset($incompleteSupplierData) && !empty($incompleteSupplierData))
+                    <input type="hidden" name="incomplete_supplier_id" value="{{ $incompleteSupplierData['supplier_id'] }}">
+                    <div class="alert alert-info mb-3">
+                        <i class="fas fa-info-circle"></i> 
+                        Completando datos del proveedor: <strong>{{ $incompleteSupplierData['name'] }}</strong>
+                    </div>
+                    @endif
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -28,7 +49,7 @@
                                 <i class="fas fa-building"></i> Nombre del Proveedor *
                             </label>
                             <input type="text" class="form-control @error('name') is-invalid @enderror"
-                                   id="name" name="name" value="{{ old('name') }}" required>
+                                   id="name" name="name" value="{{ old('name') ?? ($incompleteSupplierData['name'] ?? '') }}" required>
                             @error('name')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -83,6 +104,9 @@
                             @error('location')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
+                            @if(isset($incompleteSupplierData) && !empty($incompleteSupplierData))
+                            <small class="text-muted">Este campo es requerido para completar el proveedor</small>
+                            @endif
                         </div>
 
                         <div class="col-md-6 mb-3">

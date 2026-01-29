@@ -23,11 +23,13 @@ class Supplier extends Model
         'bank_name',
         'bank_account_type',
         'bank_account_number',
+        'is_incomplete',
     ];
 
     protected $casts = [
         'total_debt' => 'decimal:2',
         'total_paid' => 'decimal:2',
+        'is_incomplete' => 'boolean',
     ];
 
     // Relationship with bins

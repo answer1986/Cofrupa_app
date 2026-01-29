@@ -30,6 +30,8 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth', '2fa'])->group(function () {
     Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
     Route::resource('users', App\Http\Controllers\UserController::class)->middleware('can:manage users');
+    Route::get('/users-access', [App\Http\Controllers\UserController::class, 'access'])->name('users.access')->middleware('can:manage users');
+    Route::post('/users-access/{roleId}', [App\Http\Controllers\UserController::class, 'updateRolePermissions'])->name('users.update-permissions')->middleware('can:manage users');
     Route::resource('suppliers', App\Http\Controllers\SupplierController::class);
     Route::resource('bins', App\Http\Controllers\BinController::class);
     // Quick purchase route (must be before resource route)
@@ -39,12 +41,14 @@ Route::middleware(['auth', '2fa'])->group(function () {
 
     // Bin Reception (initial QR generation for received bins)
     Route::resource('bin_reception', App\Http\Controllers\BinReceptionController::class)->middleware('can:manage processed bins');
+    Route::post('/bin_reception/quick-create-supplier', [App\Http\Controllers\BinReceptionController::class, 'quickCreateSupplier'])->name('bin_reception.quick-create-supplier')->middleware('can:manage processed bins');
 
     // Processed Bins (management after reception)
     Route::resource('processed_bins', App\Http\Controllers\ProcessedBinController::class)->middleware('can:manage processed bins');
 
     // Bin Processing (mixing and calibration)
     Route::resource('bin_processing', App\Http\Controllers\BinProcessingController::class)->middleware('can:manage processed bins');
+    Route::post('/bin_processing/quick-create-external-client', [App\Http\Controllers\BinProcessingController::class, 'quickCreateExternalClient'])->name('bin_processing.quick-create-external-client')->middleware('can:manage processed bins');
     Route::get('/bin_processing/{id}/traceability', [App\Http\Controllers\BinProcessingController::class, 'traceability'])->name('bin_processing.traceability')->middleware('can:manage processed bins');
     
     // Stock/Inventory Management
@@ -182,6 +186,9 @@ Route::middleware(['auth', '2fa'])->group(function () {
         // Route::get('/production-orders/create', [App\Http\Controllers\PlantProductionOrderController::class, 'create'])->name('production-orders.create'); // COMENTADO
         // Route::post('/production-orders', [App\Http\Controllers\PlantProductionOrderController::class, 'store'])->name('production-orders.store'); // COMENTADO
         
+        // Petición de cupos (tarjas rebajadas, kilos enviados vs devueltos, rendimiento)
+        Route::get('/request', [App\Http\Controllers\CupoRequestController::class, 'index'])->name('request.index');
+
         // Envío de Órdenes
         Route::resource('orders', App\Http\Controllers\ProcessOrderController::class);
         Route::post('/orders/{order}/update-progress', [App\Http\Controllers\ProcessOrderController::class, 'updateProgress'])->name('orders.update-progress');
@@ -206,6 +213,25 @@ Route::middleware(['auth', '2fa'])->group(function () {
         Route::post('/{discard}/recover', [App\Http\Controllers\DiscardController::class, 'recover'])->name('discards.recover');
         Route::post('/{discard}/dispose', [App\Http\Controllers\DiscardController::class, 'dispose'])->name('discards.dispose');
         Route::post('/bulk-recover', [App\Http\Controllers\DiscardController::class, 'bulkRecover'])->name('discards.bulk-recover');
+    });
+
+    // Finance Module (Módulo de Finanzas: Cofrupa, Luis Gonzalez, Comercializadora)
+    Route::prefix('finance')->name('finance.')->group(function () {
+        Route::get('/', [App\Http\Controllers\FinanceController::class, 'index'])->name('index');
+        
+        // Compras
+        Route::get('/purchases/create', [App\Http\Controllers\FinanceController::class, 'createPurchase'])->name('purchases.create');
+        Route::post('/purchases', [App\Http\Controllers\FinanceController::class, 'storePurchase'])->name('purchases.store');
+        Route::get('/purchases/{purchase}/edit', [App\Http\Controllers\FinanceController::class, 'editPurchase'])->name('purchases.edit');
+        Route::put('/purchases/{purchase}', [App\Http\Controllers\FinanceController::class, 'updatePurchase'])->name('purchases.update');
+        Route::delete('/purchases/{purchase}', [App\Http\Controllers\FinanceController::class, 'destroyPurchase'])->name('purchases.destroy');
+        
+        // Ventas
+        Route::get('/sales/create', [App\Http\Controllers\FinanceController::class, 'createSale'])->name('sales.create');
+        Route::post('/sales', [App\Http\Controllers\FinanceController::class, 'storeSale'])->name('sales.store');
+        Route::get('/sales/{sale}/edit', [App\Http\Controllers\FinanceController::class, 'editSale'])->name('sales.edit');
+        Route::put('/sales/{sale}', [App\Http\Controllers\FinanceController::class, 'updateSale'])->name('sales.update');
+        Route::delete('/sales/{sale}', [App\Http\Controllers\FinanceController::class, 'destroySale'])->name('sales.destroy');
     });
 });
 

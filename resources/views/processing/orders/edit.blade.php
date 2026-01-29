@@ -111,8 +111,24 @@
                         <input type="number" step="0.01" class="form-control" id="kilos_sent" name="kilos_sent" value="{{ old('kilos_sent', $order->kilos_sent) }}" min="0" placeholder="Ej: 21.500">
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label for="kilos_produced" class="form-label">Kilos Producidos</label>
+                        <label for="kilos_produced" class="form-label">Kilos Producidos (devueltos)</label>
                         <input type="number" step="0.01" class="form-control" id="kilos_produced" name="kilos_produced" value="{{ old('kilos_produced', $order->kilos_produced) }}" min="0" placeholder="Ej: 21.500">
+                    </div>
+                </div>
+                <hr class="my-3">
+                <h6 class="text-muted"><i class="fas fa-truck"></i> Envío a planta (petición de cupos)</h6>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="vehicle_plate" class="form-label">Patente del camión</label>
+                        <input type="text" class="form-control" id="vehicle_plate" name="vehicle_plate" value="{{ old('vehicle_plate', $order->vehicle_plate) }}" placeholder="Ej: ABCD12" style="text-transform: uppercase;">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="shipment_date" class="form-label">Fecha de envío</label>
+                        <input type="date" class="form-control" id="shipment_date" name="shipment_date" value="{{ old('shipment_date', $order->shipment_date?->format('Y-m-d')) }}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="shipment_time" class="form-label">Horario de envío</label>
+                        <input type="time" class="form-control" id="shipment_time" name="shipment_time" value="{{ old('shipment_time', $order->shipment_time ? \Carbon\Carbon::parse($order->shipment_time)->format('H:i') : '') }}">
                     </div>
                 </div>
                 <div class="row">

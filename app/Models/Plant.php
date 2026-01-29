@@ -11,7 +11,7 @@ class Plant extends Model
 
     protected $fillable = [
         'name', 'code', 'address', 'phone', 'email', 'contact_person', 'notes', 'is_active',
-        'tax_id', 'bank_name', 'bank_account_type', 'bank_account_number'
+        'tax_id', 'bank_name', 'bank_account_type', 'bank_account_number', 'payment_currency'
     ];
 
     protected $casts = [

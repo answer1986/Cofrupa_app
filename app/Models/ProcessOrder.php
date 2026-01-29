@@ -16,13 +16,14 @@ class ProcessOrder extends Model
         'raw_material', 'product', 'type', 'caliber', 'quality', 'labeling',
         'packaging', 'potassium_sorbate', 'humidity', 'stone_percentage',
         'oil', 'damage', 'plant_print', 'destination', 'loading_date', 'sag',
-        'kilos_sent', 'kilos_produced'
+        'kilos_sent', 'kilos_produced', 'vehicle_plate', 'shipment_date', 'shipment_time'
     ];
 
     protected $casts = [
         'order_date' => 'date',
         'expected_completion_date' => 'date',
         'actual_completion_date' => 'date',
+        'shipment_date' => 'date',
         'production_days' => 'integer',
         'progress_percentage' => 'integer',
         'quantity' => 'decimal:2',

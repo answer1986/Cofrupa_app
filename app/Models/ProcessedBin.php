@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Crypt;
+use App\Models\Client;
 
 class ProcessedBin extends Model
 {
@@ -64,6 +65,7 @@ class ProcessedBin extends Model
         'cofrupa_plastic_bins_count',
         'external_service',
         'external_service_client',
+        'external_service_client_id',
         'external_service_period_start',
         'external_service_period_end',
     ];
@@ -128,6 +130,11 @@ class ProcessedBin extends Model
     public function supplier()
     {
         return $this->belongsTo(Supplier::class);
+    }
+
+    public function externalServiceClient()
+    {
+        return $this->belongsTo(Client::class, 'external_service_client_id');
     }
 
     public function orders()

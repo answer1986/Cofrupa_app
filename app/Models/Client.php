@@ -17,10 +17,15 @@ class Client extends Model
         'customs_agency',
         'address',
         'notes',
+        'is_incomplete',
         'tax_id',
         'bank_name',
         'bank_account_type',
         'bank_account_number',
+    ];
+
+    protected $casts = [
+        'is_incomplete' => 'boolean',
     ];
 
     // Relationships

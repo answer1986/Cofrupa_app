@@ -7,6 +7,7 @@ use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Spatie\Permission\Models\Permission;
 
 class UserController extends Controller
 {
@@ -133,5 +134,41 @@ class UserController extends Controller
         $user->delete();
 
         return redirect()->route('users.index')->with('success', 'Usuario eliminado exitosamente.');
+    }
+
+    /**
+     * Mostrar la vista de gestión de permisos por rol
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function access()
+    {
+        $roles = \Spatie\Permission\Models\Role::with('permissions')->get();
+        $permissions = Permission::all();
+        
+        return view('users.access', compact('roles', 'permissions'));
+    }
+
+    /**
+     * Actualizar permisos de un rol
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $roleId
+     * @return \Illuminate\Http\Response
+     */
+    public function updateRolePermissions(Request $request, $roleId)
+    {
+        $role = \Spatie\Permission\Models\Role::findOrFail($roleId);
+        
+        $request->validate([
+            'permissions' => 'array',
+            'permissions.*' => 'exists:permissions,name',
+        ]);
+
+        // Sincronizar permisos (elimina los que no están en el array y agrega los nuevos)
+        $role->syncPermissions($request->permissions ?? []);
+
+        return redirect()->route('users.access')
+            ->with('success', "Permisos actualizados para el rol {$role->name}");
     }
 }

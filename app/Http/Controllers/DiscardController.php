@@ -33,18 +33,20 @@ class DiscardController extends Controller
 
         $discards = $query->latest('completion_date')->paginate(15);
 
-        // Estadísticas
+        // Estadísticas (pobladas desde órdenes de producción: orden - producido = descarte recuperable)
         $totalPendingKg = PlantProductionOrder::where('discard_status', 'pending')
+            ->where('discard_kg', '>', 0)
             ->sum('discard_kg');
-        
+
         $totalRecoveredKg = PlantProductionOrder::where('discard_status', 'recovered')
             ->sum('discard_kg');
-        
+
         $totalDisposedKg = PlantProductionOrder::where('discard_status', 'disposed')
             ->sum('discard_kg');
 
         $totalDiscardValue = PlantProductionOrder::with('contract')
             ->where('discard_status', 'pending')
+            ->where('discard_kg', '>', 0)
             ->get()
             ->sum(function ($order) {
                 return $order->discard_kg * ($order->contract->price ?? 0);
