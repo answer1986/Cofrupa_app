@@ -65,11 +65,11 @@
                     </div>
                     <div class="col-md-4 mb-3">
                         <label for="expected_completion_date" class="form-label">Fecha de Término Esperada</label>
-                        <input type="date" class="form-control" id="expected_completion_date" name="expected_completion_date" value="{{ old('expected_completion_date', $order->expected_completion_date?->format('Y-m-d')) }}" readonly>
+                        <input type="date" class="form-control" id="expected_completion_date" name="expected_completion_date" value="{{ old('expected_completion_date', $order->expected_completion_date ? $order->expected_completion_date->format('Y-m-d') : '') }}" readonly>
                     </div>
                     <div class="col-md-4 mb-3">
                         <label for="actual_completion_date" class="form-label">Fecha de Término Real</label>
-                        <input type="date" class="form-control" id="actual_completion_date" name="actual_completion_date" value="{{ old('actual_completion_date', $order->actual_completion_date?->format('Y-m-d')) }}">
+                        <input type="date" class="form-control" id="actual_completion_date" name="actual_completion_date" value="{{ old('actual_completion_date', $order->actual_completion_date ? $order->actual_completion_date->format('Y-m-d') : '') }}">
                     </div>
                 </div>
             </div>
@@ -124,7 +124,7 @@
                     </div>
                     <div class="col-md-4 mb-3">
                         <label for="shipment_date" class="form-label">Fecha de envío</label>
-                        <input type="date" class="form-control" id="shipment_date" name="shipment_date" value="{{ old('shipment_date', $order->shipment_date?->format('Y-m-d')) }}">
+                        <input type="date" class="form-control" id="shipment_date" name="shipment_date" value="{{ old('shipment_date', $order->shipment_date ? $order->shipment_date->format('Y-m-d') : '') }}">
                     </div>
                     <div class="col-md-4 mb-3">
                         <label for="shipment_time" class="form-label">Horario de envío</label>

@@ -365,12 +365,12 @@
         </div>
     </div>
 
-    <div class="row mt-4">
+    <div class="row mt-4" id="bin_selection_row" style="display: {{ old('supplier_bins_count', $purchase->supplier_bins_count) ? 'none' : 'flex' }};">
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
                     <h5 class="mb-0"><i class="fas fa-boxes"></i> Selección de Bins *</h5>
-                    <small class="text-muted">Selecciona uno o más bins para esta compra</small>
+                    <small class="text-muted">Selecciona uno o más bins para esta compra (solo cuando no usas bins del productor)</small>
                 </div>
                 <div class="card-body">
                     @error('bin_ids')
@@ -671,16 +671,19 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    var binSelectionRow = document.getElementById('bin_selection_row');
     if (useSupplierBinsCheckbox && supplierBinsRow && binsToSendRow) {
         useSupplierBinsCheckbox.addEventListener('change', function() {
             if (this.checked) {
                 supplierBinsRow.style.display = 'flex';
                 binsToSendRow.style.display = 'none';
+                if (binSelectionRow) binSelectionRow.style.display = 'none';
                 binsRequests = [];
                 updateBinsRequestsList();
             } else {
                 supplierBinsRow.style.display = 'none';
                 binsToSendRow.style.display = 'block';
+                if (binSelectionRow) binSelectionRow.style.display = 'flex';
                 if (supplierBinsCount) supplierBinsCount.value = '';
                 if (supplierBinsPhoto) supplierBinsPhoto.value = '';
             }

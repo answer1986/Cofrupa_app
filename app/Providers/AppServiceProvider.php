@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 use App\Models\Purchase;
 use App\Models\ProcessOrder;
 use App\Models\PlantProductionOrder;
@@ -11,6 +13,7 @@ use App\Models\Shipment;
 use App\Models\Contract;
 use App\Models\Supplier;
 use App\Models\Client;
+use App\Models\Maintenance;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -67,9 +70,14 @@ class AppServiceProvider extends ServiceProvider
 
             // 7. Clientes incompletos (creados desde procesamiento - cliente externo)
             $incompleteClientsCount = Client::where('is_incomplete', true)->count();
+
+            // 8. Mantenciones próximas o vencidas (próximos 14 días o ya vencidas)
+            $upcomingMaintenancesCount = Maintenance::whereNotNull('next_maintenance_date')
+                ->where('next_maintenance_date', '<=', now()->addDays(14))
+                ->count();
             
-            // Total de procesos pendientes
-            $totalPendingCount = $pendingPurchasesCount + $pendingProcessOrdersCount + $pendingPlantOrdersCount + $pendingShipmentsCount + $draftContractsCount + $incompleteSuppliersCount + $incompleteClientsCount;
+            // Total de procesos pendientes (incluye mantenciones próximas)
+            $totalPendingCount = $pendingPurchasesCount + $pendingProcessOrdersCount + $pendingPlantOrdersCount + $pendingShipmentsCount + $draftContractsCount + $incompleteSuppliersCount + $incompleteClientsCount + $upcomingMaintenancesCount;
             
             $view->with('pendingPurchasesCount', $pendingPurchasesCount);
             $view->with('pendingProcessOrdersCount', $pendingProcessOrdersCount);
@@ -78,7 +86,29 @@ class AppServiceProvider extends ServiceProvider
             $view->with('draftContractsCount', $draftContractsCount);
             $view->with('incompleteSuppliersCount', $incompleteSuppliersCount);
             $view->with('incompleteClientsCount', $incompleteClientsCount);
+            $view->with('upcomingMaintenancesCount', $upcomingMaintenancesCount);
             $view->with('totalPendingCount', $totalPendingCount);
+
+            // Valor del dólar (CLP) - cache 1 hora solo cuando hay valor; API mindicador.cl
+            $usdRateClp = Cache::get('usd_rate_clp');
+            if ($usdRateClp === null) {
+                try {
+                    $response = Http::timeout(5)->get('https://mindicador.cl/api/dolar');
+                    if ($response->successful()) {
+                        $data = $response->json();
+                        if (!empty($data['serie'][0]['valor'])) {
+                            $usdRateClp = (float) $data['serie'][0]['valor'];
+                            Cache::put('usd_rate_clp', $usdRateClp, 3600);
+                        } elseif (!empty($data['valor'])) {
+                            $usdRateClp = (float) $data['valor'];
+                            Cache::put('usd_rate_clp', $usdRateClp, 3600);
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    $usdRateClp = null;
+                }
+            }
+            $view->with('usdRateClp', $usdRateClp);
         });
     }
 }

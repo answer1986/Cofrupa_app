@@ -9,7 +9,7 @@ class PlantController extends Controller
 {
     public function index()
     {
-        $plants = Plant::latest()->get();
+        $plants = Plant::with('contacts')->latest()->get();
         return view('processing.plants.index', compact('plants'));
     }
 

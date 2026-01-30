@@ -378,11 +378,11 @@ class BinReceptionController extends Controller
             'name' => 'required|string|max:255',
         ]);
 
-        // Crear proveedor solo con nombre, marcado como incompleto
+        // Crear proveedor solo con nombre, marcado como incompleto (location null para que cuente en notificaciones)
         $supplier = Supplier::create([
             'name' => $request->name,
-            'location' => 'Pendiente', // Valor temporal, se completará después
-            'is_incomplete' => true, // Marcar como incompleto
+            'location' => null, // Sin completar, así aparece en "Proveedores por completar" de la campana
+            'is_incomplete' => true,
         ]);
 
         return response()->json([

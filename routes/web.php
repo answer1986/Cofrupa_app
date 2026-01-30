@@ -37,6 +37,7 @@ Route::middleware(['auth', '2fa'])->group(function () {
     // Quick purchase route (must be before resource route)
     Route::get('/purchases/quick-create', [App\Http\Controllers\PurchaseController::class, 'quickCreate'])->name('purchases.quick-create');
     Route::post('/purchases/quick-store', [App\Http\Controllers\PurchaseController::class, 'quickStore'])->name('purchases.quick-store');
+    Route::post('/purchases/quick-create-supplier', [App\Http\Controllers\PurchaseController::class, 'quickCreateSupplier'])->name('purchases.quick-create-supplier');
     Route::resource('purchases', App\Http\Controllers\PurchaseController::class);
 
     // Bin Reception (initial QR generation for received bins)
@@ -65,6 +66,10 @@ Route::middleware(['auth', '2fa'])->group(function () {
     Route::post('/bins/{id}/return', [App\Http\Controllers\BinController::class, 'returnBin'])->name('bins.return');
     Route::post('/bins/{id}/assign', [App\Http\Controllers\BinController::class, 'assignToSupplier'])->name('bins.assign');
     Route::get('/logs', [App\Http\Controllers\LoginLogController::class, 'index'])->name('logs.index')->middleware('can:manage users');
+
+    // Bitácora de eventos de la campana (pendientes atendidos / no atendidos)
+    Route::get('/vitacora', [App\Http\Controllers\VitacoraController::class, 'index'])->name('vitacora.index')->middleware('can:manage users');
+    Route::post('/vitacora', [App\Http\Controllers\VitacoraController::class, 'store'])->name('vitacora.store')->middleware('can:manage users');
 
     // Reports routes
     Route::get('/reports', [App\Http\Controllers\ReportsController::class, 'index'])->name('reports.index');

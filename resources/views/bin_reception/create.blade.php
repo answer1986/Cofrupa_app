@@ -50,7 +50,7 @@
                                         <option value="{{ $supplier->id }}" 
                                                 data-csg="{{ $supplier->csg_code ?? '' }}"
                                                 data-internal="{{ $supplier->internal_code ?? '' }}"
-                                                {{ old('supplier_id') == $supplier->id ? 'selected' : '' }}>
+                                                {{ old('supplier_id', request('supplier_id')) == $supplier->id ? 'selected' : '' }}>
                                             {{ $supplier->name }}@if($supplier->location && !empty($supplier->location)) - {{ $supplier->location }}@endif
                                         </option>
                                     @endforeach
@@ -1101,47 +1101,11 @@ document.getElementById('quickSupplierForm').addEventListener('submit', function
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Agregar el nuevo proveedor al select
-            const select = document.getElementById('supplier_id');
-            const option = document.createElement('option');
-            option.value = data.supplier.id;
-            option.textContent = data.supplier.name;
-            option.selected = true;
-            select.appendChild(option);
-            
-            // Actualizar Select2 si está inicializado
-            if (typeof jQuery !== 'undefined' && jQuery.fn.select2) {
-                jQuery(select).append(new Option(data.supplier.name, data.supplier.id, true, true)).trigger('change');
-            } else {
-                // Si Select2 no está inicializado, solo seleccionar
-                select.value = data.supplier.id;
-                select.dispatchEvent(new Event('change'));
-            }
-            
-            // Cerrar modal usando Bootstrap 5
-            const modalElement = document.getElementById('quickSupplierModal');
-            if (typeof bootstrap !== 'undefined') {
-                const modal = bootstrap.Modal.getInstance(modalElement);
-                if (modal) {
-                    modal.hide();
-                } else {
-                    const bsModal = new bootstrap.Modal(modalElement);
-                    bsModal.hide();
-                }
-            } else {
-                // Fallback si Bootstrap no está disponible
-                modalElement.classList.remove('show');
-                modalElement.style.display = 'none';
-                document.body.classList.remove('modal-open');
-                const backdrop = document.querySelector('.modal-backdrop');
-                if (backdrop) backdrop.remove();
-            }
-            
-            // Limpiar formulario
-            document.getElementById('quick_supplier_name').value = '';
-            
-            // Mostrar mensaje de éxito
-            alert('Proveedor creado exitosamente. Recuerde completar los datos en la sección de proveedores.');
+            // Recargar la página con el proveedor preseleccionado para que la campana de notificaciones se actualice
+            const url = new URL(window.location.href);
+            url.searchParams.set('supplier_id', data.supplier.id);
+            window.location.href = url.toString();
+            return;
         } else {
             alert('Error: ' + (data.message || 'No se pudo crear el proveedor'));
         }

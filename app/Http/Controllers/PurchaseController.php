@@ -56,7 +56,8 @@ class PurchaseController extends Controller
      */
     public function quickStore(Request $request)
     {
-        $rules = [
+        $request->validate([
+            'supplier_id' => 'required|exists:suppliers,id',
             'buyer' => 'required|in:LG,Cofrupa,Comercializadora',
             'purchase_type' => 'required|string|max:255',
             'purchase_date' => 'required|date',
@@ -71,28 +72,9 @@ class PurchaseController extends Controller
             'units_per_pound' => 'required|integer|min:1',
             'unit_price' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
-        ];
+        ]);
 
-        // Conditional validation based on new_supplier check
-        if ($request->has('new_supplier_check')) {
-            $rules['new_supplier_name'] = 'required|string|max:255';
-        } else {
-            $rules['supplier_id'] = 'required|exists:suppliers,id';
-        }
-
-        $request->validate($rules);
-        
-        // Handle supplier resolution
-        if ($request->has('new_supplier_check')) {
-            $supplier = Supplier::create([
-                'name' => $request->new_supplier_name,
-                'is_incomplete' => true,
-                'location' => null, // Explicitly null to trigger alert
-            ]);
-            $supplierId = $supplier->id;
-        } else {
-            $supplierId = $request->supplier_id;
-        }
+        $supplierId = $request->supplier_id;
 
         // Calculate total amount and owed amount if unit price is provided
         $totalAmount = $request->unit_price ? $request->unit_price * $request->weight_purchased : 0;
@@ -127,6 +109,31 @@ class PurchaseController extends Controller
         // Don't update supplier debt here - it will be updated when completing the purchase details
         // Redirect to edit page to complete the details
         return redirect()->route('purchases.edit', $purchase)->with('success', 'Compra rápida creada. Complete los detalles a continuación.');
+    }
+
+    /**
+     * Crear proveedor rápido desde Compra Rápida (solo con nombre). Mismo comportamiento que bin_reception.
+     */
+    public function quickCreateSupplier(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $supplier = Supplier::create([
+            'name' => $request->name,
+            'location' => null,
+            'is_incomplete' => true,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Proveedor creado exitosamente',
+            'supplier' => [
+                'id' => $supplier->id,
+                'name' => $supplier->name,
+            ]
+        ]);
     }
 
     /**
@@ -251,6 +258,8 @@ class PurchaseController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $usingSupplierBins = $request->filled('supplier_bins_count') && (int) $request->supplier_bins_count > 0;
+
         $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
             'buyer' => 'required|in:LG,Cofrupa,Comercializadora',
@@ -267,7 +276,12 @@ class PurchaseController extends Controller
             'supplier_bins_count' => 'nullable|integer|min:0',
             'supplier_bins_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'bins_to_send' => 'nullable|string',
-            'bin_ids' => 'required|array|min:1',
+            'bin_ids' => [
+                'nullable',
+                'array',
+                Rule::requiredIf(!$usingSupplierBins),
+                Rule::when(!$usingSupplierBins, 'min:1'),
+            ],
             'bin_ids.*' => 'exists:bins,id',
             'notes' => 'nullable|string',
         ]);
@@ -325,37 +339,45 @@ class PurchaseController extends Controller
         $supplier->total_paid = $supplier->purchases->sum('amount_paid');
         $supplier->save();
 
-        // Handle bin changes
-        $oldBins = $purchase->bins;
-        $newBins = Bin::whereIn('id', $request->bin_ids)->get();
-
-        // Detach old bins and update their status
-        foreach ($oldBins as $oldBin) {
-            $purchase->bins()->detach($oldBin->id);
-
-            // Check if this bin is still used by other purchases
-            $stillUsed = Purchase::whereHas('bins', function($query) use ($oldBin) {
-                $query->where('bin_id', $oldBin->id);
-            })->exists();
-
-            if (!$stillUsed) {
-                // Weight is calculated dynamically, no need to set to 0
-                $oldBin->status = 'available';
-                $oldBin->supplier_id = null;
-                $oldBin->save();
+        // Handle bin changes: solo cuando NO se usan bins del productor
+        if ($usingSupplierBins) {
+            // Bins del productor: quitar todos nuestros bins de esta compra
+            $oldBins = $purchase->bins;
+            foreach ($oldBins as $oldBin) {
+                $purchase->bins()->detach($oldBin->id);
+                $stillUsed = Purchase::whereHas('bins', function ($query) use ($oldBin) {
+                    $query->where('bin_id', $oldBin->id);
+                })->exists();
+                if (!$stillUsed) {
+                    $oldBin->status = 'available';
+                    $oldBin->supplier_id = null;
+                    $oldBin->save();
+                }
             }
-        }
+        } else {
+            // Bins nuestros: actualizar relación con los seleccionados
+            $oldBins = $purchase->bins;
+            $binIds = $request->bin_ids ?? [];
+            $newBins = Bin::whereIn('id', $binIds)->get();
 
-        // Attach new bins and update their status
-        $weightPerBin = $request->weight_purchased / count($newBins);
+            foreach ($oldBins as $oldBin) {
+                $purchase->bins()->detach($oldBin->id);
+                $stillUsed = Purchase::whereHas('bins', function ($query) use ($oldBin) {
+                    $query->where('bin_id', $oldBin->id);
+                })->exists();
+                if (!$stillUsed) {
+                    $oldBin->status = 'available';
+                    $oldBin->supplier_id = null;
+                    $oldBin->save();
+                }
+            }
 
-        foreach ($newBins as $newBin) {
-            $purchase->bins()->attach($newBin->id);
-
-            // Weight is calculated dynamically from purchases
-            $newBin->supplier_id = $request->supplier_id;
-            $newBin->status = 'in_use';
-            $newBin->save();
+            foreach ($newBins as $newBin) {
+                $purchase->bins()->attach($newBin->id);
+                $newBin->supplier_id = $request->supplier_id;
+                $newBin->status = 'in_use';
+                $newBin->save();
+            }
         }
 
         return redirect()->route('purchases.show', $purchase)->with('success', 'Compra actualizada exitosamente.');

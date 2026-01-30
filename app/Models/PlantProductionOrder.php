@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\ProcessOrder;
 use Carbon\Carbon;
 
 class PlantProductionOrder extends Model
@@ -11,7 +12,7 @@ class PlantProductionOrder extends Model
     use HasFactory;
 
     protected $fillable = [
-        'contract_id', 'plant_id', 'order_number', 'product', 'output_caliber',
+        'process_order_id', 'contract_id', 'plant_id', 'order_number', 'product', 'output_caliber',
         'order_quantity_kg', 'booking_number', 'vessel', 'entry_date', 'entry_time',
         'completion_date', 'completion_time', 'production_program', 'sorbate_solution',
         'delay_hours', 'delay_reason', 'produced_kilos', 'discard_kg', 'discard_reason',
@@ -42,6 +43,11 @@ class PlantProductionOrder extends Model
     public function plant()
     {
         return $this->belongsTo(Plant::class);
+    }
+
+    public function processOrder()
+    {
+        return $this->belongsTo(ProcessOrder::class);
     }
 
     public function getStatusDisplayAttribute()

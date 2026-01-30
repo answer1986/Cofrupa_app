@@ -36,12 +36,15 @@
                 </thead>
                 <tbody>
                     @forelse($plants as $plant)
+                        @php
+                            $firstContact = $plant->contacts->first();
+                        @endphp
                         <tr>
                             <td>{{ $plant->code }}</td>
                             <td>{{ $plant->name }}</td>
-                            <td>{{ $plant->contact_person ?? 'N/A' }}</td>
-                            <td>{{ $plant->email ?? 'N/A' }}</td>
-                            <td>{{ $plant->phone ?? 'N/A' }}</td>
+                            <td>{{ $firstContact->contact_person ?? $plant->contact_person ?? 'N/A' }}</td>
+                            <td>{{ $firstContact->email ?? $plant->email ?? 'N/A' }}</td>
+                            <td>{{ $firstContact->phone ?? $plant->phone ?? 'N/A' }}</td>
                             <td>
                                 <span class="badge bg-{{ $plant->is_active ? 'success' : 'secondary' }}">
                                     {{ $plant->is_active ? 'Activa' : 'Inactiva' }}

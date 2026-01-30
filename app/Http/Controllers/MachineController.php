@@ -21,6 +21,7 @@ class MachineController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'plant_id' => 'nullable|exists:plants,id',
             'name' => 'required|string|max:255',
             'code' => 'required|string|max:50|unique:machines,code',
             'type' => 'nullable|string|max:255',
@@ -32,7 +33,7 @@ class MachineController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        Machine::create($validated);
+        Machine::create(array_merge($validated, ['plant_id' => $validated['plant_id'] ?? null]));
 
         return redirect()->route('processing.machines.index')
             ->with('success', 'Máquina creada exitosamente');
@@ -52,6 +53,7 @@ class MachineController extends Controller
     public function update(Request $request, Machine $machine)
     {
         $validated = $request->validate([
+            'plant_id' => 'nullable|exists:plants,id',
             'name' => 'required|string|max:255',
             'code' => 'required|string|max:50|unique:machines,code,' . $machine->id,
             'type' => 'nullable|string|max:255',
@@ -63,7 +65,7 @@ class MachineController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $machine->update($validated);
+        $machine->update(array_merge($validated, ['plant_id' => $validated['plant_id'] ?? null]));
 
         return redirect()->route('processing.machines.index')
             ->with('success', 'Máquina actualizada exitosamente');

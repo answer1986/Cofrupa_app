@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ProcessOrder;
+use App\Models\PlantProductionOrder;
 use App\Models\Plant;
 use App\Models\Supplier;
 use App\Models\Contract;
@@ -86,6 +87,24 @@ class ProcessOrderController extends Controller
         }
 
         $order = ProcessOrder::create($validated);
+
+        // Crear orden de producción vinculada para que aparezca en /processing/production-orders
+        $orderNumberProduction = $order->order_number;
+        $exists = PlantProductionOrder::where('order_number', $orderNumberProduction)->exists();
+        if ($exists) {
+            $orderNumberProduction = $order->order_number . '-' . $order->id;
+        }
+        PlantProductionOrder::create([
+            'process_order_id' => $order->id,
+            'plant_id' => $order->plant_id,
+            'contract_id' => $order->contract_id,
+            'order_number' => $orderNumberProduction,
+            'product' => $order->product,
+            'output_caliber' => $order->caliber,
+            'order_quantity_kg' => $order->quantity ?? 0,
+            'completion_date' => $order->expected_completion_date,
+            'status' => 'pending',
+        ]);
         
         // Cargar relaciones necesarias para el PDF
         $order->load(['plant', 'supplier']);

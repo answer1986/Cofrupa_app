@@ -25,43 +25,25 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">
+                            <label for="supplier_id" class="form-label">
                                 <i class="fas fa-truck"></i> Proveedor *
                             </label>
-                            
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="new_supplier_check" name="new_supplier_check" {{ old('new_supplier_check') ? 'checked' : '' }}>
-                                <label class="form-check-label" for="new_supplier_check">
-                                    Nuevo Proveedor
-                                </label>
-                            </div>
-
-                            <div id="existing_supplier_container" class="{{ old('new_supplier_check') ? 'd-none' : '' }}">
-                                <select class="form-select @error('supplier_id') is-invalid @enderror" 
-                                        id="supplier_id" name="supplier_id">
-                                    <option value="">Seleccione un proveedor</option>
-                                    @foreach($suppliers as $supplier)
-                                        <option value="{{ $supplier->id }}" {{ old('supplier_id') == $supplier->id ? 'selected' : '' }}>
-                                            {{ $supplier->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('supplier_id')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div id="new_supplier_container" class="{{ old('new_supplier_check') ? '' : 'd-none' }}">
-                                <input type="text" class="form-control @error('new_supplier_name') is-invalid @enderror"
-                                       id="new_supplier_name" name="new_supplier_name"
-                                       value="{{ old('new_supplier_name') }}"
-                                       placeholder="Ingrese el nombre del nuevo proveedor">
-                                @error('new_supplier_name')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
+                            <select class="form-select @error('supplier_id') is-invalid @enderror" 
+                                    id="supplier_id" name="supplier_id" required>
+                                <option value="">Seleccione un proveedor</option>
+                                @foreach($suppliers as $supplier)
+                                    <option value="{{ $supplier->id }}" {{ old('supplier_id') == $supplier->id ? 'selected' : '' }}>
+                                        {{ $supplier->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('supplier_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <button type="button" class="btn btn-sm btn-success mt-2" data-bs-toggle="modal" data-bs-target="#quickSupplierModal" style="width: 100%;">
+                                <i class="fas fa-plus"></i> Crear Proveedor Rápido
+                            </button>
                         </div>
-
                         <div class="col-md-6 mb-3">
                             <label for="buyer" class="form-label">
                                 <i class="fas fa-user-tag"></i> Comprador *
@@ -218,34 +200,101 @@
         </div>
     </div>
 </div>
+<!-- Modal Crear Proveedor Rápido (mismo comportamiento que Recepción de Bins) -->
+<div class="modal fade" id="quickSupplierModal" tabindex="-1" aria-labelledby="quickSupplierModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="quickSupplierModalLabel">
+                    <i class="fas fa-plus-circle"></i> Crear Proveedor Rápido
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <form id="quickSupplierForm" action="{{ route('purchases.quick-create-supplier') }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle"></i> Solo ingrese el nombre del proveedor. Podrá completar los demás datos después.
+                    </div>
+                    <div class="mb-3 mt-3">
+                        <label for="quick_supplier_name" class="form-label">Nombre del Proveedor <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="quick_supplier_name" name="name" required placeholder="Ej: Juan Pérez">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Crear y Seleccionar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @section('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const check = document.getElementById('new_supplier_check');
-        const existingContainer = document.getElementById('existing_supplier_container');
-        const newContainer = document.getElementById('new_supplier_container');
-        const supplierSelect = document.getElementById('supplier_id');
-        const newSupplierInput = document.getElementById('new_supplier_name');
+document.getElementById('quickSupplierForm').addEventListener('submit', function(e) {
+    e.preventDefault();
 
-        function toggleSupplierFields() {
-            if (check.checked) {
-                existingContainer.classList.add('d-none');
-                newContainer.classList.remove('d-none');
-                supplierSelect.removeAttribute('required');
-                newSupplierInput.setAttribute('required', 'required');
-            } else {
-                existingContainer.classList.remove('d-none');
-                newContainer.classList.add('d-none');
-                supplierSelect.setAttribute('required', 'required');
-                newSupplierInput.removeAttribute('required');
-            }
+    const formData = new FormData(this);
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando...';
+
+    fetch(this.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
         }
-
-        check.addEventListener('change', toggleSupplierFields);
-        
-        // Run on load in case of validation errors calling back old input
-        toggleSupplierFields();
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+        if (data.success && data.supplier) {
+            var select = document.getElementById('supplier_id');
+            var opt = document.createElement('option');
+            opt.value = data.supplier.id;
+            opt.textContent = data.supplier.name;
+            opt.selected = true;
+            select.appendChild(opt);
+            var modalEl = document.getElementById('quickSupplierModal');
+            var modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) {
+                function cleanupBackdrop() {
+                    document.querySelectorAll('.modal-backdrop').forEach(function(el) { el.remove(); });
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                }
+                modalEl.addEventListener('hidden.bs.modal', cleanupBackdrop, { once: true });
+                modal.hide();
+            } else {
+                // Por si no hay instancia: limpiar de todas formas
+                setTimeout(function() {
+                    document.querySelectorAll('.modal-backdrop').forEach(function(el) { el.remove(); });
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                }, 300);
+            }
+            document.getElementById('quick_supplier_name').value = '';
+        } else {
+            alert('Error: ' + (data.message || 'No se pudo crear el proveedor'));
+        }
+    })
+    .catch(function() {
+        alert('Error al crear el proveedor. Por favor, intente nuevamente.');
+    })
+    .finally(function() {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
     });
+});
 </script>
 @endsection
 @endsection

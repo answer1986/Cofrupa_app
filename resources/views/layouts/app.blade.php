@@ -506,11 +506,11 @@
                 <!-- Acordeón de Administración - AL FINAL -->
                 <li class="accordion-item">
                     <div class="accordion-header">
-                        <button class="accordion-button {{ request()->is('users*') || request()->is('logs*') || request()->is('reports*') ? '' : 'collapsed' }}" type="button" data-target="#administracionAccordion" aria-expanded="{{ request()->is('users*') || request()->is('logs*') || request()->is('reports*') ? 'true' : 'false' }}">
+                        <button class="accordion-button {{ request()->is('users*') || request()->is('logs*') || request()->is('reports*') || request()->is('vitacora*') ? '' : 'collapsed' }}" type="button" data-target="#administracionAccordion" aria-expanded="{{ request()->is('users*') || request()->is('logs*') || request()->is('reports*') || request()->is('vitacora*') ? 'true' : 'false' }}">
                             <i class="fas fa-cog"></i> Administración
                         </button>
                     </div>
-                    <div id="administracionAccordion" class="accordion-collapse {{ request()->is('users*') || request()->is('logs*') || request()->is('reports*') ? 'show' : '' }}">
+                    <div id="administracionAccordion" class="accordion-collapse {{ request()->is('users*') || request()->is('logs*') || request()->is('reports*') || request()->is('vitacora*') ? 'show' : '' }}">
                         <div class="accordion-body">
                             <ul class="sidebar-menu">
                                 @can('manage users')
@@ -522,6 +522,11 @@
                                 <li>
                                     <a href="{{ route('logs.index') }}" class="{{ request()->is('logs*') ? 'active' : '' }}">
                                         <i class="fas fa-history"></i> Log de Conexiones
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('vitacora.index') }}" class="{{ request()->is('vitacora*') ? 'active' : '' }}">
+                                        <i class="fas fa-clipboard-list"></i> Vitácora
                                     </a>
                                 </li>
                                 <li>
@@ -556,11 +561,15 @@
                     if (($draftContractsCount ?? 0) > 0) $parts[] = ($draftContractsCount ?? 0) . ' contratos borrador';
                     if (($incompleteSuppliersCount ?? 0) > 0) $parts[] = ($incompleteSuppliersCount ?? 0) . ' proveedores incompletos';
                     if (($incompleteClientsCount ?? 0) > 0) $parts[] = ($incompleteClientsCount ?? 0) . ' clientes incompletos';
+                    if (($upcomingMaintenancesCount ?? 0) > 0) $parts[] = ($upcomingMaintenancesCount ?? 0) . ' mantenciones próximas';
                     $pendingTooltip = implode(', ', $parts);
                 }
             @endphp
-            <div class="sidebar-notifications dropup" style="flex-shrink: 0; padding: 15px; display: flex; justify-content: flex-end; align-items: flex-end;">
-                <a href="javascript:void(0)" class="notification-bell dropdown-toggle" id="notificationBellDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="{{ $pendingTooltip }}" data-bs-offset="10,20" style="display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; width: 50px; height: 50px; background: rgba(255,255,255,0.1); border-radius: 50%; transition: all 0.3s; position: relative;">
+            <div class="sidebar-notifications" style="flex-shrink: 0; padding: 15px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+                <div class="text-white small" style="background: rgba(255,255,255,0.15); padding: 6px 10px; border-radius: 6px; white-space: nowrap;" title="Dólar observado (mindicador.cl). Actualizado cada hora.">
+                    <i class="fas fa-dollar-sign"></i> USD @if(isset($usdRateClp) && $usdRateClp){{ number_format($usdRateClp, 0, ',', '.') }} CLP @else—@endif
+                </div>
+                <a href="javascript:void(0)" class="notification-bell" id="notificationBellBtn" role="button" title="{{ $pendingTooltip }}" data-bs-toggle="tooltip" data-bs-placement="right" style="display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; width: 50px; height: 50px; background: rgba(255,255,255,0.1); border-radius: 50%; transition: all 0.3s; position: relative; cursor: pointer;">
                     <i class="fas fa-bell" style="font-size: 22px;"></i>
                     @if($hasPending)
                     <span class="notification-badge" style="position: absolute; top: -5px; right: -5px; background: #ff4444; color: white; border-radius: 50%; min-width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; border: 2px solid #722f37; padding: 0 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
@@ -568,45 +577,50 @@
                     </span>
                     @endif
                 </a>
-                <ul class="dropdown-menu shadow" aria-labelledby="notificationBellDropdown" style="min-width: 280px; max-width: 320px; left: 0; bottom: 100%; margin-bottom: 10px;">
-                    <li class="dropdown-header d-flex justify-content-between align-items-center">
+            </div>
+        </div>
+        <!-- Panel de notificaciones (fuera del sidebar para que se vea al hacer clic) -->
+        <div id="notificationPanel" class="notification-panel shadow" style="display: none; position: fixed; bottom: 20px; left: 20px; min-width: 280px; max-width: 320px; z-index: 1050; background: white; border-radius: 8px; border: 1px solid #dee2e6; overflow: hidden;">
+            <div class="list-group list-group-flush" style="max-height: 70vh; overflow-y: auto;">
+                    <div class="list-group-item list-group-item-light d-flex justify-content-between align-items-center">
                         <span><i class="fas fa-tasks"></i> Pendientes</span>
                         @if($hasPending)
                         <span class="badge bg-danger">{{ $totalPendingCount > 99 ? '99+' : $totalPendingCount }}</span>
                         @endif
-                    </li>
-                    <li><hr class="dropdown-divider"></li>
+                    </div>
                     @if(($pendingPurchasesCount ?? 0) > 0)
-                    <li><a class="dropdown-item" href="{{ route('purchases.index') }}?filter=pending"><i class="fas fa-shopping-cart text-warning"></i> Compras pendientes <span class="badge bg-secondary">{{ $pendingPurchasesCount }}</span></a></li>
+                    <a class="list-group-item list-group-item-action" href="{{ route('purchases.index') }}?filter=pending"><i class="fas fa-shopping-cart text-warning"></i> Compras pendientes <span class="badge bg-secondary">{{ $pendingPurchasesCount }}</span></a>
                     @endif
                     @if(($pendingProcessOrdersCount ?? 0) > 0)
-                    <li><a class="dropdown-item" href="{{ route('processing.orders.index') }}"><i class="fas fa-clipboard-list text-info"></i> Órdenes de proceso <span class="badge bg-secondary">{{ $pendingProcessOrdersCount }}</span></a></li>
+                    <a class="list-group-item list-group-item-action" href="{{ route('processing.orders.index') }}"><i class="fas fa-clipboard-list text-info"></i> Órdenes de proceso <span class="badge bg-secondary">{{ $pendingProcessOrdersCount }}</span></a>
                     @endif
                     @if(($pendingPlantOrdersCount ?? 0) > 0)
-                    <li><a class="dropdown-item" href="{{ route('processing.production-orders.index') }}"><i class="fas fa-industry text-info"></i> Órdenes de producción <span class="badge bg-secondary">{{ $pendingPlantOrdersCount }}</span></a></li>
+                    <a class="list-group-item list-group-item-action" href="{{ route('processing.production-orders.index') }}"><i class="fas fa-industry text-info"></i> Órdenes de producción <span class="badge bg-secondary">{{ $pendingPlantOrdersCount }}</span></a>
                     @endif
                     @if(($pendingShipmentsCount ?? 0) > 0)
-                    <li><a class="dropdown-item" href="{{ route('shipments.index') }}"><i class="fas fa-truck text-primary"></i> Envíos en curso <span class="badge bg-secondary">{{ $pendingShipmentsCount }}</span></a></li>
+                    <a class="list-group-item list-group-item-action" href="{{ route('shipments.index') }}"><i class="fas fa-truck text-primary"></i> Envíos en curso <span class="badge bg-secondary">{{ $pendingShipmentsCount }}</span></a>
                     @endif
                     @if(($draftContractsCount ?? 0) > 0)
-                    <li><a class="dropdown-item" href="{{ route('contracts.index') }}"><i class="fas fa-file-contract text-secondary"></i> Contratos en borrador <span class="badge bg-secondary">{{ $draftContractsCount }}</span></a></li>
+                    <a class="list-group-item list-group-item-action" href="{{ route('contracts.index') }}"><i class="fas fa-file-contract text-secondary"></i> Contratos en borrador <span class="badge bg-secondary">{{ $draftContractsCount }}</span></a>
                     @endif
                     @if(($incompleteSuppliersCount ?? 0) > 0)
-                    <li><a class="dropdown-item" href="{{ route('suppliers.create') }}"><i class="fas fa-truck text-success"></i> Proveedores por completar <span class="badge bg-secondary">{{ $incompleteSuppliersCount }}</span></a></li>
+                    <a class="list-group-item list-group-item-action" href="{{ route('suppliers.index') }}"><i class="fas fa-truck text-success"></i> Proveedores por completar <span class="badge bg-secondary">{{ $incompleteSuppliersCount }}</span></a>
                     @endif
                     @if(($incompleteClientsCount ?? 0) > 0)
-                    <li><a class="dropdown-item" href="{{ route('clients.create') }}"><i class="fas fa-users text-success"></i> Clientes por completar <span class="badge bg-secondary">{{ $incompleteClientsCount }}</span></a></li>
+                    <a class="list-group-item list-group-item-action" href="{{ route('clients.index') }}"><i class="fas fa-users text-success"></i> Clientes por completar <span class="badge bg-secondary">{{ $incompleteClientsCount }}</span></a>
+                    @endif
+                    @if(($upcomingMaintenancesCount ?? 0) > 0)
+                    <a class="list-group-item list-group-item-action" href="{{ route('processing.maintenances.index') }}"><i class="fas fa-wrench text-warning"></i> Próximas mantenciones <span class="badge bg-secondary">{{ $upcomingMaintenancesCount }}</span></a>
                     @endif
                     @if(!$hasPending)
-                    <li><span class="dropdown-item text-muted"><i class="fas fa-check-circle text-success"></i> No hay pendientes</span></li>
+                    <div class="list-group-item text-muted"><i class="fas fa-check-circle text-success"></i> No hay pendientes</div>
                     @else
-                    <li><hr class="dropdown-divider"></li>
-                    <li class="dropdown-header text-center small text-muted">
+                    <div class="list-group-item list-group-item-light text-center small text-muted">
                         <i class="fas fa-info-circle"></i> Total: {{ $totalPendingCount > 99 ? '99+' : $totalPendingCount }} {{ $totalPendingCount == 1 ? 'proceso pendiente' : 'procesos pendientes' }}
-                    </li>
+                    </div>
                     @endif
-                </ul>
             </div>
+        </div>
             @endauth
         </div>
         @endauth
@@ -643,6 +657,30 @@
     
     <!-- Bootstrap JS for Accordion -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Campana de notificaciones: tooltip al pasar el mouse y panel al hacer clic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var bell = document.getElementById('notificationBellBtn');
+            var panel = document.getElementById('notificationPanel');
+            if (bell && panel) {
+                // Tooltip de Bootstrap (aparece al pasar el mouse)
+                var tooltip = new bootstrap.Tooltip(bell, { placement: 'right', trigger: 'hover' });
+                // Al hacer clic: mostrar/ocultar panel
+                bell.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+                    if (panel.style.display === 'block') tooltip.hide();
+                });
+                // Cerrar panel al hacer clic fuera
+                document.addEventListener('click', function(e) {
+                    if (panel.style.display === 'block' && !panel.contains(e.target) && !bell.contains(e.target)) {
+                        panel.style.display = 'none';
+                    }
+                });
+            }
+        });
+    </script>
     
     <!-- Custom Accordion Script -->
     <script>
@@ -706,5 +744,7 @@
             }
         });
     </script>
+
+    @yield('scripts')
 </body>
 </html>
