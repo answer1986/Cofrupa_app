@@ -4,17 +4,20 @@
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <h2><i class="fas fa-chart-line"></i> Módulo de Finanzas</h2>
-                @if($tab === 'purchases')
-                    <a href="{{ route('finance.purchases.create', ['company' => $company]) }}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Nueva Compra
-                    </a>
-                @else
-                    <a href="{{ route('finance.sales.create', ['company' => $company]) }}" class="btn btn-success">
-                        <i class="fas fa-plus"></i> Nueva Venta
-                    </a>
-                @endif
+                <div class="d-flex gap-2">
+                    @if($tab === 'dashboard' || $tab === 'purchases')
+                        <a href="{{ route('finance.purchases.create', ['company' => $company]) }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Nueva Compra
+                        </a>
+                    @endif
+                    @if($tab === 'dashboard' || $tab === 'sales')
+                        <a href="{{ route('finance.sales.create', ['company' => $company]) }}" class="btn btn-success">
+                            <i class="fas fa-plus"></i> Nueva Venta
+                        </a>
+                    @endif
+                </div>
             </div>
         </div>
     </div>
@@ -127,7 +130,7 @@
 
     <!-- Tabla tipo Excel -->
     @if($tab === 'dashboard')
-        @include('finance.partials.dashboard', ['records' => $records, 'debts' => $debtsByBank])
+        @include('finance.partials.dashboard', ['records' => $records, 'debts' => $debtsByBank, 'company' => $company])
     @elseif($tab === 'purchases')
         @include('finance.partials.purchases_table', ['purchases' => $records, 'company' => $company])
     @else

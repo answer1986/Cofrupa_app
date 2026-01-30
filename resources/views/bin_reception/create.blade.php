@@ -119,6 +119,39 @@
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
+                                <label for="reception_calibre" class="form-label">Calibre <span class="text-danger">*</span></label>
+                                <select class="form-select @error('reception_calibre') is-invalid @enderror" id="reception_calibre" name="reception_calibre" required>
+                                    <option value="">Seleccionar calibre</option>
+                                    <option value="80-90" {{ old('reception_calibre') == '80-90' ? 'selected' : '' }}>80-90 unidades/libra</option>
+                                    <option value="120-x" {{ old('reception_calibre') == '120-x' ? 'selected' : '' }}>120-x unidades/libra</option>
+                                    <option value="90-100" {{ old('reception_calibre') == '90-100' ? 'selected' : '' }}>90-100 unidades/libra</option>
+                                    <option value="70-90" {{ old('reception_calibre') == '70-90' ? 'selected' : '' }}>70-90 unidades/libra</option>
+                                    <option value="Grande 50-60" {{ old('reception_calibre') == 'Grande 50-60' ? 'selected' : '' }}>Grande (50-60 unidades/libra)</option>
+                                    <option value="Mediana 40-50" {{ old('reception_calibre') == 'Mediana 40-50' ? 'selected' : '' }}>Mediana (40-50 unidades/libra)</option>
+                                    <option value="Pequeña 30-40" {{ old('reception_calibre') == 'Pequeña 30-40' ? 'selected' : '' }}>Pequeña (30-40 unidades/libra)</option>
+                                </select>
+                                @error('reception_calibre')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="reception_unidades_per_pound_avg" class="form-label">Unidades x Libra Promedio</label>
+                                <input type="number" step="0.01" class="form-control @error('reception_unidades_per_pound_avg') is-invalid @enderror" 
+                                       id="reception_unidades_per_pound_avg" name="reception_unidades_per_pound_avg" 
+                                       value="{{ old('reception_unidades_per_pound_avg') }}" 
+                                       placeholder="Ej: 85.5">
+                                <small class="text-muted">Promedio de unidades por libra</small>
+                                @error('reception_unidades_per_pound_avg')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
                                 <label for="lote" class="form-label">
                                     <i class="fas fa-tag"></i> Lote
                                 </label>
@@ -237,13 +270,17 @@
 
                     <!-- New Bins Section -->
                     <div id="newBinsSection">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                             <h6 class="text-success mb-0">Grupos de Pesaje</h6>
-                            <button type="button" class="btn btn-sm btn-success" onclick="addWeighingGroup()">
-                                <i class="fas fa-plus"></i> Pesaje de fruta
-                            </button>
+                            <div class="d-flex align-items-center gap-2">
+                                <label class="mb-0 text-muted small">Cantidad de grupos:</label>
+                                <input type="number" id="weighingGroupsCount" class="form-control form-control-sm" value="1" min="1" max="50" style="width: 70px;" title="Número de grupos a agregar">
+                                <button type="button" class="btn btn-sm btn-success" onclick="addWeighingGroups()">
+                                    <i class="fas fa-plus"></i> Agregar grupos
+                                </button>
+                            </div>
                         </div>
-                        <p class="text-muted small">Agrega grupos de bins pesados juntos. El sistema calculará automáticamente el peso neto de fruta restando el peso de los contenedores.</p>
+                        <p class="text-muted small">Indica cuántos grupos quieres agregar y pulsa el botón. El sistema calculará automáticamente el peso neto de fruta restando el peso de los contenedores.</p>
                         <div id="binsContainer">
                             <!-- New weighing groups will be added here -->
                         </div>
@@ -277,14 +314,6 @@
 </form>
 
 <style>
-.star-rating {
-    font-size: 1.8em;
-    color: #ffc107;
-    line-height: 1;
-}
-.star-rating .star-empty {
-    color: #ddd;
-}
 .btn-group .btn {
     flex: 1;
 }
@@ -373,24 +402,14 @@ function updateGroupNetWeight(groupId) {
     updateSummary();
 }
 
-function renderStars(level) {
-    const stars = {
-        'limpio': 4,
-        'bajo': 3,
-        'mediano': 2,
-        'alto': 1
-    };
-    
-    const count = stars[level] || 0;
-    let html = '';
-    for (let i = 1; i <= 4; i++) {
-        if (i <= count) {
-            html += '<i class="fas fa-star star-rating"></i>';
-        } else {
-            html += '<i class="far fa-star star-rating star-empty"></i>';
-        }
+function addWeighingGroups() {
+    const input = document.getElementById('weighingGroupsCount');
+    let n = parseInt(input?.value, 10) || 1;
+    n = Math.max(1, Math.min(50, n));
+    for (let i = 0; i < n; i++) {
+        addWeighingGroup();
     }
-    return html;
+    if (input) input.value = 1;
 }
 
 function addWeighingGroup() {
@@ -460,30 +479,6 @@ function addWeighingGroup() {
                 </div>
             </div>
             <div class="row">
-                <div class="col-md-4">
-                    <div class="mb-3">
-                        <label class="form-label">Calibre <span class="text-danger">*</span></label>
-                        <select class="form-select" name="bins[${binCount}][calibre]" required>
-                            <option value="">Seleccionar calibre</option>
-                            <option value="80-90">80-90 unidades/libra</option>
-                            <option value="120-x">120-x unidades/libra</option>
-                            <option value="90-100">90-100 unidades/libra</option>
-                            <option value="70-90">70-90 unidades/libra</option>
-                            <option value="Grande 50-60">Grande (50-60 unidades/libra)</option>
-                            <option value="Mediana 40-50">Mediana (40-50 unidades/libra)</option>
-                            <option value="Pequeña 30-40">Pequeña (30-40 unidades/libra)</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="mb-3">
-                        <label class="form-label">Unidades x Libra Promedio</label>
-                        <input type="number" step="0.01" class="form-control" 
-                               name="bins[${binCount}][unidades_per_pound_avg]" 
-                               placeholder="Ej: 85.5">
-                        <small class="text-muted">Promedio de unidades por libra</small>
-                    </div>
-                </div>
                 <!--<div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label">Humedad (%)</label>
@@ -507,34 +502,30 @@ function addWeighingGroup() {
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label class="form-label">
-                            <i class="fas fa-star"></i> Calificación de Suciedad de la Fruta <span class="text-danger">*</span>
+                            Calificación de Suciedad de la Fruta <span class="text-danger">*</span>
                         </label>
                         <div class="btn-group w-100" role="group" style="gap: 5px;">
                             <input type="radio" class="btn-check" name="bins[${binCount}][trash_level]" id="trash_limpio_${binCount}" value="limpio" required>
                             <label class="btn btn-outline-success d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;" for="trash_limpio_${binCount}">
-                                <div style="font-size: 1.5em; margin-bottom: 5px;">${renderStars('limpio')}</div>
                                 <small><strong>Limpia</strong></small>
                             </label>
                             
                             <input type="radio" class="btn-check" name="bins[${binCount}][trash_level]" id="trash_bajo_${binCount}" value="bajo" required>
                             <label class="btn btn-outline-info d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;" for="trash_bajo_${binCount}">
-                                <div style="font-size: 1.5em; margin-bottom: 5px;">${renderStars('bajo')}</div>
                                 <small><strong>Baja Suciedad</strong></small>
                             </label>
                             
                             <input type="radio" class="btn-check" name="bins[${binCount}][trash_level]" id="trash_mediano_${binCount}" value="mediano" required>
                             <label class="btn btn-outline-warning d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;" for="trash_mediano_${binCount}">
-                                <div style="font-size: 1.5em; margin-bottom: 5px;">${renderStars('mediano')}</div>
                                 <small><strong>Media Suciedad</strong></small>
                             </label>
                             
                             <input type="radio" class="btn-check" name="bins[${binCount}][trash_level]" id="trash_alto_${binCount}" value="alto" required>
                             <label class="btn btn-outline-danger d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;" for="trash_alto_${binCount}">
-                                <div style="font-size: 1.5em; margin-bottom: 5px;">${renderStars('alto')}</div>
                                 <small><strong>Alta Suciedad</strong></small>
                             </label>
                         </div>
-                        <small class="text-muted"><i class="fas fa-info-circle"></i> Califica visualmente el nivel de suciedad de la fruta recibida (4 estrellas = limpia, 1 estrella = alta suciedad)</small>
+                        <small class="text-muted"><i class="fas fa-info-circle"></i> Califica visualmente el nivel de suciedad de la fruta recibida</small>
                     </div>
                 </div>
             </div>
@@ -754,30 +745,6 @@ function createWeighingGroupFromSelected() {
                 </div>
                 <div class="col-md-3">
                     <div class="mb-3">
-                        <label class="form-label">Calibre <span class="text-danger">*</span></label>
-                        <select class="form-select" name="existing_bins[${existingBinGroupsCount}][calibre]" required>
-                            <option value="">Seleccionar calibre</option>
-                            <option value="80-90">80-90 unidades/libra</option>
-                            <option value="120-x">120-x unidades/libra</option>
-                            <option value="90-100">90-100 unidades/libra</option>
-                            <option value="70-90">70-90 unidades/libra</option>
-                            <option value="Grande 50-60">Grande (50-60 unidades/libra)</option>
-                            <option value="Mediana 40-50">Mediana (40-50 unidades/libra)</option>
-                            <option value="Pequeña 30-40">Pequeña (30-40 unidades/libra)</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="mb-3">
-                        <label class="form-label">Unidades x Libra Promedio</label>
-                        <input type="number" step="0.01" class="form-control" 
-                               name="existing_bins[${existingBinGroupsCount}][unidades_per_pound_avg]" 
-                               placeholder="Ej: 85.5">
-                        <small class="text-muted">Promedio de unidades por libra</small>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="mb-3">
                         <label class="form-label">Humedad (%)</label>
                         <input type="number" step="0.01" class="form-control" 
                                name="existing_bins[${existingBinGroupsCount}][humidity]" 
@@ -803,34 +770,30 @@ function createWeighingGroupFromSelected() {
                 <div class="col-md-12">
                     <div class="mb-3">
                         <label class="form-label">
-                            <i class="fas fa-star"></i> Calificación de Suciedad de la Fruta <span class="text-danger">*</span>
+                            Calificación de Suciedad de la Fruta <span class="text-danger">*</span>
                         </label>
                         <div class="btn-group w-100" role="group" style="gap: 5px;">
                             <input type="radio" class="btn-check" name="existing_bins[${existingBinGroupsCount}][trash_level]" id="existing_trash_limpio_${existingBinGroupsCount}" value="limpio" required>
                             <label class="btn btn-outline-success d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;" for="existing_trash_limpio_${existingBinGroupsCount}">
-                                <div style="font-size: 1.5em; margin-bottom: 5px;">${renderStars('limpio')}</div>
                                 <small><strong>Limpia</strong></small>
                             </label>
                             
                             <input type="radio" class="btn-check" name="existing_bins[${existingBinGroupsCount}][trash_level]" id="existing_trash_bajo_${existingBinGroupsCount}" value="bajo" required>
                             <label class="btn btn-outline-info d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;" for="existing_trash_bajo_${existingBinGroupsCount}">
-                                <div style="font-size: 1.5em; margin-bottom: 5px;">${renderStars('bajo')}</div>
                                 <small><strong>Baja Suciedad</strong></small>
                             </label>
                             
                             <input type="radio" class="btn-check" name="existing_bins[${existingBinGroupsCount}][trash_level]" id="existing_trash_mediano_${existingBinGroupsCount}" value="mediano" required>
                             <label class="btn btn-outline-warning d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;" for="existing_trash_mediano_${existingBinGroupsCount}">
-                                <div style="font-size: 1.5em; margin-bottom: 5px;">${renderStars('mediano')}</div>
                                 <small><strong>Media Suciedad</strong></small>
                             </label>
                             
                             <input type="radio" class="btn-check" name="existing_bins[${existingBinGroupsCount}][trash_level]" id="existing_trash_alto_${existingBinGroupsCount}" value="alto" required>
                             <label class="btn btn-outline-danger d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;" for="existing_trash_alto_${existingBinGroupsCount}">
-                                <div style="font-size: 1.5em; margin-bottom: 5px;">${renderStars('alto')}</div>
                                 <small><strong>Alta Suciedad</strong></small>
                             </label>
                         </div>
-                        <small class="text-muted"><i class="fas fa-info-circle"></i> Califica visualmente el nivel de suciedad de la fruta recibida (4 estrellas = limpia, 1 estrella = alta suciedad)</small>
+                        <small class="text-muted"><i class="fas fa-info-circle"></i> Califica visualmente el nivel de suciedad de la fruta recibida</small>
                     </div>
                 </div>
             </div>

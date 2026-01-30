@@ -717,149 +717,6 @@
                         </div>
                     </div>
 
-                    <hr>
-                    <h5 class="mb-3"><i class="fas fa-shipping-fast"></i> Información de Envío</h5>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="contract_number" class="form-label">Número de Contrato</label>
-                            <input type="text" class="form-control @error('contract_number') is-invalid @enderror"
-                                   id="contract_number" name="contract_number" value="{{ old('contract_number') }}" placeholder="Ej: 313-2503">
-                            @error('contract_number')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="product_type" class="form-label">Producto/Tipo de Tarifa</label>
-                            <input type="text" class="form-control @error('product_type') is-invalid @enderror"
-                                   id="product_type" name="product_type" value="{{ old('product_type') }}" placeholder="Ej: EX50-60">
-                            @error('product_type')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="booking_number" class="form-label">Número de Booking</label>
-                            <input type="text" class="form-control @error('booking_number') is-invalid @enderror"
-                                   id="booking_number" name="booking_number" value="{{ old('booking_number') }}" placeholder="Ej: SNG91966724">
-                            @error('booking_number')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="vessel_name" class="form-label">Nombre del Buque</label>
-                            <input type="text" class="form-control @error('vessel_name') is-invalid @enderror"
-                                   id="vessel_name" name="vessel_name" value="{{ old('vessel_name') }}" placeholder="Ej: CALLAO EXPRESS">
-                            @error('vessel_name')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="etd_date" class="form-label">ETD (Salida Estimada)</label>
-                            <input type="date" class="form-control @error('etd_date') is-invalid @enderror"
-                                   id="etd_date" name="etd_date" value="{{ old('etd_date') }}">
-                            @error('etd_date')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-2 mb-3">
-                            <label for="etd_week" class="form-label">Semana ETD</label>
-                            <input type="number" class="form-control @error('etd_week') is-invalid @enderror"
-                                   id="etd_week" name="etd_week" value="{{ old('etd_week') }}" min="1" max="52" readonly>
-                            <small class="form-text text-muted">Calculada automáticamente</small>
-                            @error('etd_week')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-4 mb-3">
-                            <label for="eta_date" class="form-label">ETA (Llegada Estimada)</label>
-                            <input type="date" class="form-control @error('eta_date') is-invalid @enderror"
-                                   id="eta_date" name="eta_date" value="{{ old('eta_date') }}">
-                            @error('eta_date')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-2 mb-3">
-                            <label for="eta_week" class="form-label">Semana ETA</label>
-                            <input type="number" class="form-control @error('eta_week') is-invalid @enderror"
-                                   id="eta_week" name="eta_week" value="{{ old('eta_week') }}" min="1" max="52" readonly>
-                            <small class="form-text text-muted">Calculada automáticamente</small>
-                            @error('eta_week')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="container_number" class="form-label">Número de Contenedor</label>
-                            <input type="text" class="form-control @error('container_number') is-invalid @enderror"
-                                   id="container_number" name="container_number" value="{{ old('container_number') }}" placeholder="Ej: cMAu2248270">
-                            @error('container_number')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-4 mb-3">
-                            <label for="transit_weeks" class="form-label">Semanas de Tránsito</label>
-                            <input type="number" class="form-control @error('transit_weeks') is-invalid @enderror"
-                                   id="transit_weeks" name="transit_weeks" value="{{ old('transit_weeks') }}" min="0">
-                            @error('transit_weeks')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-4 mb-3">
-                            <label for="freight_amount" class="form-label">Monto de Flete</label>
-                            <input type="number" step="0.01" class="form-control @error('freight_amount') is-invalid @enderror"
-                                   id="freight_amount" name="freight_amount" value="{{ old('freight_amount') }}" min="0">
-                            @error('freight_amount')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="payment_status" class="form-label">Estado del Pago</label>
-                            <select class="form-select @error('payment_status') is-invalid @enderror" id="payment_status" name="payment_status">
-                                <option value="pending" {{ old('payment_status', 'pending') === 'pending' ? 'selected' : '' }}>Pendiente</option>
-                                <option value="partial" {{ old('payment_status') === 'partial' ? 'selected' : '' }}>Parcial</option>
-                                <option value="paid" {{ old('payment_status') === 'paid' ? 'selected' : '' }}>Pagado</option>
-                            </select>
-                            @error('payment_status')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <div class="card bg-light mb-3">
-                        <div class="card-body">
-                            <h6>Resumen de Cálculos (Validación Automática)</h6>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <strong>Valor Total:</strong> <span id="totalValue">$0.00</span>
-                                </div>
-                                <div class="col-md-4">
-                                    <strong>Comisión Broker:</strong> <span id="brokerCommission">$0.00</span>
-                                </div>
-                                <div class="col-md-4">
-                                    <strong>Neto:</strong> <span id="netValue">$0.00</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <a href="{{ route('contracts.index') }}" class="btn btn-secondary">Cancelar</a>
                         <button type="submit" class="btn btn-success">Guardar Contrato</button>
@@ -872,113 +729,22 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const stockInput = document.getElementById('stock_committed');
-    const priceInput = document.getElementById('price');
     const brokerSelect = document.getElementById('broker_id');
     const commissionInput = document.getElementById('broker_commission_percentage');
-    const etdDateInput = document.getElementById('etd_date');
-    const etdWeekInput = document.getElementById('etd_week');
-    const etaDateInput = document.getElementById('eta_date');
-    const etaWeekInput = document.getElementById('eta_week');
-    
-    // Función para calcular la semana del año
-    function getWeekNumber(date) {
-        const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-        const dayNum = d.getUTCDay() || 7;
-        d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-        return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-    }
-    
-    // Calcular semana ETD automáticamente
-    etdDateInput.addEventListener('change', function() {
-        if (this.value) {
-            const date = new Date(this.value);
-            const week = getWeekNumber(date);
-            etdWeekInput.value = week;
-            
-            // Validar que ETA no sea menor que ETD
-            if (etaDateInput.value) {
-                const etaDate = new Date(etaDateInput.value);
-                if (etaDate < date) {
-                    alert('La fecha de llegada (ETA) no puede ser anterior a la fecha de salida (ETD)');
-                    etaDateInput.value = '';
-                    etaWeekInput.value = '';
+
+    // Sincronizar comisión del broker al seleccionar
+    if (brokerSelect && commissionInput) {
+        brokerSelect.addEventListener('change', function() {
+            if (this.value) {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption && selectedOption.dataset.commission) {
+                    commissionInput.value = selectedOption.dataset.commission || '';
                 }
-            }
-            
-            // Establecer fecha mínima para ETA
-            const minDate = new Date(date);
-            minDate.setDate(minDate.getDate() + 1);
-            etaDateInput.min = minDate.toISOString().split('T')[0];
-        }
-    });
-    
-    // Calcular semana ETA automáticamente
-    etaDateInput.addEventListener('change', function() {
-        if (this.value) {
-            const date = new Date(this.value);
-            const week = getWeekNumber(date);
-            etaWeekInput.value = week;
-            
-            // Validar que ETA no sea menor que ETD
-            if (etdDateInput.value) {
-                const etdDate = new Date(etdDateInput.value);
-                if (date < etdDate) {
-                    alert('La fecha de llegada (ETA) no puede ser anterior a la fecha de salida (ETD)');
-                    this.value = '';
-                    etaWeekInput.value = '';
-                    return;
-                }
-            }
-        }
-    });
-    
-    // Validación en tiempo real
-    etaDateInput.addEventListener('input', function() {
-        if (this.value && etdDateInput.value) {
-            const etaDate = new Date(this.value);
-            const etdDate = new Date(etdDateInput.value);
-            if (etaDate < etdDate) {
-                this.setCustomValidity('La fecha de llegada debe ser igual o posterior a la fecha de salida');
             } else {
-                this.setCustomValidity('');
+                commissionInput.value = '';
             }
-        }
-    });
-    
-    function calculateTotals() {
-        const stock = parseFloat(stockInput.value) || 0;
-        const price = parseFloat(priceInput.value) || 0;
-        const totalValue = stock * price;
-        
-        let commission = 0;
-        if (brokerSelect.value) {
-            const selectedOption = brokerSelect.options[brokerSelect.selectedIndex];
-            const brokerCommission = parseFloat(selectedOption.dataset.commission) || 0;
-            const commissionPercent = parseFloat(commissionInput.value) || brokerCommission;
-            commission = (totalValue * commissionPercent) / 100;
-        }
-        
-        document.getElementById('totalValue').textContent = '$' + totalValue.toFixed(2);
-        document.getElementById('brokerCommission').textContent = '$' + commission.toFixed(2);
-        document.getElementById('netValue').textContent = '$' + (totalValue - commission).toFixed(2);
+        });
     }
-    
-    stockInput.addEventListener('input', calculateTotals);
-    priceInput.addEventListener('input', calculateTotals);
-    brokerSelect.addEventListener('change', function() {
-        if (this.value) {
-            const selectedOption = this.options[this.selectedIndex];
-            commissionInput.value = selectedOption.dataset.commission || '';
-        } else {
-            commissionInput.value = '';
-        }
-        calculateTotals();
-    });
-    commissionInput.addEventListener('input', calculateTotals);
-    
-    calculateTotals();
 
     // Toggle de traducción automática
     const autoTranslateToggle = document.getElementById('autoTranslateToggle');

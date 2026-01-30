@@ -104,9 +104,11 @@ class BinProcessingController extends Controller
         }
 
         $externalService = $request->has('external_service') && $request->external_service == '1';
-        $externalClientName = $request->external_service_client_id
-            ? (Client::find($request->external_service_client_id)?->name ?? $request->external_service_client)
-            : $request->external_service_client;
+        $externalClientName = $request->external_service_client;
+        if ($request->external_service_client_id) {
+            $client = Client::find($request->external_service_client_id);
+            $externalClientName = $client ? $client->name : $request->external_service_client;
+        }
 
         $created = 0;
         foreach ($binsInput as $row) {

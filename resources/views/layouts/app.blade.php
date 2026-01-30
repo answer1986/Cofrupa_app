@@ -447,7 +447,7 @@
                 <li class="accordion-item">
                     <div class="accordion-header">
                         <button class="accordion-button {{ request()->is('clients*') || request()->is('brokers*') || request()->is('contracts*') || request()->is('documents*') || request()->is('shipments*') || request()->is('exportations*') ? '' : 'collapsed' }}" type="button" data-target="#ventasAccordion" aria-expanded="{{ request()->is('clients*') || request()->is('brokers*') || request()->is('contracts*') || request()->is('documents*') || request()->is('shipments*') || request()->is('exportations*') ? 'true' : 'false' }}">
-                            <i class="fas fa-handshake"></i> Ventas y Comercialización
+                            <i class="fas fa-handshake"></i> Ventas y Exportaciones
                         </button>
                     </div>
                     <div id="ventasAccordion" class="accordion-collapse {{ request()->is('clients*') || request()->is('brokers*') || request()->is('contracts*') || request()->is('documents*') || request()->is('shipments*') || request()->is('exportations*') ? 'show' : '' }}">

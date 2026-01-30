@@ -219,6 +219,13 @@ Route::middleware(['auth', '2fa'])->group(function () {
     Route::prefix('finance')->name('finance.')->group(function () {
         Route::get('/', [App\Http\Controllers\FinanceController::class, 'index'])->name('index');
         
+        // Deuda/Capital por banco (registro aparte)
+        Route::get('/bank-debts/create', [App\Http\Controllers\FinanceController::class, 'createBankDebt'])->name('bank-debts.create');
+        Route::post('/bank-debts', [App\Http\Controllers\FinanceController::class, 'storeBankDebt'])->name('bank-debts.store');
+        Route::get('/bank-debts/{bankDebt}/edit', [App\Http\Controllers\FinanceController::class, 'editBankDebt'])->name('bank-debts.edit');
+        Route::put('/bank-debts/{bankDebt}', [App\Http\Controllers\FinanceController::class, 'updateBankDebt'])->name('bank-debts.update');
+        Route::delete('/bank-debts/{bankDebt}', [App\Http\Controllers\FinanceController::class, 'destroyBankDebt'])->name('bank-debts.destroy');
+        
         // Compras
         Route::get('/purchases/create', [App\Http\Controllers\FinanceController::class, 'createPurchase'])->name('purchases.create');
         Route::post('/purchases', [App\Http\Controllers\FinanceController::class, 'storePurchase'])->name('purchases.store');

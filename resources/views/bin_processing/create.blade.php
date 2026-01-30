@@ -194,8 +194,8 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-boxes"></i> Paso 3: Seleccionar Bins a procesar (bin por bin)</h5>
-                    <small class="text-muted">Seleccione los bins fuente. El sistema generará una fila por cada uno (001, 002, ...).</small>
+                    <h5 class="mb-0"><i class="fas fa-boxes"></i> Paso 3: Seleccionar Bins a procesar</h5>
+                    <small class="text-muted">Indique la cantidad de bins e indique «Generar tabla», o marque los bins que desee. Se generará una fila por bin (001, 002, … N).</small>
                 </div>
                 <div class="card-body">
                     @if($availableBins->isNotEmpty())
@@ -225,13 +225,17 @@
                             </div>
                         </div>
                         @endforeach
-                        <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
                             <button type="button" class="btn btn-secondary" id="btnStep3Back">
                                 <i class="fas fa-arrow-left"></i> Volver
                             </button>
-                            <button type="button" class="btn btn-primary" id="btnStep3Next">
-                                <i class="fas fa-list"></i> Generar tabla de bins (001 hasta N)
-                            </button>
+                            <div class="d-flex align-items-center gap-2">
+                                <label class="mb-0 text-muted small">Cantidad de bins:</label>
+                                <input type="number" id="binsToGenerateCount" class="form-control form-control-sm" value="1" min="1" style="width: 80px;" title="Número de bins a incluir en la tabla (001 hasta N)">
+                                <button type="button" class="btn btn-primary" id="btnStep3Next">
+                                    <i class="fas fa-list"></i> Generar tabla (001 hasta N)
+                                </button>
+                            </div>
                         </div>
                     @else
                         <div class="text-center text-muted py-4">
@@ -330,10 +334,24 @@ function goToStep3() {
     document.getElementById('step3Section').scrollIntoView({ behavior: 'smooth' });
 }
 function goToStep4() {
+    const allCheckboxes = document.querySelectorAll('.source-bin-cb');
+    const countInput = document.getElementById('binsToGenerateCount');
+    const n = countInput ? Math.max(1, parseInt(countInput.value, 10) || 1) : 1;
+
+    // Si el usuario indicó cantidad: marcar los primeros N bins
+    if (countInput && n > 0) {
+        allCheckboxes.forEach(function(cb, i) {
+            cb.checked = i < n;
+        });
+    }
+
     const checked = document.querySelectorAll('.source-bin-cb:checked');
     if (checked.length === 0) {
-        alert('Seleccione al menos un bin para procesar.');
+        alert('Seleccione al menos un bin para procesar o indique una cantidad.');
         return;
+    }
+    if (allCheckboxes.length > 0 && n > allCheckboxes.length) {
+        if (countInput) countInput.value = allCheckboxes.length;
     }
     buildBinsTable(checked);
     document.getElementById('step4Section').style.display = 'block';
@@ -409,7 +427,15 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('step3Section').style.display = 'none';
     });
     const btnStep3Next = document.getElementById('btnStep3Next');
-    if (btnStep3Next) btnStep3Next.addEventListener('click', goToStep4);
+    if (btnStep3Next) {
+        btnStep3Next.addEventListener('click', goToStep4);
+        var totalBins = document.querySelectorAll('.source-bin-cb').length;
+        var countInput = document.getElementById('binsToGenerateCount');
+        if (countInput && totalBins > 0) {
+            countInput.max = totalBins;
+            countInput.placeholder = '1-' + totalBins;
+        }
+    }
     document.getElementById('btnStep4Back').addEventListener('click', function() {
         document.getElementById('step4Section').style.display = 'none';
         document.getElementById('step3Section').scrollIntoView({ behavior: 'smooth' });

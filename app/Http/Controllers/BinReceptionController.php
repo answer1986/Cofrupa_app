@@ -43,6 +43,14 @@ class BinReceptionController extends Controller
             'entry_date' => 'required|date',
             'vehicle_plate' => 'required|string|max:20',
             'reception_weight_per_truck' => 'nullable|numeric|min:0',
+            'reception_calibre' => [
+                'required',
+                Rule::in([
+                    '80-90', '120-x', '90-100', '70-90',
+                    'Grande 50-60', 'Mediana 40-50', 'Pequeña 30-40'
+                ])
+            ],
+            'reception_unidades_per_pound_avg' => 'nullable|numeric|min:0',
             'guide_number' => 'nullable|string|max:100',
             'existing_bins' => 'nullable|array',
             'existing_bins.*.bin_ids' => 'required_with:existing_bins|array|min:1|max:5',
@@ -51,15 +59,7 @@ class BinReceptionController extends Controller
             'existing_bins.*.wood_bins_count' => 'required_with:existing_bins|integer|min:0',
             'existing_bins.*.plastic_bins_count' => 'required_with:existing_bins|integer|min:0',
             'existing_bins.*.net_fruit_weight' => 'nullable|numeric|min:0',
-            'existing_bins.*.calibre' => [
-                'required_with:existing_bins',
-                Rule::in([
-                    '80-90', '120-x', '90-100', '70-90',
-                    'Grande 50-60', 'Mediana 40-50', 'Pequeña 30-40'
-                ])
-            ],
             'existing_bins.*.trash_level' => 'required_with:existing_bins|in:alto,mediano,bajo,limpio',
-            'existing_bins.*.unidades_per_pound_avg' => 'nullable|numeric|min:0',
             'existing_bins.*.humidity' => 'nullable|numeric|min:0|max:100',
             'existing_bins.*.damage_percentage' => 'nullable|numeric|min:0|max:100',
             'existing_bins.*.notes' => 'nullable|string|max:500',
@@ -70,15 +70,7 @@ class BinReceptionController extends Controller
             'bins.*.wood_bins_count' => 'required_with:bins|integer|min:0',
             'bins.*.plastic_bins_count' => 'required_with:bins|integer|min:0',
             'bins.*.net_fruit_weight' => 'nullable|numeric|min:0',
-            'bins.*.calibre' => [
-                'required_with:bins',
-                Rule::in([
-                    '80-90', '120-x', '90-100', '70-90',
-                    'Grande 50-60', 'Mediana 40-50', 'Pequeña 30-40'
-                ])
-            ],
             'bins.*.trash_level' => 'required_with:bins|in:alto,mediano,bajo,limpio',
-            'bins.*.unidades_per_pound_avg' => 'nullable|numeric|min:0',
             'bins.*.humidity' => 'nullable|numeric|min:0|max:100',
             'bins.*.damage_percentage' => 'nullable|numeric|min:0|max:100',
             'bins.*.notes' => 'nullable|string|max:500',
@@ -179,13 +171,13 @@ class BinReceptionController extends Controller
                     'wood_bins_count' => $woodBins,
                     'plastic_bins_count' => $plasticBins,
                     'net_fruit_weight' => $netWeight,
-                    'original_calibre' => $groupData['calibre'] ?? '80-90',
+                    'original_calibre' => $request->reception_calibre,
                     'reception_total_weight' => $totalNetWeight,
                     'reception_weight_per_truck' => $request->reception_weight_per_truck,
                     'reception_bins_count' => $binsCount,
                     'reception_batch_id' => $batchId,
                     'lote' => $request->lote,
-                    'unidades_per_pound_avg' => $groupData['unidades_per_pound_avg'] ?? null,
+                    'unidades_per_pound_avg' => $request->reception_unidades_per_pound_avg,
                     'humidity' => $groupData['humidity'] ?? null,
                     'damage_percentage' => $groupData['damage_percentage'] ?? null,
                     'status' => 'received',
@@ -266,13 +258,13 @@ class BinReceptionController extends Controller
                     'wood_bins_count' => $woodBins,
                     'plastic_bins_count' => $plasticBins,
                     'net_fruit_weight' => $netWeight,
-                    'original_calibre' => $binData['calibre'],
+                    'original_calibre' => $request->reception_calibre,
                     'reception_total_weight' => $totalNetWeight,
                     'reception_weight_per_truck' => $request->reception_weight_per_truck,
                     'reception_bins_count' => $binsCount,
                     'reception_batch_id' => $batchId,
                     'lote' => $request->lote,
-                    'unidades_per_pound_avg' => $binData['unidades_per_pound_avg'] ?? null,
+                    'unidades_per_pound_avg' => $request->reception_unidades_per_pound_avg,
                     'humidity' => $binData['humidity'] ?? null,
                     'damage_percentage' => $binData['damage_percentage'] ?? null,
                     'status' => 'received',

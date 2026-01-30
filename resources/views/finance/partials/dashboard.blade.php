@@ -1,30 +1,44 @@
 
-<!-- Resumen Deuda por Banco -->
+<!-- Resumen Deuda/Capital por Banco (registro aparte) -->
 <div class="row mb-5">
-    <div class="col-md-6 offset-md-3">
+    <div class="col-12">
         <div class="card shadow-sm">
-            <div class="card-header bg-warning text-dark font-weight-bold text-center">
-                DEUDA POR BANCO Y FECHA (US$)
+            <div class="card-header bg-warning text-dark font-weight-bold d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <span>DEUDA / CAPITAL POR BANCO (US$)</span>
+                <a href="{{ route('finance.bank-debts.create', ['company' => $company ?? request('company', 'cofrupa')]) }}" class="btn btn-sm btn-dark">
+                    <i class="fas fa-plus"></i> Registrar deuda / capital
+                </a>
             </div>
             <div class="card-body p-0">
-                <table class="table table-bordered mb-0 text-center">
+                <table class="table table-bordered mb-0 text-center align-middle">
                     <thead class="bg-warning text-dark">
                         <tr>
                             <th>BANCO</th>
-                            <th>MONTO (US)</th>
+                            <th>MONTO (US$)</th>
                             <th>VENCIMIENTO</th>
+                            <th>USO</th>
+                            <th>ACCIONES</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($debts as $debt)
                             <tr>
                                 <td class="font-weight-bold">{{ strtoupper($debt->bank) }}</td>
-                                <td>{{ number_format($debt->total_debt, 2, ',', '.') }}</td>
-                                <td>-</td> <!-- Vencimiento logic needs to be defined, potentially adding payment_due_date to grouping -->
+                                <td>{{ number_format($debt->amount_usd, 2, ',', '.') }}</td>
+                                <td>{{ $debt->due_date ? $debt->due_date->format('d-m-Y') : '-' }}</td>
+                                <td>{{ $debt->type_display }}</td>
+                                <td class="text-center">
+                                    <a href="{{ route('finance.bank-debts.edit', $debt) }}" class="btn btn-sm btn-outline-primary" title="Editar"><i class="fas fa-edit"></i></a>
+                                    <form action="{{ route('finance.bank-debts.destroy', $debt) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Eliminar este registro?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar"><i class="fas fa-trash"></i></button>
+                                    </form>
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="3" class="text-muted">No hay deudas registradas</td>
+                                <td colspan="5" class="text-muted">No hay deudas/capital registrado. Use "Registrar deuda / capital" para agregar.</td>
                             </tr>
                         @endforelse
                     </tbody>

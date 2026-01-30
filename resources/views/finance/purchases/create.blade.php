@@ -39,25 +39,51 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="supplier_name" class="form-label">{{ $company === 'cofrupa' ? 'Proveedor' : 'Productor' }} <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('supplier_name') is-invalid @enderror" id="supplier_name" name="supplier_name" value="{{ old('supplier_name') }}" required>
+                                <input type="text" class="form-control @error('supplier_name') is-invalid @enderror" id="supplier_name" name="supplier_name" value="{{ old('supplier_name') }}" list="suppliers_list" placeholder="Escriba o seleccione" required autocomplete="off">
+                                <datalist id="suppliers_list">
+                                    @foreach($suppliers as $supplier)
+                                        <option value="{{ $supplier }}">
+                                    @endforeach
+                                </datalist>
                                 @error('supplier_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="product_caliber" class="form-label">Producto / Calibre</label>
-                                <input type="text" class="form-control @error('product_caliber') is-invalid @enderror" id="product_caliber" name="product_caliber" value="{{ old('product_caliber') }}" placeholder="Ej: Ciruela D'Agen">
+                                <input type="text" class="form-control @error('product_caliber') is-invalid @enderror" id="product_caliber" name="product_caliber" value="{{ old('product_caliber') }}" list="products_list" placeholder="Escriba o seleccione">
+                                <datalist id="products_list">
+                                    <option value="Ciruela D'Agen">
+                                    <option value="Ciruela Angelino">
+                                    <option value="Ciruela Rosa">
+                                    <option value="Cereza">
+                                    <option value="Arándano">
+                                    <option value="Frambuesa">
+                                    <option value="Mora">
+                                </datalist>
                                 @error('product_caliber')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label for="type" class="form-label">Tipo</label>
-                                <input type="text" class="form-control @error('type') is-invalid @enderror" id="type" name="type" value="{{ old('type') }}" placeholder="Ej: MP, Deshidratada">
+                                <input type="text" class="form-control @error('type') is-invalid @enderror" id="type" name="type" value="{{ old('type') }}" list="types_list" placeholder="Escriba o seleccione">
+                                <datalist id="types_list">
+                                    <option value="MP (Materia Prima)">
+                                    <option value="Deshidratada">
+                                    <option value="Congelada">
+                                    <option value="Fresca">
+                                    <option value="Procesada">
+                                </datalist>
                                 @error('type')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label for="kilos" class="form-label">Kilos <span class="text-danger">*</span></label>
                                 <input type="number" step="0.01" min="0" class="form-control @error('kilos') is-invalid @enderror" id="kilos" name="kilos" value="{{ old('kilos') }}" required>
                                 @error('kilos')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="exchange_rate" class="form-label">T/C (Tipo Cambio) <i class="fas fa-info-circle text-muted" title="Conversión CLP → USD"></i></label>
+                                <input type="number" step="0.01" min="0" class="form-control @error('exchange_rate') is-invalid @enderror" id="exchange_rate" name="exchange_rate" value="{{ old('exchange_rate') }}" placeholder="Ej: 950">
+                                @error('exchange_rate')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
                         </div>
                     </div>
@@ -153,7 +179,7 @@
             <div class="col-md-4">
                 <div class="card mb-4">
                     <div class="card-header">
-                        <h5 class="mb-0"><i class="fas fa-cog"></i> Estado</h5>
+                        <h5 class="mb-0"><i class="fas fa-cog"></i> Estado y Pago</h5>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
@@ -165,9 +191,19 @@
                                 <option value="cancelled" {{ old('status') == 'cancelled' ? 'selected' : '' }}>Cancelado</option>
                             </select>
                         </div>
+                        <div class="mb-3">
+                            <label for="bank" class="form-label">Banco <i class="fas fa-info-circle text-muted" title="Si hay deuda, se registra por banco"></i></label>
+                            <input type="text" class="form-control @error('bank') is-invalid @enderror" id="bank" name="bank" value="{{ old('bank') }}" list="banks_list" placeholder="Seleccione o escriba">
+                            <datalist id="banks_list">
+                                @foreach($banks as $bank)
+                                    <option value="{{ $bank }}">
+                                @endforeach
+                            </datalist>
+                            @error('bank')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="with_iva" name="with_iva" value="1" {{ old('with_iva', true) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="with_iva">Con IVA</label>
+                            <label class="form-check-label" for="with_iva">Con IVA (19%)</label>
                         </div>
                     </div>
                 </div>
@@ -203,11 +239,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const kilosInput = document.getElementById('kilos');
     const unitPriceClp = document.getElementById('unit_price_clp');
     const unitPriceUsd = document.getElementById('unit_price_usd');
+    const exchangeRate = document.getElementById('exchange_rate');
     const totalNetClp = document.getElementById('total_net_clp');
     const totalNetUsd = document.getElementById('total_net_usd');
     const ivaInput = document.getElementById('iva');
     const totalClp = document.getElementById('total_clp');
     const totalUsd = document.getElementById('total_usd');
+    const withIva = document.getElementById('with_iva');
     const commissionPerKilo = document.getElementById('commission_per_kilo');
     const totalCommission = document.getElementById('total_commission');
     const freightPerKilo = document.getElementById('freight_per_kilo');
@@ -216,23 +254,74 @@ document.addEventListener('DOMContentLoaded', function() {
     const finalTotal = document.getElementById('final_total');
     const averagePerKilo = document.getElementById('average_per_kilo');
 
+    let lastEditedPrice = null; // Para saber qué precio se editó último (clp o usd)
+
+    // Auto-conversión CLP ↔ USD con tipo de cambio
+    unitPriceClp.addEventListener('input', function() {
+        lastEditedPrice = 'clp';
+        const tc = parseFloat(exchangeRate.value) || 0;
+        const clp = parseFloat(unitPriceClp.value) || 0;
+        if (tc > 0 && clp > 0) {
+            unitPriceUsd.value = (clp / tc).toFixed(4);
+        }
+        calculate();
+    });
+
+    unitPriceUsd.addEventListener('input', function() {
+        lastEditedPrice = 'usd';
+        const tc = parseFloat(exchangeRate.value) || 0;
+        const usd = parseFloat(unitPriceUsd.value) || 0;
+        if (tc > 0 && usd > 0) {
+            unitPriceClp.value = (usd * tc).toFixed(2);
+        }
+        calculate();
+    });
+
+    exchangeRate.addEventListener('input', function() {
+        const tc = parseFloat(exchangeRate.value) || 0;
+        if (tc > 0) {
+            // Convertir basado en el último precio editado
+            if (lastEditedPrice === 'clp') {
+                const clp = parseFloat(unitPriceClp.value) || 0;
+                if (clp > 0) unitPriceUsd.value = (clp / tc).toFixed(4);
+            } else if (lastEditedPrice === 'usd') {
+                const usd = parseFloat(unitPriceUsd.value) || 0;
+                if (usd > 0) unitPriceClp.value = (usd * tc).toFixed(2);
+            }
+        }
+        calculate();
+    });
+
+    // Auto-cálculo de IVA
+    withIva.addEventListener('change', function() {
+        calculate();
+    });
+
     function calculate() {
         const kilos = parseFloat(kilosInput.value) || 0;
         const pClp = parseFloat(unitPriceClp.value) || 0;
         const pUsd = parseFloat(unitPriceUsd.value) || 0;
 
-        // Totales netos
-        totalNetClp.value = (kilos * pClp).toFixed(2);
-        totalNetUsd.value = (kilos * pUsd).toFixed(2);
+        // 1. Totales netos
+        const netClp = kilos * pClp;
+        const netUsd = kilos * pUsd;
+        totalNetClp.value = netClp.toFixed(2);
+        totalNetUsd.value = netUsd.toFixed(2);
 
-        // Con IVA
-        const netClp = parseFloat(totalNetClp.value) || 0;
-        const netUsd = parseFloat(totalNetUsd.value) || 0;
-        const iva = parseFloat(ivaInput.value) || 0;
-        totalClp.value = (netClp + iva).toFixed(2);
-        totalUsd.value = (netUsd + iva).toFixed(2);
+        // 2. IVA automático (19%)
+        let ivaAmount = 0;
+        if (withIva.checked && netClp > 0) {
+            ivaAmount = netClp * 0.19;
+            ivaInput.value = ivaAmount.toFixed(2);
+        } else {
+            ivaInput.value = '0.00';
+        }
 
-        // Costos adicionales
+        // 3. Totales con IVA
+        totalClp.value = (netClp + ivaAmount).toFixed(2);
+        totalUsd.value = netUsd.toFixed(2); // USD no lleva IVA (por lo general)
+
+        // 4. Costos adicionales (si existen)
         if (commissionPerKilo) {
             const comm = parseFloat(commissionPerKilo.value) || 0;
             totalCommission.value = (kilos * comm).toFixed(2);
@@ -241,22 +330,29 @@ document.addEventListener('DOMContentLoaded', function() {
             const freight = parseFloat(freightPerKilo.value) || 0;
             totalFreight.value = (kilos * freight).toFixed(2);
         }
+
+        // 5. Total final
         if (finalTotal) {
             const tClp = parseFloat(totalClp.value) || 0;
-            const tComm = parseFloat(totalCommission.value) || 0;
-            const tFreight = parseFloat(totalFreight.value) || 0;
-            const others = parseFloat(otherCosts.value) || 0;
-            finalTotal.value = (tClp + tComm + tFreight + others).toFixed(2);
-            if (kilos > 0) {
-                averagePerKilo.value = (parseFloat(finalTotal.value) / kilos).toFixed(2);
+            const tComm = parseFloat(totalCommission ? totalCommission.value : 0) || 0;
+            const tFreight = parseFloat(totalFreight ? totalFreight.value : 0) || 0;
+            const others = parseFloat(otherCosts ? otherCosts.value : 0) || 0;
+            const final = tClp + tComm + tFreight + others;
+            finalTotal.value = final.toFixed(2);
+
+            // Promedio por kilo
+            if (kilos > 0 && averagePerKilo) {
+                averagePerKilo.value = (final / kilos).toFixed(2);
             }
         }
     }
 
-    [kilosInput, unitPriceClp, unitPriceUsd, ivaInput, commissionPerKilo, freightPerKilo, otherCosts].forEach(el => {
+    // Event listeners
+    [kilosInput, ivaInput, commissionPerKilo, freightPerKilo, otherCosts].forEach(el => {
         if (el) el.addEventListener('input', calculate);
     });
 
+    // Cálculo inicial
     calculate();
 });
 </script>

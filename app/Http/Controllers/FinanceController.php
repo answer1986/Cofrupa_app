@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FinanceBankDebt;
 use App\Models\FinancePurchase;
 use App\Models\FinanceSale;
 use Illuminate\Http\Request;
@@ -19,12 +20,10 @@ class FinanceController extends Controller
 
         if ($tab === 'dashboard') {
             // Dashboard Data Logic
-            // 1. Debt by Bank (only for purchases not paid)
-            $debtsByBank = FinancePurchase::where('company', $company)
-                ->where('status', '!=', 'paid')
-                ->selectRaw('bank, SUM(final_total) as total_debt') // Assuming debt is based on final_total (or total_usd depending on requirement)
-                ->whereNotNull('bank')
-                ->groupBy('bank')
+            // 1. Deuda/Capital por banco (registro aparte, para comprar y vender)
+            $debtsByBank = FinanceBankDebt::where('company', $company)
+                ->orderBy('bank')
+                ->orderBy('due_date')
                 ->get();
 
             // 2. Main Table Data (Recent Purchases)
@@ -69,7 +68,26 @@ class FinanceController extends Controller
     public function createPurchase(Request $request)
     {
         $company = $request->get('company', 'cofrupa');
-        return view('finance.purchases.create', compact('company'));
+        
+        // Lista de proveedores para autocompletado
+        $suppliers = \App\Models\Supplier::orderBy('name')->pluck('name')->unique()->values();
+        
+        // Lista de bancos comunes en Chile
+        $banks = [
+            'Banco de Chile',
+            'Banco Estado',
+            'Banco Santander',
+            'Banco BCI',
+            'Banco Scotiabank',
+            'Banco Itaú',
+            'Banco BICE',
+            'Banco Security',
+            'Banco Falabella',
+            'Banco Ripley',
+            'Otro'
+        ];
+        
+        return view('finance.purchases.create', compact('company', 'suppliers', 'banks'));
     }
 
     public function storePurchase(Request $request)
@@ -148,7 +166,25 @@ class FinanceController extends Controller
 
     public function editPurchase(FinancePurchase $purchase)
     {
-        return view('finance.purchases.edit', compact('purchase'));
+        // Lista de proveedores para autocompletado
+        $suppliers = \App\Models\Supplier::orderBy('name')->pluck('name')->unique()->values();
+        
+        // Lista de bancos comunes en Chile
+        $banks = [
+            'Banco de Chile',
+            'Banco Estado',
+            'Banco Santander',
+            'Banco BCI',
+            'Banco Scotiabank',
+            'Banco Itaú',
+            'Banco BICE',
+            'Banco Security',
+            'Banco Falabella',
+            'Banco Ripley',
+            'Otro'
+        ];
+        
+        return view('finance.purchases.edit', compact('purchase', 'suppliers', 'banks'));
     }
 
     public function updatePurchase(Request $request, FinancePurchase $purchase)
@@ -325,5 +361,59 @@ class FinanceController extends Controller
         $sale->delete();
         return redirect()->route('finance.index', ['company' => $company, 'tab' => 'sales'])
             ->with('success', 'Venta eliminada exitosamente');
+    }
+
+    // === DEUDA/CAPITAL POR BANCO (registro aparte) ===
+    public function createBankDebt(Request $request)
+    {
+        $company = $request->get('company', 'cofrupa');
+        return view('finance.bank-debts.create', compact('company'));
+    }
+
+    public function storeBankDebt(Request $request)
+    {
+        $validated = $request->validate([
+            'company' => 'required|in:cofrupa,luis_gonzalez,comercializadora',
+            'bank' => 'required|string|max:255',
+            'amount_usd' => 'required|numeric|min:0',
+            'due_date' => 'nullable|date',
+            'type' => 'required|in:compra,venta,general',
+            'notes' => 'nullable|string',
+        ]);
+
+        FinanceBankDebt::create($validated);
+
+        return redirect()->route('finance.index', ['company' => $validated['company'], 'tab' => 'dashboard'])
+            ->with('success', 'Deuda/capital por banco registrada exitosamente');
+    }
+
+    public function editBankDebt(FinanceBankDebt $bankDebt)
+    {
+        return view('finance.bank-debts.edit', compact('bankDebt'));
+    }
+
+    public function updateBankDebt(Request $request, FinanceBankDebt $bankDebt)
+    {
+        $validated = $request->validate([
+            'company' => 'required|in:cofrupa,luis_gonzalez,comercializadora',
+            'bank' => 'required|string|max:255',
+            'amount_usd' => 'required|numeric|min:0',
+            'due_date' => 'nullable|date',
+            'type' => 'required|in:compra,venta,general',
+            'notes' => 'nullable|string',
+        ]);
+
+        $bankDebt->update($validated);
+
+        return redirect()->route('finance.index', ['company' => $bankDebt->company, 'tab' => 'dashboard'])
+            ->with('success', 'Deuda/capital por banco actualizada exitosamente');
+    }
+
+    public function destroyBankDebt(FinanceBankDebt $bankDebt)
+    {
+        $company = $bankDebt->company;
+        $bankDebt->delete();
+        return redirect()->route('finance.index', ['company' => $company, 'tab' => 'dashboard'])
+            ->with('success', 'Deuda/capital por banco eliminada exitosamente');
     }
 }
