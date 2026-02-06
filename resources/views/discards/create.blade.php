@@ -50,7 +50,7 @@
                         @if($productionOrders->isEmpty())
                             <small class="text-muted">
                                 No hay órdenes de producción disponibles. 
-                                <a href="{{ route('processing.production-orders.create') }}">Crear una nueva orden</a>
+                                <a href="{{ route('processing.production-orders.index') }}">Ver órdenes de producción</a>
                             </small>
                         @endif
                     </div>
