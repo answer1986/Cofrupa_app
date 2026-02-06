@@ -190,6 +190,40 @@
                             </div>
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    Calificación de Suciedad de la Fruta <span class="text-danger">*</span>
+                                </label>
+                                <div class="btn-group w-100" role="group" style="gap: 5px;">
+                                    <input type="radio" class="btn-check" name="reception_trash_level" id="reception_trash_limpio" value="limpio" {{ old('reception_trash_level') == 'limpio' ? 'checked' : '' }} required>
+                                    <label class="btn btn-outline-success d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;" for="reception_trash_limpio">
+                                        <small><strong>Limpia</strong></small>
+                                    </label>
+                                    
+                                    <input type="radio" class="btn-check" name="reception_trash_level" id="reception_trash_bajo" value="bajo" {{ old('reception_trash_level') == 'bajo' ? 'checked' : '' }} required>
+                                    <label class="btn btn-outline-info d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;" for="reception_trash_bajo">
+                                        <small><strong>Baja Suciedad</strong></small>
+                                    </label>
+                                    
+                                    <input type="radio" class="btn-check" name="reception_trash_level" id="reception_trash_mediano" value="mediano" {{ old('reception_trash_level') == 'mediano' ? 'checked' : '' }} required>
+                                    <label class="btn btn-outline-warning d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;" for="reception_trash_mediano">
+                                        <small><strong>Media Suciedad</strong></small>
+                                    </label>
+                                    
+                                    <input type="radio" class="btn-check" name="reception_trash_level" id="reception_trash_alto" value="alto" {{ old('reception_trash_level') == 'alto' ? 'checked' : '' }} required>
+                                    <label class="btn btn-outline-danger d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;" for="reception_trash_alto">
+                                        <small><strong>Alta Suciedad</strong></small>
+                                    </label>
+                                </div>
+                                <small class="text-muted"><i class="fas fa-info-circle"></i> Califica visualmente el nivel de suciedad de la fruta recibida</small>
+                                @error('reception_trash_level')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -479,57 +513,6 @@ function addWeighingGroup() {
                 </div>
             </div>
             <div class="row">
-                <!--<div class="col-md-4">
-                    <div class="mb-3">
-                        <label class="form-label">Humedad (%)</label>
-                        <input type="number" step="0.01" class="form-control" 
-                               name="bins[${binCount}][humidity]" 
-                               placeholder="Ej: 12.5"
-                               min="0" max="100">
-                        <small class="text-muted">Porcentaje de humedad</small>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="mb-3">
-                        <label class="form-label">Porcentaje de Daño (%)</label>
-                        <input type="number" step="0.01" class="form-control" 
-                               name="bins[${binCount}][damage_percentage]" 
-                               placeholder="Ej: 5.5"
-                               min="0" max="100">
-                        <small class="text-muted">Porcentaje de daño de la fruta</small>
-                    </div>
-                </div>-->
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="form-label">
-                            Calificación de Suciedad de la Fruta <span class="text-danger">*</span>
-                        </label>
-                        <div class="btn-group w-100" role="group" style="gap: 5px;">
-                            <input type="radio" class="btn-check" name="bins[${binCount}][trash_level]" id="trash_limpio_${binCount}" value="limpio" required>
-                            <label class="btn btn-outline-success d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;" for="trash_limpio_${binCount}">
-                                <small><strong>Limpia</strong></small>
-                            </label>
-                            
-                            <input type="radio" class="btn-check" name="bins[${binCount}][trash_level]" id="trash_bajo_${binCount}" value="bajo" required>
-                            <label class="btn btn-outline-info d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;" for="trash_bajo_${binCount}">
-                                <small><strong>Baja Suciedad</strong></small>
-                            </label>
-                            
-                            <input type="radio" class="btn-check" name="bins[${binCount}][trash_level]" id="trash_mediano_${binCount}" value="mediano" required>
-                            <label class="btn btn-outline-warning d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;" for="trash_mediano_${binCount}">
-                                <small><strong>Media Suciedad</strong></small>
-                            </label>
-                            
-                            <input type="radio" class="btn-check" name="bins[${binCount}][trash_level]" id="trash_alto_${binCount}" value="alto" required>
-                            <label class="btn btn-outline-danger d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;" for="trash_alto_${binCount}">
-                                <small><strong>Alta Suciedad</strong></small>
-                            </label>
-                        </div>
-                        <small class="text-muted"><i class="fas fa-info-circle"></i> Califica visualmente el nivel de suciedad de la fruta recibida</small>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
                 <div class="col-md-12">
                     <div class="mb-3">
                         <label class="form-label">
@@ -770,37 +753,6 @@ function createWeighingGroupFromSelected() {
                 <div class="col-md-12">
                     <div class="mb-3">
                         <label class="form-label">
-                            Calificación de Suciedad de la Fruta <span class="text-danger">*</span>
-                        </label>
-                        <div class="btn-group w-100" role="group" style="gap: 5px;">
-                            <input type="radio" class="btn-check" name="existing_bins[${existingBinGroupsCount}][trash_level]" id="existing_trash_limpio_${existingBinGroupsCount}" value="limpio" required>
-                            <label class="btn btn-outline-success d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;" for="existing_trash_limpio_${existingBinGroupsCount}">
-                                <small><strong>Limpia</strong></small>
-                            </label>
-                            
-                            <input type="radio" class="btn-check" name="existing_bins[${existingBinGroupsCount}][trash_level]" id="existing_trash_bajo_${existingBinGroupsCount}" value="bajo" required>
-                            <label class="btn btn-outline-info d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;" for="existing_trash_bajo_${existingBinGroupsCount}">
-                                <small><strong>Baja Suciedad</strong></small>
-                            </label>
-                            
-                            <input type="radio" class="btn-check" name="existing_bins[${existingBinGroupsCount}][trash_level]" id="existing_trash_mediano_${existingBinGroupsCount}" value="mediano" required>
-                            <label class="btn btn-outline-warning d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;" for="existing_trash_mediano_${existingBinGroupsCount}">
-                                <small><strong>Media Suciedad</strong></small>
-                            </label>
-                            
-                            <input type="radio" class="btn-check" name="existing_bins[${existingBinGroupsCount}][trash_level]" id="existing_trash_alto_${existingBinGroupsCount}" value="alto" required>
-                            <label class="btn btn-outline-danger d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;" for="existing_trash_alto_${existingBinGroupsCount}">
-                                <small><strong>Alta Suciedad</strong></small>
-                            </label>
-                        </div>
-                        <small class="text-muted"><i class="fas fa-info-circle"></i> Califica visualmente el nivel de suciedad de la fruta recibida</small>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="mb-3">
-                        <label class="form-label">
                             <i class="fas fa-comment"></i> Notas / Comentarios
                         </label>
                         <textarea class="form-control" 
@@ -1017,23 +969,25 @@ document.addEventListener('DOMContentLoaded', function() {
             return false;
         }
         
-        // Validar que todos los grupos tengan peso y calificación
+        // Validar que todos los grupos tengan peso bruto
         let hasErrors = false;
         document.querySelectorAll('.existing-weighing-group, .weighing-group').forEach(group => {
             const grossWeight = parseFloat(group.querySelector('input[name*="[gross_weight]"]')?.value || 0);
-            const trashLevel = group.querySelector('input[name*="[trash_level]"]:checked');
             
             if (grossWeight <= 0) {
                 hasErrors = true;
             }
-            if (!trashLevel) {
-                hasErrors = true;
-            }
         });
+        
+        // Validar que se haya seleccionado la calificación de suciedad global
+        const globalTrashLevel = document.querySelector('input[name="reception_trash_level"]:checked');
+        if (!globalTrashLevel) {
+            hasErrors = true;
+        }
         
         if (hasErrors) {
             e.preventDefault();
-            alert('Por favor completa todos los campos requeridos en los grupos de pesaje (peso bruto y calificación de suciedad).');
+            alert('Por favor completa todos los campos requeridos: peso bruto en los grupos de pesaje y calificación de suciedad general.');
             return false;
         }
     });

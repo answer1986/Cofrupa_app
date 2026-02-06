@@ -345,7 +345,7 @@
                                 </li>
                                 <li>
                                     <a href="{{ route('bin_processing.index') }}" class="{{ request()->is('bin_processing*') ? 'active' : '' }}">
-                                        <i class="fas fa-balance-scale"></i> Procesamiento de Fruta
+                                        <i class="fas fa-balance-scale"></i> Calibradora
                                     </a>
                                 </li>
                                 <li>

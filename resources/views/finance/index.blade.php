@@ -48,7 +48,7 @@
         </li>
     </ul>
 
-    <!-- Sub-pestañas: Compras / Ventas / Dashboard -->
+    <!-- Sub-pestañas: Dashboard / Compras / Ventas / Pagos -->
     <ul class="nav nav-pills mb-4">
         <li class="nav-item">
             <a class="nav-link {{ $tab === 'dashboard' ? 'active' : '' }}" href="{{ route('finance.index', ['company' => $company, 'tab' => 'dashboard']) }}">
@@ -63,6 +63,11 @@
         <li class="nav-item">
             <a class="nav-link {{ $tab === 'sales' ? 'active' : '' }}" href="{{ route('finance.index', ['company' => $company, 'tab' => 'sales']) }}">
                 <i class="fas fa-hand-holding-usd"></i> Ventas
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ route('finance.payments.index') }}">
+                <i class="fas fa-money-check-alt"></i> Pagos
             </a>
         </li>
     </ul>

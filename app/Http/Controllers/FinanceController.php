@@ -27,12 +27,25 @@ class FinanceController extends Controller
                 ->get();
 
             // 2. Main Table Data (Recent Purchases)
-            // Matching columns: Date, Invoice, Supplier, Caliber, Type, Kilos, T/C, Unit $, Unit US$, Total Net $, Total Net US$, IVA, Total $, Total US$, Balance
             $records = FinancePurchase::where('company', $company)
                 ->orderBy('purchase_date', 'desc')
-                ->paginate(50); // Larger pagination for spreadsheet view
+                ->paginate(50);
 
-            return view('finance.index', compact('company', 'tab', 'debtsByBank', 'records'));
+            // 3. Estadísticas de Pagos para dashboard global
+            $totalPaymentsCompleted = \App\Models\Payment::where('company', $company)->where('status', 'completado')->sum('amount');
+            $totalPaymentsPending = \App\Models\Payment::where('company', $company)->where('status', 'pendiente')->sum('amount');
+            $paymentsByMethod = \App\Models\Payment::where('company', $company)
+                ->where('status', 'completado')
+                ->selectRaw('payment_method, SUM(amount) as total, COUNT(*) as count')
+                ->groupBy('payment_method')
+                ->get();
+            $recentPayments = \App\Models\Payment::where('company', $company)
+                ->with('creator')
+                ->latest('payment_date')
+                ->limit(10)
+                ->get();
+
+            return view('finance.index', compact('company', 'tab', 'debtsByBank', 'records', 'totalPaymentsCompleted', 'totalPaymentsPending', 'paymentsByMethod', 'recentPayments'));
         }
 
         $query = $tab === 'purchases' 

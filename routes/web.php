@@ -244,6 +244,9 @@ Route::middleware(['auth', '2fa'])->group(function () {
         Route::get('/sales/{sale}/edit', [App\Http\Controllers\FinanceController::class, 'editSale'])->name('sales.edit');
         Route::put('/sales/{sale}', [App\Http\Controllers\FinanceController::class, 'updateSale'])->name('sales.update');
         Route::delete('/sales/{sale}', [App\Http\Controllers\FinanceController::class, 'destroySale'])->name('sales.destroy');
+        
+        // Pagos (mapeo detallado: método, cheque/transferencia, OC, factura)
+        Route::resource('payments', App\Http\Controllers\PaymentController::class);
     });
 });
 

@@ -1,4 +1,85 @@
 
+<!-- Estadísticas de Pagos -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h6 class="text-uppercase mb-1"><i class="fas fa-check-circle"></i> Pagos Completados</h6>
+                <h3 class="mb-0">${{ number_format($totalPaymentsCompleted ?? 0, 0, ',', '.') }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <h6 class="text-uppercase mb-1"><i class="fas fa-clock"></i> Pagos Pendientes</h6>
+                <h3 class="mb-0">${{ number_format($totalPaymentsPending ?? 0, 0, ',', '.') }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="text-muted mb-2"><i class="fas fa-chart-pie"></i> Por Método de Pago (Completados)</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    @foreach(($paymentsByMethod ?? []) as $pm)
+                        <span class="badge bg-info">
+                            {{ ucfirst($pm->payment_method) }}: ${{ number_format($pm->total, 0, ',', '.') }} ({{ $pm->count }})
+                        </span>
+                    @endforeach
+                    @if(empty($paymentsByMethod) || $paymentsByMethod->isEmpty())
+                        <span class="text-muted small">Sin pagos completados aún</span>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pagos Recientes -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-money-check-alt"></i> Últimos Pagos</span>
+                <a href="{{ route('finance.payments.index') }}" class="btn btn-sm btn-light">
+                    <i class="fas fa-list"></i> Ver todos los pagos
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Método</th>
+                                <th>Referencia</th>
+                                <th>Beneficiario</th>
+                                <th>Monto</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse(($recentPayments ?? []) as $p)
+                                <tr>
+                                    <td>{{ $p->payment_date->format('d/m/Y') }}</td>
+                                    <td>{{ ucfirst($p->payment_method) }}</td>
+                                    <td><code>{{ $p->reference_number ?? '—' }}</code></td>
+                                    <td>{{ $p->payee_name ?? '—' }}</td>
+                                    <td class="text-end">{{ $p->currency }} {{ number_format($p->amount, 0, ',', '.') }}</td>
+                                    <td><span class="badge bg-{{ $p->status == 'completado' ? 'success' : 'warning' }}">{{ $p->status_display }}</span></td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="6" class="text-center text-muted py-2">No hay pagos recientes</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Resumen Deuda/Capital por Banco (registro aparte) -->
 <div class="row mb-5">
     <div class="col-12">

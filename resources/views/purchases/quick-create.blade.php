@@ -159,14 +159,26 @@
                             <label for="unit_price" class="form-label">
                                 <i class="fas fa-money-bill-wave"></i> Valor del Negocio (Precio x Kg)
                             </label>
-                            <input type="number" step="0.01" min="0" 
-                                   class="form-control @error('unit_price') is-invalid @enderror"
-                                   id="unit_price" name="unit_price" 
-                                   value="{{ old('unit_price') }}" 
-                                   placeholder="Ej: 500">
-                            @error('unit_price')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <div class="input-group">
+                                <select class="form-select @error('currency') is-invalid @enderror" 
+                                        id="currency" name="currency" 
+                                        style="max-width: 100px;">
+                                    <option value="CLP" {{ old('currency', 'CLP') == 'CLP' ? 'selected' : '' }}>CLP</option>
+                                    <option value="USD" {{ old('currency') == 'USD' ? 'selected' : '' }}>USD</option>
+                                </select>
+                                <input type="number" step="0.01" min="0" 
+                                       class="form-control @error('unit_price') is-invalid @enderror"
+                                       id="unit_price" name="unit_price" 
+                                       value="{{ old('unit_price') }}" 
+                                       placeholder="Ej: 500">
+                                @error('unit_price')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                @error('currency')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <small class="form-text text-muted">Seleccione la moneda y el precio por kilogramo</small>
                         </div>
                     </div>
 

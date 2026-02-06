@@ -71,6 +71,7 @@ class PurchaseController extends Controller
             ],
             'units_per_pound' => 'required|integer|min:1',
             'unit_price' => 'nullable|numeric|min:0',
+            'currency' => 'required|in:CLP,USD',
             'notes' => 'nullable|string',
         ]);
 
@@ -96,7 +97,7 @@ class PurchaseController extends Controller
             'amount_owed' => $amountOwed ?: null,
             'payment_status' => 'pending',
             'notes' => $request->notes,
-            'currency' => 'CLP',
+            'currency' => $request->currency,
         ]);
 
         // Update supplier debt if there's an amount owed

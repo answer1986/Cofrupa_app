@@ -16,12 +16,138 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-boxes"></i> Información del Bin</h5>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-boxes"></i> Información del Bin</h5>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="bulkModeToggle">
+                        <label class="form-check-label" for="bulkModeToggle">
+                            <i class="fas fa-layer-group"></i> Creación Masiva
+                        </label>
+                    </div>
+                </div>
             </div>
             <div class="card-body">
-                <form action="{{ route('bins.store') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('bins.store') }}" method="POST" enctype="multipart/form-data" id="binForm">
                     @csrf
+                    
+                    <!-- Campo oculto para indicar si es creación masiva -->
+                    <input type="hidden" name="is_bulk" id="is_bulk" value="0">
 
+                    <!-- FORMULARIO DE CREACIÓN MASIVA -->
+                    <div id="bulkForm" style="display: none;">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> 
+                            <strong>Creación Masiva:</strong> Use este modo para registrar grandes cantidades de bins sin detalle individual. Ideal para control de inventario.
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="bulk_quantity" class="form-label">
+                                    <i class="fas fa-sort-numeric-up"></i> Cantidad de Bins *
+                                </label>
+                                <input type="number" class="form-control @error('bulk_quantity') is-invalid @enderror"
+                                       id="bulk_quantity" name="bulk_quantity" min="1" value="{{ old('bulk_quantity') }}" 
+                                       placeholder="Ej: 500">
+                                <small class="form-text text-muted">Ingrese la cantidad total de bins a crear</small>
+                                @error('bulk_quantity')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="bulk_type" class="form-label">
+                                    <i class="fas fa-cubes"></i> Tipo de Bin *
+                                </label>
+                                <select class="form-select @error('type') is-invalid @enderror"
+                                        id="bulk_type" name="type">
+                                    <option value="">Seleccione tipo</option>
+                                    <option value="wood" {{ old('type') == 'wood' ? 'selected' : '' }}>Madera (60kg capacidad)</option>
+                                    <option value="plastic" {{ old('type') == 'plastic' ? 'selected' : '' }}>Plástico (45kg capacidad)</option>
+                                </select>
+                                @error('type')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="bulk_ownership_type" class="form-label">
+                                    <i class="fas fa-user-tag"></i> Tipo de Bin *
+                                </label>
+                                <select class="form-select @error('ownership_type') is-invalid @enderror"
+                                        id="bulk_ownership_type" name="ownership_type">
+                                    <option value="">Seleccione tipo</option>
+                                    <option value="field" {{ old('ownership_type', 'field') == 'field' ? 'selected' : '' }}>Bin de Campo (LG)</option>
+                                    <option value="internal" {{ old('ownership_type') == 'internal' ? 'selected' : '' }}>Bin Interno (COFRUPA)</option>
+                                    <option value="supplier" {{ old('ownership_type') == 'supplier' ? 'selected' : '' }}>Bin del Proveedor (BINS CLIENTES)</option>
+                                </select>
+                                @error('ownership_type')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="bulk_weight_capacity" class="form-label">
+                                    <i class="fas fa-weight"></i> Peso del Bin Vacío (Tara) en kg *
+                                </label>
+                                <input type="number" step="0.01" class="form-control @error('weight_capacity') is-invalid @enderror"
+                                       id="bulk_weight_capacity" name="weight_capacity" 
+                                       value="{{ old('weight_capacity') }}" 
+                                       placeholder="Ej: 6.00 para madera, 3.00 para plástico">
+                                <small class="form-text text-muted">Peso promedio del contenedor vacío</small>
+                                @error('weight_capacity')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="bulk_status" class="form-label">
+                                    <i class="fas fa-info-circle"></i> Estado Inicial *
+                                </label>
+                                <select class="form-select @error('status') is-invalid @enderror"
+                                        id="bulk_status" name="status">
+                                    <option value="available" {{ old('status', 'available') == 'available' ? 'selected' : '' }}>Disponible</option>
+                                    <option value="in_use" {{ old('status') == 'in_use' ? 'selected' : '' }}>En uso</option>
+                                    <option value="maintenance" {{ old('status') == 'maintenance' ? 'selected' : '' }}>Mantenimiento</option>
+                                    <option value="damaged" {{ old('status') == 'damaged' ? 'selected' : '' }}>Dañado</option>
+                                </select>
+                                @error('status')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="bulk_prefix" class="form-label">
+                                    <i class="fas fa-tag"></i> Prefijo para Números (opcional)
+                                </label>
+                                <input type="text" class="form-control @error('bulk_prefix') is-invalid @enderror"
+                                       id="bulk_prefix" name="bulk_prefix" value="{{ old('bulk_prefix') }}" 
+                                       placeholder="Ej: LG, CF, PROV">
+                                <small class="form-text text-muted">Los bins se numerarán automáticamente: Prefijo-1, Prefijo-2, etc.</small>
+                                @error('bulk_prefix')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="bulk_notes" class="form-label">
+                                <i class="fas fa-sticky-note"></i> Notas
+                            </label>
+                            <textarea class="form-control @error('notes') is-invalid @enderror"
+                                      id="bulk_notes" name="notes" rows="3" 
+                                      placeholder="Ej: Lote de 500 bins de campo entregados en enero 2026">{{ old('notes') }}</textarea>
+                            @error('notes')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <!-- FORMULARIO DE CREACIÓN INDIVIDUAL -->
+                    <div id="individualForm">
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="bin_number" class="form-label">
@@ -58,9 +184,9 @@
                             <select class="form-select @error('ownership_type') is-invalid @enderror"
                                     id="ownership_type" name="ownership_type" required>
                                 <option value="">Seleccione tipo</option>
-                                <option value="field" {{ old('ownership_type', 'field') == 'field' ? 'selected' : '' }}>Bin de Campo (Se entrega a proveedores)</option>
-                                <option value="internal" {{ old('ownership_type') == 'internal' ? 'selected' : '' }}>Bin Interno (Propiedad de la empresa)</option>
-                                <option value="supplier" {{ old('ownership_type') == 'supplier' ? 'selected' : '' }}>Bin del Proveedor (Propiedad del proveedor)</option>
+                                <option value="field" {{ old('ownership_type', 'field') == 'field' ? 'selected' : '' }}>Bin de Campo (LG)</option>
+                                <option value="internal" {{ old('ownership_type') == 'internal' ? 'selected' : '' }}>Bin Interno (COFRUPA)</option>
+                                <option value="supplier" {{ old('ownership_type') == 'supplier' ? 'selected' : '' }}>Bin del Proveedor (BINS CLIENTES)</option>
                             </select>
                             <small class="form-text text-muted">Seleccione el tipo de bin. La mayoría son bins de campo que se entregan a proveedores.</small>
                             @error('ownership_type')
@@ -176,6 +302,8 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
+                    </div>
+                    <!-- FIN FORMULARIO INDIVIDUAL -->
 
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <a href="{{ route('bins.index') }}" class="btn btn-secondary me-md-2">
@@ -192,8 +320,19 @@
 </div>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const bulkModeToggle = document.getElementById('bulkModeToggle');
+    const bulkForm = document.getElementById('bulkForm');
+    const individualForm = document.getElementById('individualForm');
+    const isBulkInput = document.getElementById('is_bulk');
+    const submitButton = document.querySelector('button[type="submit"]');
+    
+    // Formulario Individual
     const typeSelect = document.getElementById('type');
     const weightCapacityInput = document.getElementById('weight_capacity');
+    
+    // Formulario Masivo
+    const bulkTypeSelect = document.getElementById('bulk_type');
+    const bulkWeightCapacityInput = document.getElementById('bulk_weight_capacity');
     
     // Peso por defecto según el tipo
     const defaultWeights = {
@@ -201,13 +340,75 @@ document.addEventListener('DOMContentLoaded', function() {
         'plastic': 3.00
     };
     
-    typeSelect.addEventListener('change', function() {
-        const selectedType = this.value;
-        if (selectedType && !weightCapacityInput.value) {
-            // Solo sugerir si el campo está vacío
-            weightCapacityInput.value = defaultWeights[selectedType] || '';
+    // Toggle entre modo individual y masivo
+    bulkModeToggle.addEventListener('change', function() {
+        if (this.checked) {
+            // Modo Masivo
+            bulkForm.style.display = 'block';
+            individualForm.style.display = 'none';
+            isBulkInput.value = '1';
+            submitButton.innerHTML = '<i class="fas fa-save"></i> Crear Bins en Masa';
+            
+            // Deshabilitar campos individuales para que no se envíen
+            disableFormFields(individualForm, true);
+            disableFormFields(bulkForm, false);
+        } else {
+            // Modo Individual
+            bulkForm.style.display = 'none';
+            individualForm.style.display = 'block';
+            isBulkInput.value = '0';
+            submitButton.innerHTML = '<i class="fas fa-save"></i> Crear Bin';
+            
+            // Habilitar campos individuales
+            disableFormFields(individualForm, false);
+            disableFormFields(bulkForm, true);
         }
     });
+    
+    // Función para deshabilitar/habilitar campos de un formulario
+    function disableFormFields(container, disable) {
+        const fields = container.querySelectorAll('input, select, textarea');
+        fields.forEach(field => {
+            if (disable) {
+                field.setAttribute('disabled', 'disabled');
+                // Remover el atributo required cuando está deshabilitado
+                if (field.hasAttribute('required')) {
+                    field.setAttribute('data-was-required', 'true');
+                    field.removeAttribute('required');
+                }
+            } else {
+                field.removeAttribute('disabled');
+                // Restaurar el atributo required si lo tenía
+                if (field.getAttribute('data-was-required') === 'true') {
+                    field.setAttribute('required', 'required');
+                    field.removeAttribute('data-was-required');
+                }
+            }
+        });
+    }
+    
+    // Auto-completar peso en modo individual
+    if (typeSelect) {
+        typeSelect.addEventListener('change', function() {
+            const selectedType = this.value;
+            if (selectedType && !weightCapacityInput.value) {
+                weightCapacityInput.value = defaultWeights[selectedType] || '';
+            }
+        });
+    }
+    
+    // Auto-completar peso en modo masivo
+    if (bulkTypeSelect) {
+        bulkTypeSelect.addEventListener('change', function() {
+            const selectedType = this.value;
+            if (selectedType && !bulkWeightCapacityInput.value) {
+                bulkWeightCapacityInput.value = defaultWeights[selectedType] || '';
+            }
+        });
+    }
+    
+    // Inicializar: deshabilitar campos del formulario masivo por defecto
+    disableFormFields(bulkForm, true);
 });
 </script>
 @endsection

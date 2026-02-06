@@ -40,6 +40,12 @@ class BinController extends Controller
      */
     public function store(Request $request)
     {
+        // Verificar si es creación masiva
+        if ($request->input('is_bulk') == '1') {
+            return $this->storeBulk($request);
+        }
+
+        // Creación individual (lógica original)
         $request->validate([
             'bin_number' => 'required|string|max:50|unique:bins',
             'type' => ['required', Rule::in(['wood', 'plastic'])],
@@ -72,6 +78,109 @@ class BinController extends Controller
         Bin::create($data);
 
         return redirect()->route('bins.index')->with('success', 'Bin creado exitosamente.');
+    }
+
+    /**
+     * Store bins in bulk
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    private function storeBulk(Request $request)
+    {
+        $request->validate([
+            'bulk_quantity' => 'required|integer|min:1|max:10000',
+            'type' => ['required', Rule::in(['wood', 'plastic'])],
+            'ownership_type' => ['required', Rule::in(['supplier', 'internal', 'field'])],
+            'weight_capacity' => 'required|numeric|min:0',
+            'status' => ['required', Rule::in(['available', 'in_use', 'maintenance', 'damaged'])],
+            'bulk_prefix' => 'nullable|string|max:20',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        $quantity = $request->input('bulk_quantity');
+        $prefix = $request->input('bulk_prefix');
+        $type = $request->input('type');
+        $ownershipType = $request->input('ownership_type');
+        $weightCapacity = $request->input('weight_capacity');
+        $status = $request->input('status');
+        $notes = $request->input('notes');
+
+        // Generar un prefijo por defecto según el tipo de ownership si no se proporciona
+        if (empty($prefix)) {
+            switch($ownershipType) {
+                case 'field':
+                    $prefix = 'LG';
+                    break;
+                case 'internal':
+                    $prefix = 'CF';
+                    break;
+                case 'supplier':
+                    $prefix = 'PROV';
+                    break;
+                default:
+                    $prefix = 'BIN';
+                    break;
+            }
+        }
+
+        // Obtener el último número usado con este prefijo
+        $lastBin = Bin::where('bin_number', 'LIKE', $prefix . '-%')
+            ->orderByRaw('CAST(SUBSTRING_INDEX(bin_number, "-", -1) AS UNSIGNED) DESC')
+            ->first();
+
+        $startNumber = 1;
+        if ($lastBin) {
+            // Extraer el número del último bin
+            $parts = explode('-', $lastBin->bin_number);
+            $lastNumber = intval(end($parts));
+            $startNumber = $lastNumber + 1;
+        }
+
+        $createdCount = 0;
+        $errors = [];
+
+        // Crear bins en masa
+        for ($i = 0; $i < $quantity; $i++) {
+            $binNumber = $prefix . '-' . ($startNumber + $i);
+
+            try {
+                // Verificar que no exista
+                if (Bin::where('bin_number', $binNumber)->exists()) {
+                    $errors[] = "El bin {$binNumber} ya existe";
+                    continue;
+                }
+
+                Bin::create([
+                    'bin_number' => $binNumber,
+                    'type' => $type,
+                    'ownership_type' => $ownershipType,
+                    'weight_capacity' => $weightCapacity,
+                    'current_weight' => 0,
+                    'status' => $status,
+                    'notes' => $notes,
+                    'supplier_id' => null,
+                    'photo_path' => null,
+                    'delivery_date' => null,
+                    'return_date' => null,
+                    'damage_description' => null,
+                ]);
+
+                $createdCount++;
+            } catch (\Exception $e) {
+                $errors[] = "Error al crear bin {$binNumber}: " . $e->getMessage();
+            }
+        }
+
+        $message = "Se crearon {$createdCount} bins exitosamente.";
+        if (count($errors) > 0) {
+            $message .= " Errores: " . implode(', ', array_slice($errors, 0, 5));
+            if (count($errors) > 5) {
+                $message .= " y " . (count($errors) - 5) . " más.";
+            }
+        }
+
+        return redirect()->route('bins.index')->with('success', $message);
     }
 
     /**
