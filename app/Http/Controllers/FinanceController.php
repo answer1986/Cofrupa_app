@@ -58,13 +58,15 @@ class FinanceController extends Controller
             $costoFletePorKilo = $totalKilosTransportados > 0 ? $totalFletes / $totalKilosTransportados : 0;
             
             // c) Costos de procesamiento/calibrado (accounting_records relacionados con procesos)
-            $totalProcesamiento = AccountingRecord::where('record_type', 'expense')
-                ->whereNotNull('process_order_id')
+            // Sumamos las compras/pagos registrados en accounting_records que tengan process_order_id
+            $totalProcesamiento = AccountingRecord::whereNotNull('process_order_id')
+                ->whereIn('transaction_type', ['purchase', 'payment'])
                 ->sum('total_amount');
             
             // d) Otros costos operacionales (accounting_records sin proceso específico)
-            $totalOtrosCostos = AccountingRecord::where('record_type', 'expense')
-                ->whereNull('process_order_id')
+            // Sumamos compras/pagos que NO estén vinculados a un proceso
+            $totalOtrosCostos = AccountingRecord::whereNull('process_order_id')
+                ->whereIn('transaction_type', ['purchase', 'payment'])
                 ->sum('total_amount');
             
             // Total de costos
