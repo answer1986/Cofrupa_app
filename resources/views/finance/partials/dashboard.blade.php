@@ -1,4 +1,143 @@
 
+<!-- RESUMEN OPERACIONAL Y MÁRGENES -->
+@if(isset($operationStats))
+<div class="card mb-4 shadow-sm border-primary">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-calculator"></i> Resumen Operacional y Márgenes</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <!-- COSTOS -->
+            <div class="col-lg-6">
+                <h6 class="text-muted mb-3"><i class="fas fa-money-bill-wave"></i> COSTOS DE LA OPERACIÓN</h6>
+                <table class="table table-sm table-borderless">
+                    <tr>
+                        <td><strong>Compras de Fruta:</strong></td>
+                        <td class="text-end">${{ number_format($operationStats['total_compras'], 0, ',', '.') }}</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Fletes Totales:</strong>
+                            <a href="{{ route('ventas.fletes.index') }}" class="btn btn-sm btn-outline-primary ms-2" title="Ver fletes">
+                                <i class="fas fa-truck"></i>
+                            </a>
+                        </td>
+                        <td class="text-end">${{ number_format($operationStats['total_fletes'], 0, ',', '.') }}</td>
+                    </tr>
+                    <tr>
+                        <td class="ps-3 small text-muted">Costo flete por kilo:</td>
+                        <td class="text-end small text-muted">${{ number_format($operationStats['costo_flete_por_kilo'], 0, ',', '.') }}/kg</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Procesamiento/Calibrado:</strong></td>
+                        <td class="text-end">${{ number_format($operationStats['total_procesamiento'], 0, ',', '.') }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Otros Costos:</strong></td>
+                        <td class="text-end">${{ number_format($operationStats['total_otros_costos'], 0, ',', '.') }}</td>
+                    </tr>
+                    <tr class="border-top">
+                        <td><strong class="text-danger fs-5">COSTOS TOTALES:</strong></td>
+                        <td class="text-end"><strong class="text-danger fs-5">${{ number_format($operationStats['costos_totales'], 0, ',', '.') }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td class="small text-muted">Costo por kilo:</td>
+                        <td class="text-end small text-muted">${{ number_format($operationStats['costo_por_kilo'], 0, ',', '.') }}/kg</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- INGRESOS Y MÁRGENES -->
+            <div class="col-lg-6">
+                <h6 class="text-muted mb-3"><i class="fas fa-chart-line"></i> INGRESOS Y MÁRGENES</h6>
+                <table class="table table-sm table-borderless">
+                    <tr>
+                        <td><strong>Ventas Totales (CLP):</strong></td>
+                        <td class="text-end text-success"><strong>${{ number_format($operationStats['total_ventas'], 0, ',', '.') }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td class="small text-muted">Ventas (USD):</td>
+                        <td class="text-end small text-muted">US$ {{ number_format($operationStats['total_ventas_usd'], 2, ',', '.') }}</td>
+                    </tr>
+                    <tr>
+                        <td class="small text-muted">Venta por kilo:</td>
+                        <td class="text-end small text-muted">${{ number_format($operationStats['venta_por_kilo'], 0, ',', '.') }}/kg</td>
+                    </tr>
+                    <tr class="border-top">
+                        <td><strong class="fs-5">MARGEN BRUTO:</strong></td>
+                        <td class="text-end">
+                            <strong class="fs-5 {{ $operationStats['margen_bruto'] >= 0 ? 'text-success' : 'text-danger' }}">
+                                ${{ number_format($operationStats['margen_bruto'], 0, ',', '.') }}
+                            </strong>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>% Margen:</strong></td>
+                        <td class="text-end">
+                            <span class="badge {{ $operationStats['porcentaje_margen'] >= 20 ? 'bg-success' : ($operationStats['porcentaje_margen'] >= 10 ? 'bg-warning' : 'bg-danger') }} fs-6">
+                                {{ number_format($operationStats['porcentaje_margen'], 1) }}%
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="small text-muted">Margen por kilo:</td>
+                        <td class="text-end small {{ $operationStats['margen_por_kilo'] >= 0 ? 'text-success' : 'text-danger' }}">
+                            ${{ number_format($operationStats['margen_por_kilo'], 0, ',', '.') }}/kg
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Barra de progreso visual del margen -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="d-flex align-items-center gap-2">
+                    <small class="text-muted">Costos</small>
+                    <div class="flex-grow-1">
+                        <div class="progress" style="height: 25px;">
+                            @php
+                                $costPercentage = $operationStats['total_ventas'] > 0 ? ($operationStats['costos_totales'] / $operationStats['total_ventas']) * 100 : 0;
+                                $costPercentage = min($costPercentage, 100);
+                            @endphp
+                            <div class="progress-bar bg-danger" style="width: {{ $costPercentage }}%">
+                                {{ number_format($costPercentage, 1) }}%
+                            </div>
+                            <div class="progress-bar bg-success" style="width: {{ 100 - $costPercentage }}%">
+                                Margen: {{ number_format(100 - $costPercentage, 1) }}%
+                            </div>
+                        </div>
+                    </div>
+                    <small class="text-muted">Ventas</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resumen de Kilos -->
+        <div class="row mt-3">
+            <div class="col-md-4">
+                <div class="text-center p-2 bg-light rounded">
+                    <small class="text-muted d-block">Kilos Comprados</small>
+                    <strong>{{ number_format($operationStats['total_kilos_comprados'], 0, ',', '.') }} kg</strong>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center p-2 bg-light rounded">
+                    <small class="text-muted d-block">Kilos Transportados</small>
+                    <strong>{{ number_format($operationStats['total_kilos_transportados'], 0, ',', '.') }} kg</strong>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center p-2 bg-light rounded">
+                    <small class="text-muted d-block">Kilos Vendidos</small>
+                    <strong>{{ number_format($operationStats['total_kilos_vendidos'], 0, ',', '.') }} kg</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
 <!-- Estadísticas de Pagos -->
 <div class="row mb-4">
     <div class="col-md-3">

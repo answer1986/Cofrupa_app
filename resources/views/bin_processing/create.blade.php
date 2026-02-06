@@ -280,9 +280,8 @@
                                     <th>Daño %</th>
                                     <th>Calibre Final *</th>
                                     <th>Unid/libra prom.</th>
-                                    <th>Notas Desperfecto</th>
-                                    <th>Observaciones frutas</th>
-                                    <th>Notas</th>
+                                    <th>Observación</th>
+                                    <th style="width: 60px;">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="binsTableBody">
@@ -367,7 +366,7 @@ function buildBinsTable(checkedBoxes) {
         const tr = document.createElement('tr');
         tr.className = 'bin-row';
         tr.innerHTML = `
-            <td class="align-middle">${i + 1}</td>
+            <td class="align-middle bin-row-number">${i + 1}</td>
             <td><input type="hidden" name="bins[${i}][source_bin_id]" value="${sourceBinId}"><input type="text" class="form-control form-control-sm bin-new-number" name="bins[${i}][new_bin_number]" value="${num}" placeholder="001" required></td>
             <td><input type="text" class="form-control form-control-sm" name="bins[${i}][numero_tarja]" placeholder="Tarja"></td>
             <td><input type="number" step="0.01" min="0" class="form-control form-control-sm bin-net-weight" name="bins[${i}][net_weight]" placeholder="0"></td>
@@ -375,17 +374,74 @@ function buildBinsTable(checkedBoxes) {
             <td><input type="text" class="form-control form-control-sm" name="bins[${i}][numero_lote]" placeholder="Lote"></td>
             <td><input type="number" step="0.01" min="0" max="100" class="form-control form-control-sm" name="bins[${i}][dano_total]" placeholder="%"></td>
             <td><select class="form-select form-select-sm bin-calibre" name="bins[${i}][processed_calibre]" required>${CALIBRE_OPTIONS}</select></td>
-            <td><select class="form-select form-select-sm" name="bins[${i}][calibre_promedio]">${CALIBRE_PROMEDIO_OPTIONS}</select></td>
-            <td><input type="text" class="form-control form-control-sm" name="bins[${i}][defect_notes]" placeholder="Notas"></td>
-            <td><input type="text" class="form-control form-control-sm" name="bins[${i}][observations]" placeholder="Obs."></td>
-            <td><input type="text" class="form-control form-control-sm" name="bins[${i}][notes]" placeholder="Notas"></td>
+            <td><input type="text" class="form-control form-control-sm" name="bins[${i}][calibre_promedio]" placeholder="Ej: 40-50"></td>
+            <td><input type="text" class="form-control form-control-sm" name="bins[${i}][observations]" placeholder="Observaciones"></td>
+            <td class="align-middle">
+                <button type="button" class="btn btn-sm btn-danger remove-bin-row" title="Eliminar esta fila">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
         `;
+        tr.setAttribute('data-index', i);
         tbody.appendChild(tr);
     });
     tbody.querySelectorAll('.bin-new-number, .bin-calibre').forEach(el => {
         el.addEventListener('input', updateProgress);
         el.addEventListener('change', updateProgress);
     });
+    
+    // Agregar listeners para botones eliminar
+    attachRemoveListeners();
+}
+
+function attachRemoveListeners() {
+    document.querySelectorAll('.remove-bin-row').forEach(btn => {
+        // Remover listeners anteriores si existen
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        
+        newBtn.addEventListener('click', function() {
+            const row = this.closest('tr.bin-row');
+            if (confirm('¿Está seguro de eliminar esta fila? Los datos ingresados se perderán.')) {
+                row.remove();
+                renumberBinsTable();
+                updateProgress();
+            }
+        });
+    });
+}
+
+function renumberBinsTable() {
+    const rows = document.querySelectorAll('#binsTableBody tr.bin-row');
+    rows.forEach((row, index) => {
+        // Actualizar número de fila
+        const numberCell = row.querySelector('.bin-row-number');
+        if (numberCell) {
+            numberCell.textContent = index + 1;
+        }
+        
+        // Actualizar todos los nombres de campos con el nuevo índice
+        const inputs = row.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            if (input.name) {
+                // Reemplazar el índice en el nombre del campo bins[X]
+                input.name = input.name.replace(/bins\[\d+\]/, `bins[${index}]`);
+            }
+        });
+        
+        // Actualizar el número del bin resultante
+        const binNumberInput = row.querySelector('.bin-new-number');
+        if (binNumberInput) {
+            const newNum = String(index + 1).padStart(3, '0');
+            binNumberInput.value = newNum;
+        }
+        
+        // Actualizar data-index
+        row.setAttribute('data-index', index);
+    });
+    
+    // Re-agregar listeners después de renumerar
+    attachRemoveListeners();
 }
 function updateProgress() {
     const rows = document.querySelectorAll('#binsTableBody tr.bin-row');

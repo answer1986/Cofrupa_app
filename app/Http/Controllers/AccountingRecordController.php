@@ -9,6 +9,9 @@ use App\Models\Contract;
 use App\Models\BrokerPayment;
 use App\Models\Shipment;
 use App\Models\Supplier;
+use App\Models\Plant;
+use App\Models\ProcessOrder;
+use App\Models\PlantProductionOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -88,8 +91,11 @@ class AccountingRecordController extends Controller
     {
         $suppliers = Supplier::all();
         $contracts = Contract::whereIn('status', ['active', 'completed'])->get();
+        $plants = Plant::where('is_active', true)->get();
+        $processOrders = ProcessOrder::with(['plant', 'supplier'])->orderBy('created_at', 'desc')->get();
+        $plantProductionOrders = PlantProductionOrder::with(['plant'])->orderBy('created_at', 'desc')->get();
         
-        return view('processing.accounting.create', compact('suppliers', 'contracts'));
+        return view('processing.accounting.create', compact('suppliers', 'contracts', 'plants', 'processOrders', 'plantProductionOrders'));
     }
 
     public function store(Request $request)
@@ -142,8 +148,11 @@ class AccountingRecordController extends Controller
     {
         $suppliers = Supplier::all();
         $contracts = Contract::whereIn('status', ['active', 'completed'])->get();
+        $plants = Plant::where('is_active', true)->get();
+        $processOrders = ProcessOrder::with(['plant', 'supplier'])->orderBy('created_at', 'desc')->get();
+        $plantProductionOrders = PlantProductionOrder::with(['plant'])->orderBy('created_at', 'desc')->get();
         
-        return view('processing.accounting.edit', compact('accounting', 'suppliers', 'contracts'));
+        return view('processing.accounting.edit', compact('accounting', 'suppliers', 'contracts', 'plants', 'processOrders', 'plantProductionOrders'));
     }
 
     public function update(Request $request, AccountingRecord $accounting)
@@ -151,6 +160,10 @@ class AccountingRecordController extends Controller
         $validated = $request->validate([
             'supplier_id' => 'nullable|exists:suppliers,id',
             'contract_id' => 'nullable|exists:contracts,id',
+            'plant_id' => 'nullable|exists:plants,id',
+            'process_order_id' => 'nullable|exists:process_orders,id',
+            'plant_production_order_id' => 'nullable|exists:plant_production_orders,id',
+            'process_type' => 'nullable|string|max:255',
             'transaction_type' => 'required|in:purchase,sale,payment,advance',
             'transaction_date' => 'required|date',
             'closing_date' => 'nullable|date',
@@ -158,10 +171,13 @@ class AccountingRecordController extends Controller
             'size_range' => 'nullable|string',
             'price_per_kg' => 'required|numeric|min:0',
             'quantity_kg' => 'required|numeric|min:0',
+            'kilos_sent' => 'nullable|numeric|min:0',
             'currency' => 'required|in:USD,CLP',
             'exchange_rate' => 'nullable|numeric|min:0',
             'advance_payment' => 'nullable|numeric|min:0',
             'payment_method' => 'nullable|string',
+            'payment_method_type' => 'nullable|in:cheque,transferencia',
+            'payment_method_detail' => 'nullable|string|max:500',
             'bank_name' => 'nullable|string',
             'bank_account' => 'nullable|string',
             'payment_due_date' => 'nullable|date',

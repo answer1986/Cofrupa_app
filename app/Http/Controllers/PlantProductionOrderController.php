@@ -115,9 +115,18 @@ class PlantProductionOrderController extends Controller
             'sorbate_solution' => 'nullable|numeric',
             'delay_reason' => 'nullable|string',
             'produced_kilos' => 'nullable|numeric|min:0',
+            'output_quantity_kg' => 'nullable|numeric|min:0',
             'nominal_kg_per_hour' => 'nullable|numeric|min:0',
             'status' => 'required|in:pending,in_progress,completed,delayed,cancelled',
             'notes' => 'nullable|string',
+            'discard_humid_kg' => 'nullable|numeric|min:0',
+            'discard_stone_kg' => 'nullable|numeric|min:0',
+            'discard_no_sorbate_kg' => 'nullable|numeric|min:0',
+            'discard_other_kg' => 'nullable|numeric|min:0',
+            'dispatched_kg' => 'nullable|numeric|min:0',
+            'dispatch_date' => 'nullable|date',
+            'boxes_in_plant' => 'nullable|integer|min:0',
+            'boxes_weight_kg' => 'nullable|numeric|min:0',
         ]);
 
         $productionOrder->update($validated);

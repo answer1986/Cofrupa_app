@@ -13,14 +13,43 @@ class BinReceptionController extends Controller
     /**
      * Display a listing of received bins.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $receivedBins = ProcessedBin::with(['supplier', 'purchase'])
-            ->whereIn('status', ['received', 'processed'])
-            ->orderBy('received_at', 'desc')
-            ->paginate(15);
+        $query = ProcessedBin::with(['supplier', 'purchase'])
+            ->whereIn('status', ['received', 'processed']);
 
-        return view('bin_reception.index', compact('receivedBins'));
+        // Filtro por camión (placa)
+        if ($request->filled('vehicle_plate')) {
+            $query->where('vehicle_plate', 'like', '%' . strtoupper($request->vehicle_plate) . '%');
+        }
+
+        // Filtro por fecha desde
+        if ($request->filled('date_from')) {
+            $query->where('entry_date', '>=', $request->date_from);
+        }
+
+        // Filtro por fecha hasta
+        if ($request->filled('date_to')) {
+            $query->where('entry_date', '<=', $request->date_to);
+        }
+
+        // Filtro por proveedor
+        if ($request->filled('supplier_id')) {
+            $query->where('supplier_id', $request->supplier_id);
+        }
+
+        // Filtro por número de guía
+        if ($request->filled('guide_number')) {
+            $query->where('guide_number', 'like', '%' . $request->guide_number . '%');
+        }
+
+        $receivedBins = $query->orderBy('received_at', 'desc')
+            ->paginate(15)
+            ->withQueryString();
+
+        $suppliers = Supplier::orderBy('name')->get();
+
+        return view('bin_reception.index', compact('receivedBins', 'suppliers'));
     }
 
     /**
@@ -51,7 +80,7 @@ class BinReceptionController extends Controller
                 ])
             ],
             'reception_unidades_per_pound_avg' => 'nullable|numeric|min:0',
-            'guide_number' => 'nullable|string|max:100',
+            'guide_number' => 'required|string|max:100',
             'existing_bins' => 'nullable|array',
             'existing_bins.*.bin_ids' => 'required_with:existing_bins|array|min:1|max:5',
             'existing_bins.*.bin_ids.*' => 'exists:bins,id',

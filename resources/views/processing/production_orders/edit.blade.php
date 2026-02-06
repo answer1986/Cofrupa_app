@@ -108,16 +108,64 @@
                         <small class="text-muted">Se usa para calcular horas estimadas automáticamente</small>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label for="produced_kilos" class="form-label">Kilos Producidos</label>
+                        <label for="produced_kilos" class="form-label"><i class="fas fa-weight"></i> Kilos Producidos</label>
                         <input type="number" step="0.01" class="form-control" id="produced_kilos" name="produced_kilos" value="{{ old('produced_kilos', $productionOrder->produced_kilos) }}">
+                        <small class="text-muted">Cantidad total producida</small>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="output_quantity_kg" class="form-label"><i class="fas fa-box-open"></i> Producto Terminado (kg)</label>
+                        <input type="number" step="0.01" class="form-control" id="output_quantity_kg" name="output_quantity_kg" value="{{ old('output_quantity_kg', $productionOrder->output_quantity_kg) }}">
+                        <small class="text-muted">Cantidad de producto terminado listo</small>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning">
+                    <h6 class="alert-heading"><i class="fas fa-exclamation-triangle"></i> Descartes Detallados</h6>
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <label for="discard_humid_kg" class="form-label">Húmedo (kg)</label>
+                            <input type="number" step="0.01" class="form-control form-control-sm" id="discard_humid_kg" name="discard_humid_kg" value="{{ old('discard_humid_kg', $productionOrder->discard_humid_kg ?? 0) }}" min="0">
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <label for="discard_stone_kg" class="form-label">Con Carozo (kg)</label>
+                            <input type="number" step="0.01" class="form-control form-control-sm" id="discard_stone_kg" name="discard_stone_kg" value="{{ old('discard_stone_kg', $productionOrder->discard_stone_kg ?? 0) }}" min="0">
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <label for="discard_no_sorbate_kg" class="form-label">Sin Sorbato (kg)</label>
+                            <input type="number" step="0.01" class="form-control form-control-sm" id="discard_no_sorbate_kg" name="discard_no_sorbate_kg" value="{{ old('discard_no_sorbate_kg', $productionOrder->discard_no_sorbate_kg ?? 0) }}" min="0">
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <label for="discard_other_kg" class="form-label">Otro (kg)</label>
+                            <input type="number" step="0.01" class="form-control form-control-sm" id="discard_other_kg" name="discard_other_kg" value="{{ old('discard_other_kg', $productionOrder->discard_other_kg ?? 0) }}" min="0">
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-4 mb-2">
+                            <label for="discard_reason" class="form-label">Razón del Descarte</label>
+                            <input type="text" class="form-control form-control-sm" id="discard_reason" name="discard_reason" value="{{ old('discard_reason', $productionOrder->discard_reason) }}" placeholder="Ej: Fruta dañada">
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label for="discard_status" class="form-label">Estado</label>
+                            <select class="form-control form-control-sm" id="discard_status" name="discard_status">
+                                <option value="pending" {{ old('discard_status', $productionOrder->discard_status ?? 'pending') == 'pending' ? 'selected' : '' }}>Pendiente</option>
+                                <option value="recovered" {{ old('discard_status', $productionOrder->discard_status) == 'recovered' ? 'selected' : '' }}>Recuperado</option>
+                                <option value="disposed" {{ old('discard_status', $productionOrder->discard_status) == 'disposed' ? 'selected' : '' }}>Desechado</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label">Total Descarte</label>
+                            <div class="form-control form-control-sm bg-light">
+                                <strong id="totalDiscard">{{ number_format(($productionOrder->discard_humid_kg ?? 0) + ($productionOrder->discard_stone_kg ?? 0) + ($productionOrder->discard_no_sorbate_kg ?? 0) + ($productionOrder->discard_other_kg ?? 0), 2) }} kg</strong>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="row">
                     <div class="col-md-4 mb-3">
-                        <label for="discard_kg" class="form-label">Descarte (kg)</label>
-                        <input type="number" step="0.01" class="form-control" id="discard_kg" name="discard_kg" value="{{ old('discard_kg', $productionOrder->discard_kg ?? 0) }}" min="0">
-                        <small class="text-muted">Material no utilizado en producción</small>
+                        <label for="discard_kg" class="form-label">Descarte Total Histórico (kg)</label>
+                        <input type="number" step="0.01" class="form-control" id="discard_kg" name="discard_kg" value="{{ old('discard_kg', $productionOrder->discard_kg ?? 0) }}" min="0" readonly>
+                        <small class="text-muted">Campo histórico, usar campos detallados arriba</small>
                     </div>
                     <div class="col-md-4 mb-3">
                         <label for="discard_reason" class="form-label">Razón del Descarte</label>
@@ -192,6 +240,57 @@
         </div>
 
         <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-truck"></i> Despacho e Inventario en Planta</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="dispatched_kg" class="form-label"><i class="fas fa-shipping-fast"></i> Kilos Despachados</label>
+                        <input type="number" step="0.01" class="form-control" id="dispatched_kg" name="dispatched_kg" value="{{ old('dispatched_kg', $productionOrder->dispatched_kg) }}">
+                        <small class="text-muted">Cantidad enviada al destino final</small>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="dispatch_date" class="form-label"><i class="fas fa-calendar-check"></i> Fecha de Despacho</label>
+                        <input type="date" class="form-control" id="dispatch_date" name="dispatch_date" value="{{ old('dispatch_date', $productionOrder->dispatch_date?->format('Y-m-d')) }}">
+                    </div>
+                </div>
+                
+                <div class="alert alert-success">
+                    <h6 class="alert-heading"><i class="fas fa-boxes"></i> Inventario en Planta</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <label for="boxes_in_plant" class="form-label">Número de Cajas</label>
+                            <input type="number" class="form-control" id="boxes_in_plant" name="boxes_in_plant" value="{{ old('boxes_in_plant', $productionOrder->boxes_in_plant ?? 0) }}" min="0">
+                            <small class="text-muted">Cajas disponibles en la planta</small>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label for="boxes_weight_kg" class="form-label">Peso Total de Cajas (kg)</label>
+                            <input type="number" step="0.01" class="form-control" id="boxes_weight_kg" name="boxes_weight_kg" value="{{ old('boxes_weight_kg', $productionOrder->boxes_weight_kg) }}" min="0">
+                            <small class="text-muted">Peso total del inventario</small>
+                        </div>
+                    </div>
+                </div>
+
+                @php
+                    $producido = $productionOrder->produced_kilos ?? 0;
+                    $despachado = $productionOrder->dispatched_kg ?? 0;
+                    $enPlanta = $producido - $despachado;
+                @endphp
+                @if($producido > 0)
+                    <div class="alert alert-info">
+                        <strong><i class="fas fa-calculator"></i> Resumen de Balance:</strong>
+                        <ul class="mb-0">
+                            <li>Producido: {{ number_format($producido, 2) }} kg</li>
+                            <li>Despachado: {{ number_format($despachado, 2) }} kg</li>
+                            <li>Disponible en Planta: <strong class="text-primary">{{ number_format($enPlanta, 2) }} kg</strong></li>
+                        </ul>
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        <div class="card mb-4">
             <div class="card-body">
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-save"></i> Actualizar Orden
@@ -220,6 +319,38 @@ document.addEventListener('DOMContentLoaded', function() {
 
     orderQuantity.addEventListener('input', calculateEstimatedHours);
     nominalKgPerHour.addEventListener('input', calculateEstimatedHours);
+    
+    // Calcular total de descartes automáticamente
+    const discardFields = ['discard_humid_kg', 'discard_stone_kg', 'discard_no_sorbate_kg', 'discard_other_kg'];
+    
+    discardFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', calculateTotalDiscard);
+        }
+    });
+    
+    function calculateTotalDiscard() {
+        let total = 0;
+        discardFields.forEach(fieldId => {
+            const value = parseFloat(document.getElementById(fieldId).value) || 0;
+            total += value;
+        });
+        
+        const totalElement = document.getElementById('totalDiscard');
+        if (totalElement) {
+            totalElement.textContent = total.toFixed(2) + ' kg';
+        }
+        
+        // Actualizar el campo discard_kg total
+        const totalField = document.getElementById('discard_kg');
+        if (totalField) {
+            totalField.value = total.toFixed(2);
+        }
+    }
+    
+    // Calcular inicialmente
+    calculateTotalDiscard();
 });
 </script>
 @endsection

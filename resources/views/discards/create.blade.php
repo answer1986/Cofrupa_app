@@ -37,7 +37,9 @@
                                         data-product="{{ $order->product }}"
                                         data-caliber="{{ $order->output_caliber }}"
                                         data-quantity="{{ $order->order_quantity_kg }}"
-                                        data-produced="{{ $order->produced_kilos }}"
+                                        data-produced="{{ $order->produced_kilos ?? 0 }}"
+                                        data-output="{{ $order->output_quantity_kg ?? 0 }}"
+                                        data-dispatched="{{ $order->dispatched_kg ?? 0 }}"
                                         data-existing-discard="{{ $order->discard_kg }}"
                                         {{ old('production_order_id') == $order->id ? 'selected' : '' }}>
                                     #{{ $order->order_number }} - {{ $order->plant->name ?? 'N/A' }} - {{ $order->product }} ({{ $order->output_caliber }})
@@ -60,7 +62,7 @@
                 <div id="orderDetailsCard" style="display: none;">
                     <div class="alert alert-info">
                         <h6><i class="fas fa-info-circle"></i> Detalles de la Orden</h6>
-                        <div class="row">
+                        <div class="row mb-2">
                             <div class="col-md-3">
                                 <strong>Planta:</strong><br>
                                 <span id="detail_plant">-</span>
@@ -69,17 +71,31 @@
                                 <strong>Producto:</strong><br>
                                 <span id="detail_product">-</span>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-3">
                                 <strong>Calibre:</strong><br>
                                 <span id="detail_caliber" class="badge bg-secondary">-</span>
                             </div>
-                            <div class="col-md-2">
-                                <strong>Ordenado:</strong><br>
+                            <div class="col-md-3">
+                                <strong>Kilos Enviados:</strong><br>
                                 <span id="detail_quantity">-</span> kg
                             </div>
-                            <div class="col-md-2">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
                                 <strong>Producido:</strong><br>
                                 <span id="detail_produced">-</span> kg
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Producto Terminado:</strong><br>
+                                <span id="detail_output">-</span> kg
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Despachado:</strong><br>
+                                <span id="detail_dispatched">-</span> kg
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Rendimiento:</strong><br>
+                                <span id="detail_efficiency" class="badge bg-info">-</span>
                             </div>
                         </div>
                         <div id="existingDiscardWarning" style="display: none;" class="mt-2">
@@ -98,24 +114,35 @@
                 <h5 class="mb-0">Información del Descarte</h5>
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="discard_kg" class="form-label">Cantidad de Descarte (kg) *</label>
-                        <input type="number" 
-                               step="0.01" 
-                               class="form-control @error('discard_kg') is-invalid @enderror" 
-                               id="discard_kg" 
-                               name="discard_kg" 
-                               value="{{ old('discard_kg') }}" 
-                               required 
-                               min="0.01"
-                               placeholder="Ej: 50.00">
-                        @error('discard_kg')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                        <small class="text-muted">Peso neto del material descartado</small>
+                <div class="alert alert-warning">
+                    <h6 class="alert-heading"><i class="fas fa-boxes"></i> Descartes por Tipo (kg)</h6>
+                    <div class="row">
+                        <div class="col-md-4 mb-2">
+                            <label for="discard_humid_kg" class="form-label">Descarte Húmedo *</label>
+                            <input type="number" step="0.01" min="0" class="form-control discard-type-field" id="discard_humid_kg" name="discard_humid_kg" value="{{ old('discard_humid_kg', 0) }}" placeholder="0.00">
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label for="discard_stone_kg" class="form-label">Cantidad de Cuesco *</label>
+                            <input type="number" step="0.01" min="0" class="form-control discard-type-field" id="discard_stone_kg" name="discard_stone_kg" value="{{ old('discard_stone_kg', 0) }}" placeholder="0.00">
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label for="discard_other_kg" class="form-label">Descarte Seco *</label>
+                            <input type="number" step="0.01" min="0" class="form-control discard-type-field" id="discard_other_kg" name="discard_other_kg" value="{{ old('discard_other_kg', 0) }}" placeholder="0.00">
+                        </div>
                     </div>
-                    <div class="col-md-6 mb-3">
+                    <div class="row mt-2">
+                        <div class="col-md-12">
+                            <label class="form-label">Total Descarte</label>
+                            <div class="form-control bg-light">
+                                <strong id="totalDiscardDisplay">0.00 kg</strong>
+                            </div>
+                            <input type="hidden" id="discard_kg" name="discard_kg" value="{{ old('discard_kg', 0) }}">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-12 mb-3">
                         <label for="discard_reason" class="form-label">Razón del Descarte *</label>
                         <input type="text" 
                                class="form-control @error('discard_reason') is-invalid @enderror" 
@@ -206,14 +233,21 @@ function loadOrderDetails(orderId) {
         return;
     }
     
-    // Mostrar detalles
+    const ordered = parseFloat(selectedOption.dataset.quantity) || 0;
+    const produced = parseFloat(selectedOption.dataset.produced) || 0;
+    const output = parseFloat(selectedOption.dataset.output) || 0;
+    const dispatched = parseFloat(selectedOption.dataset.dispatched) || 0;
+    const efficiency = ordered > 0 ? ((produced / ordered) * 100).toFixed(2) : 0;
+    
     document.getElementById('detail_plant').textContent = selectedOption.dataset.plant;
     document.getElementById('detail_product').textContent = selectedOption.dataset.product;
     document.getElementById('detail_caliber').textContent = selectedOption.dataset.caliber;
-    document.getElementById('detail_quantity').textContent = parseFloat(selectedOption.dataset.quantity).toLocaleString('es-CL');
-    document.getElementById('detail_produced').textContent = parseFloat(selectedOption.dataset.produced).toLocaleString('es-CL');
+    document.getElementById('detail_quantity').textContent = ordered.toLocaleString('es-CL');
+    document.getElementById('detail_produced').textContent = produced.toLocaleString('es-CL');
+    document.getElementById('detail_output').textContent = output.toLocaleString('es-CL');
+    document.getElementById('detail_dispatched').textContent = dispatched.toLocaleString('es-CL');
+    document.getElementById('detail_efficiency').textContent = efficiency + '%';
     
-    // Mostrar advertencia si ya tiene descarte
     const existingDiscard = parseFloat(selectedOption.dataset.existingDiscard);
     const warningDiv = document.getElementById('existingDiscardWarning');
     if (existingDiscard > 0) {
@@ -238,6 +272,22 @@ document.getElementById('discard_status').addEventListener('change', function() 
     }
 });
 
+// Calcular total de descartes automáticamente
+const discardFields = document.querySelectorAll('.discard-type-field');
+discardFields.forEach(field => {
+    field.addEventListener('input', calculateTotalDiscard);
+});
+
+function calculateTotalDiscard() {
+    const humid = parseFloat(document.getElementById('discard_humid_kg').value) || 0;
+    const stone = parseFloat(document.getElementById('discard_stone_kg').value) || 0;
+    const other = parseFloat(document.getElementById('discard_other_kg').value) || 0;
+    const total = humid + stone + other;
+    
+    document.getElementById('totalDiscardDisplay').textContent = total.toFixed(2) + ' kg';
+    document.getElementById('discard_kg').value = total.toFixed(2);
+}
+
 // Trigger inicial si hay valor old
 document.addEventListener('DOMContentLoaded', function() {
     const productionOrderSelect = document.getElementById('production_order_id');
@@ -250,6 +300,8 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('recovery_location_field').style.display = 'block';
         document.getElementById('recovery_location').required = true;
     }
+    
+    calculateTotalDiscard();
 });
 </script>
 @endsection

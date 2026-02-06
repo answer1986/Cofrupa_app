@@ -15,24 +15,35 @@ class PlantProductionOrder extends Model
         'process_order_id', 'contract_id', 'plant_id', 'order_number', 'product', 'output_caliber',
         'order_quantity_kg', 'booking_number', 'vessel', 'entry_date', 'entry_time',
         'completion_date', 'completion_time', 'production_program', 'sorbate_solution',
-        'delay_hours', 'delay_reason', 'produced_kilos', 'discard_kg', 'discard_reason',
+        'delay_hours', 'delay_reason', 'produced_kilos', 'output_quantity_kg', 'discard_kg', 'discard_reason',
         'discard_status', 'discard_recovery_date', 'discard_notes', 'nominal_kg_per_hour',
-        'estimated_hours', 'actual_hours', 'day_of_week', 'status', 'has_delay', 'notes'
+        'estimated_hours', 'actual_hours', 'day_of_week', 'status', 'has_delay', 'notes',
+        'discard_humid_kg', 'discard_stone_kg', 'discard_no_sorbate_kg', 'discard_other_kg',
+        'dispatched_kg', 'dispatch_date', 'boxes_in_plant', 'boxes_weight_kg'
     ];
 
     protected $casts = [
         'entry_date' => 'date',
         'completion_date' => 'date',
         'discard_recovery_date' => 'date',
+        'dispatch_date' => 'date',
         'order_quantity_kg' => 'decimal:2',
         'sorbate_solution' => 'decimal:2',
         'delay_hours' => 'decimal:2',
         'produced_kilos' => 'decimal:2',
+        'output_quantity_kg' => 'decimal:2',
         'discard_kg' => 'decimal:2',
+        'discard_humid_kg' => 'decimal:2',
+        'discard_stone_kg' => 'decimal:2',
+        'discard_no_sorbate_kg' => 'decimal:2',
+        'discard_other_kg' => 'decimal:2',
+        'dispatched_kg' => 'decimal:2',
+        'boxes_weight_kg' => 'decimal:2',
         'nominal_kg_per_hour' => 'decimal:2',
         'estimated_hours' => 'decimal:2',
         'actual_hours' => 'decimal:2',
         'has_delay' => 'boolean',
+        'boxes_in_plant' => 'integer',
     ];
 
     public function contract()

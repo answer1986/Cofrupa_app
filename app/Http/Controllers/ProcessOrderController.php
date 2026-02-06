@@ -3,17 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\ProcessOrder;
+use App\Models\ProcessOrderSupply;
 use App\Models\PlantProductionOrder;
 use App\Models\Plant;
 use App\Models\Supplier;
 use App\Models\Contract;
 use App\Models\ProcessedBin;
 use App\Models\BinTraceability;
+use App\Models\SupplyPurchaseItem;
 use App\Mail\ProcessOrderMail;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 
 class ProcessOrderController extends Controller
 {
@@ -41,8 +44,12 @@ class ProcessOrderController extends Controller
         $plants = Plant::where('is_active', true)->get();
         $suppliers = Supplier::all();
         $contracts = Contract::whereIn('status', ['active', 'completed'])->get();
-        
-        return view('processing.orders.create', compact('plants', 'suppliers', 'contracts'));
+        $insumosOptions = SupplyPurchaseItem::select('name', 'unit')
+            ->groupBy('name', 'unit')
+            ->orderBy('name')
+            ->get();
+
+        return view('processing.orders.create', compact('plants', 'suppliers', 'contracts', 'insumosOptions'));
     }
 
     public function store(Request $request)
@@ -78,6 +85,10 @@ class ProcessOrderController extends Controller
             'sag' => 'boolean',
             'kilos_sent' => 'nullable|numeric|min:0',
             'kilos_produced' => 'nullable|numeric|min:0',
+            'supplies' => 'nullable|array',
+            'supplies.*.name' => 'nullable|string|max:255',
+            'supplies.*.quantity' => 'nullable|numeric|min:0.01',
+            'supplies.*.unit' => 'nullable|string|max:50',
         ]);
 
         // Calcular fecha de término esperada si se proporcionaron días de producción
@@ -87,6 +98,18 @@ class ProcessOrderController extends Controller
         }
 
         $order = ProcessOrder::create($validated);
+
+        if (!empty($validated['supplies'])) {
+            foreach ($validated['supplies'] as $row) {
+                if (!empty($row['name']) && isset($row['quantity']) && (float) $row['quantity'] > 0) {
+                    $order->supplies()->create([
+                        'name' => $row['name'],
+                        'quantity' => $row['quantity'],
+                        'unit' => $row['unit'] ?? 'unidad',
+                    ]);
+                }
+            }
+        }
 
         // Crear orden de producción vinculada para que aparezca en /processing/production-orders
         $orderNumberProduction = $order->order_number;
@@ -118,7 +141,7 @@ class ProcessOrderController extends Controller
 
     public function show(ProcessOrder $order)
     {
-        $order->load(['plant.contacts', 'supplier', 'invoices']);
+        $order->load(['plant.contacts', 'supplier', 'invoices', 'supplies']);
         return view('processing.orders.show', compact('order'));
     }
 
@@ -162,8 +185,10 @@ class ProcessOrderController extends Controller
         $plants = Plant::where('is_active', true)->get();
         $suppliers = Supplier::all();
         $contracts = Contract::whereIn('status', ['active', 'completed'])->get();
-        
-        return view('processing.orders.edit', compact('order', 'plants', 'suppliers', 'contracts'));
+        $insumosOptions = SupplyPurchaseItem::select('name', 'unit')->groupBy('name', 'unit')->orderBy('name')->get();
+        $order->load('supplies');
+
+        return view('processing.orders.edit', compact('order', 'plants', 'suppliers', 'contracts', 'insumosOptions'));
     }
 
     public function update(Request $request, ProcessOrder $order)
@@ -177,6 +202,8 @@ class ProcessOrderController extends Controller
             'production_days' => 'nullable|integer|min:1',
             'order_date' => 'required|date',
             'expected_completion_date' => 'nullable|date|after_or_equal:order_date',
+            'completion_week' => 'nullable|integer|min:1|max:56',
+            'completion_year' => 'nullable|integer|min:2020|max:2030',
             'actual_completion_date' => 'nullable|date',
             'status' => 'required|in:pending,in_progress,completed,cancelled',
             'progress_percentage' => 'nullable|integer|min:0|max:100',
@@ -205,15 +232,45 @@ class ProcessOrderController extends Controller
             'vehicle_plate' => 'nullable|string|max:20',
             'shipment_date' => 'nullable|date',
             'shipment_time' => 'nullable|date_format:H:i',
+            'supplies' => 'nullable|array',
+            'supplies.*.name' => 'nullable|string|max:255',
+            'supplies.*.quantity' => 'nullable|numeric|min:0.01',
+            'supplies.*.unit' => 'nullable|string|max:50',
+            'labeling_attachment' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,pdf|max:5120',
         ]);
 
-        // Calcular fecha de término esperada si se proporcionaron días de producción
-        if ($validated['production_days'] && $validated['order_date']) {
+        if ($request->hasFile('labeling_attachment')) {
+            if ($order->labeling_attachment && Storage::disk('public')->exists($order->labeling_attachment)) {
+                Storage::disk('public')->delete($order->labeling_attachment);
+            }
+            $path = $request->file('labeling_attachment')->store('process_orders/labeling', 'public');
+            $validated['labeling_attachment'] = $path;
+        }
+
+        // Calcular fecha de término esperada: por semana/año o por días de producción
+        if (!empty($validated['completion_week']) && !empty($validated['completion_year'])) {
+            $d = new \DateTime();
+            $d->setISODate((int) $validated['completion_year'], (int) $validated['completion_week'], 1); // Lunes de esa semana
+            $validated['expected_completion_date'] = $d->format('Y-m-d');
+        } elseif (!empty($validated['production_days']) && !empty($validated['order_date'])) {
             $orderDate = Carbon::parse($validated['order_date']);
             $validated['expected_completion_date'] = $orderDate->copy()->addDays($validated['production_days'])->format('Y-m-d');
         }
 
         $order->update($validated);
+
+        $order->supplies()->delete();
+        if (!empty($validated['supplies'])) {
+            foreach ($validated['supplies'] as $row) {
+                if (!empty($row['name']) && isset($row['quantity']) && (float) $row['quantity'] > 0) {
+                    $order->supplies()->create([
+                        'name' => $row['name'],
+                        'quantity' => $row['quantity'],
+                        'unit' => $row['unit'] ?? 'unidad',
+                    ]);
+                }
+            }
+        }
 
         return redirect()->route('processing.orders.index')
             ->with('success', 'Orden de proceso actualizada exitosamente');

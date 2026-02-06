@@ -97,8 +97,17 @@
                             <td>{{ $order->production_days ?? 'N/A' }} días</td>
                         </tr>
                         <tr>
-                            <th>Fecha Término Esperada:</th>
-                            <td>{{ $order->expected_completion_date ? $order->expected_completion_date->format('d/m/Y') : 'N/A' }}</td>
+                            <th>Término Esperado:</th>
+                            <td>
+                                @if($order->completion_week && $order->completion_year)
+                                    Semana {{ $order->completion_week }}, {{ $order->completion_year }}
+                                    @if($order->expected_completion_date)
+                                        <span class="text-muted">({{ $order->expected_completion_date->format('d/m/Y') }})</span>
+                                    @endif
+                                @else
+                                    {{ $order->expected_completion_date ? $order->expected_completion_date->format('d/m/Y') : 'N/A' }}
+                                @endif
+                            </td>
                         </tr>
                         <tr>
                             <th>Fecha Término Real:</th>
@@ -249,6 +258,36 @@
                 </div>
             </div>
         </div>
+
+        @if($order->supplies->count() > 0)
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-boxes"></i> Insumos a enviar</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-bordered mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Insumo</th>
+                                <th class="text-end">Cantidad</th>
+                                <th>Unidad</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($order->supplies as $s)
+                                <tr>
+                                    <td>{{ $s->name }}</td>
+                                    <td class="text-end">{{ number_format($s->quantity, 2) }}</td>
+                                    <td>{{ $s->unit }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        @endif
 
         <div class="col-md-6 mb-4">
             <div class="card">

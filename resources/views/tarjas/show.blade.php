@@ -119,7 +119,7 @@
                 <div class="logo-container">
                     <img src="{{ asset('image/LOGO-sinfonfopng.png') }}" alt="Cofrupa Logo">
                 </div>
-                <div class="tarja-title">TARJA DE RECEPCIÓN</div>
+                <div class="tarja-title">TARJA DE CALIBRADO</div>
                 <div class="tarja-number">{{ $processedBin->tarja_number }}</div>
             </div>
             

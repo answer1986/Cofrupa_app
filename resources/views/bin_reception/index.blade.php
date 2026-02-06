@@ -19,6 +19,74 @@
     </div>
 @endif
 
+<!-- Filtros -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-filter"></i> Filtros de Búsqueda</h5>
+    </div>
+    <div class="card-body">
+        <form method="GET" action="{{ route('bin_reception.index') }}" class="row g-3">
+            <div class="col-md-2">
+                <label for="vehicle_plate" class="form-label">Camión (Placa)</label>
+                <input type="text" 
+                       class="form-control form-control-sm" 
+                       id="vehicle_plate" 
+                       name="vehicle_plate" 
+                       value="{{ request('vehicle_plate') }}"
+                       placeholder="Ej: ABC123">
+            </div>
+            <div class="col-md-2">
+                <label for="guide_number" class="form-label">N° Guía</label>
+                <input type="text" 
+                       class="form-control form-control-sm" 
+                       id="guide_number" 
+                       name="guide_number" 
+                       value="{{ request('guide_number') }}"
+                       placeholder="Número de guía">
+            </div>
+            <div class="col-md-2">
+                <label for="date_from" class="form-label">Fecha Desde</label>
+                <input type="date" 
+                       class="form-control form-control-sm" 
+                       id="date_from" 
+                       name="date_from" 
+                       value="{{ request('date_from') }}">
+            </div>
+            <div class="col-md-2">
+                <label for="date_to" class="form-label">Fecha Hasta</label>
+                <input type="date" 
+                       class="form-control form-control-sm" 
+                       id="date_to" 
+                       name="date_to" 
+                       value="{{ request('date_to') }}">
+            </div>
+            <div class="col-md-2">
+                <label for="supplier_id" class="form-label">Proveedor</label>
+                <select class="form-select form-select-sm" id="supplier_id" name="supplier_id">
+                    <option value="">Todos los proveedores</option>
+                    @foreach($suppliers as $supplier)
+                        <option value="{{ $supplier->id }}" {{ request('supplier_id') == $supplier->id ? 'selected' : '' }}>
+                            {{ $supplier->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary btn-sm w-100">
+                    <i class="fas fa-search"></i> Filtrar
+                </button>
+            </div>
+            @if(request()->hasAny(['vehicle_plate', 'guide_number', 'date_from', 'date_to', 'supplier_id']))
+            <div class="col-12">
+                <a href="{{ route('bin_reception.index') }}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-times"></i> Limpiar Filtros
+                </a>
+            </div>
+            @endif
+        </form>
+    </div>
+</div>
+
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -33,6 +101,8 @@
                                 <th><i class="fas fa-calendar"></i> Fecha Recepción</th>
                                 <th><i class="fas fa-hashtag"></i> Bin</th>
                                 <th><i class="fas fa-truck"></i> Proveedor</th>
+                                <th><i class="fas fa-car"></i> Camión (Placa)</th>
+                                <th><i class="fas fa-file-alt"></i> N° Guía</th>
                                 <th><i class="fas fa-weight"></i> Peso (kg)</th>
                                 <th><i class="fas fa-tag"></i> Calibre</th>
                                 <th><i class="fas fa-info-circle"></i> Estado</th>
@@ -48,6 +118,20 @@
                                     <strong>{{ $bin->current_bin_number }}</strong>
                                 </td>
                                 <td>{{ $bin->supplier->name }}</td>
+                                <td>
+                                    @if($bin->vehicle_plate)
+                                        <span class="badge bg-secondary">{{ $bin->vehicle_plate }}</span>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($bin->guide_number)
+                                        <span class="badge bg-info text-dark">{{ $bin->guide_number }}</span>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
                                 <td>{{ number_format($bin->current_weight, 2) }}</td>
                                 <td>{{ $bin->current_calibre_display }}</td>
                                 <td>
@@ -70,7 +154,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="8" class="text-center text-muted py-4">
+                                <td colspan="10" class="text-center text-muted py-4">
                                     <i class="fas fa-truck-loading fa-2x mb-2"></i>
                                     <br>
                                     No hay bins recibidos aún.

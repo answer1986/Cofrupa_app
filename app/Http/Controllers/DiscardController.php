@@ -80,6 +80,9 @@ class DiscardController extends Controller
         $validated = $request->validate([
             'production_order_id' => 'required|exists:plant_production_orders,id',
             'discard_kg' => 'required|numeric|min:0.01',
+            'discard_humid_kg' => 'nullable|numeric|min:0',
+            'discard_stone_kg' => 'nullable|numeric|min:0',
+            'discard_other_kg' => 'nullable|numeric|min:0',
             'discard_reason' => 'required|string|max:255',
             'discard_status' => 'required|in:pending,recovered,disposed',
             'recovery_location' => 'required_if:discard_status,recovered|nullable|string|max:255',
@@ -91,6 +94,9 @@ class DiscardController extends Controller
         // Actualizar la orden de producción con el descarte
         $productionOrder->update([
             'discard_kg' => $productionOrder->discard_kg + $validated['discard_kg'],
+            'discard_humid_kg' => $productionOrder->discard_humid_kg + ($validated['discard_humid_kg'] ?? 0),
+            'discard_stone_kg' => $productionOrder->discard_stone_kg + ($validated['discard_stone_kg'] ?? 0),
+            'discard_other_kg' => $productionOrder->discard_other_kg + ($validated['discard_other_kg'] ?? 0),
             'discard_reason' => $validated['discard_reason'],
             'discard_status' => $validated['discard_status'],
             'discard_notes' => $validated['discard_notes'] ?? null,

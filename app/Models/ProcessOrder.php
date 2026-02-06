@@ -11,9 +11,9 @@ class ProcessOrder extends Model
 
     protected $fillable = [
         'plant_id', 'supplier_id', 'contract_id', 'order_number', 'csg_code', 'production_days',
-        'order_date', 'expected_completion_date', 'actual_completion_date',
+        'order_date', 'expected_completion_date', 'completion_week', 'completion_year', 'actual_completion_date',
         'status', 'progress_percentage', 'product_description', 'quantity', 'unit', 'notes', 'alert_sent',
-        'raw_material', 'product', 'type', 'caliber', 'quality', 'labeling',
+        'raw_material', 'product', 'type', 'caliber',         'quality', 'labeling', 'labeling_attachment',
         'packaging', 'potassium_sorbate', 'humidity', 'stone_percentage',
         'oil', 'damage', 'plant_print', 'destination', 'loading_date', 'sag',
         'kilos_sent', 'kilos_produced', 'vehicle_plate', 'shipment_date', 'shipment_time'
@@ -58,6 +58,11 @@ class ProcessOrder extends Model
         return $this->belongsToMany(ProcessedBin::class, 'order_tarjas', 'process_order_id', 'processed_bin_id')
             ->withPivot('quantity_kg')
             ->withTimestamps();
+    }
+
+    public function supplies()
+    {
+        return $this->hasMany(ProcessOrderSupply::class);
     }
 
     public function getStatusDisplayAttribute()

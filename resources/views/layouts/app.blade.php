@@ -310,11 +310,11 @@
 
                 <li class="accordion-item">
                     <div class="accordion-header">
-                        <button class="accordion-button {{ request()->is('suppliers*') || request()->is('bins*') || request()->is('purchases*') || request()->is('reports*') || request()->is('bin_reception*') || request()->is('bin_processing*') || request()->is('tarjas*') ? '' : 'collapsed' }}" type="button" data-target="#adquisicionesAccordion" aria-expanded="{{ request()->is('suppliers*') || request()->is('bins*') || request()->is('purchases*') || request()->is('reports*') || request()->is('bin_reception*') || request()->is('bin_processing*') || request()->is('tarjas*') ? 'true' : 'false' }}">
+                        <button class="accordion-button {{ request()->is('suppliers*') || request()->is('bins*') || request()->is('purchases*') || request()->is('reports*') || request()->is('bin_reception*') || request()->is('bin_processing*') || request()->is('plant-shipments*') || request()->is('tarjas*') ? '' : 'collapsed' }}" type="button" data-target="#adquisicionesAccordion" aria-expanded="{{ request()->is('suppliers*') || request()->is('bins*') || request()->is('purchases*') || request()->is('reports*') || request()->is('bin_reception*') || request()->is('bin_processing*') || request()->is('plant-shipments*') || request()->is('tarjas*') ? 'true' : 'false' }}">
                             <i class="fas fa-hand-holding-usd"></i> Adquisiciones
                         </button>
                     </div>
-                    <div id="adquisicionesAccordion" class="accordion-collapse {{ request()->is('suppliers*') || request()->is('bins*') || request()->is('purchases*') || request()->is('reports*') || request()->is('bin_reception*') || request()->is('bin_processing*') || request()->is('tarjas*') ? 'show' : '' }}">
+                    <div id="adquisicionesAccordion" class="accordion-collapse {{ request()->is('suppliers*') || request()->is('bins*') || request()->is('purchases*') || request()->is('reports*') || request()->is('bin_reception*') || request()->is('bin_processing*') || request()->is('plant-shipments*') || request()->is('tarjas*') ? 'show' : '' }}">
                         <div class="accordion-body">
                             <ul class="sidebar-menu">
                                 <li>
@@ -328,8 +328,13 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('purchases.index') }}" class="{{ request()->is('purchases*') ? 'active' : '' }}">
-                                        <i class="fas fa-shopping-cart"></i> Compras
+                                    <a href="{{ route('purchases.index') }}" class="{{ request()->is('purchases*') && !request()->is('supply-purchases*') ? 'active' : '' }}">
+                                        <i class="fas fa-shopping-cart"></i> Compras de Frutas
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('supply-purchases.index') }}" class="{{ request()->is('supply-purchases*') ? 'active' : '' }}">
+                                        <i class="fas fa-shopping-bag"></i> Compras de Insumos
                                     </a>
                                 </li>
                                 <li>
@@ -337,28 +342,7 @@
                                         <i class="fas fa-chart-bar"></i> Reportes
                                     </a>
                                 </li>
-                                @can('manage processed bins')
-                                <li>
-                                    <a href="{{ route('bin_reception.index') }}" class="{{ request()->is('bin_reception*') ? 'active' : '' }}">
-                                        <i class="fas fa-truck-loading"></i> Recepción de Productos
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('bin_processing.index') }}" class="{{ request()->is('bin_processing*') ? 'active' : '' }}">
-                                        <i class="fas fa-balance-scale"></i> Calibradora
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('stock.index') }}" class="{{ request()->is('stock*') ? 'active' : '' }}">
-                                        <i class="fas fa-warehouse"></i> Inventario de Stock
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('tarjas.scanner') }}" class="{{ request()->is('tarjas*') ? 'active' : '' }}">
-                                        <i class="fas fa-qrcode"></i> Lector de Tarjas
-                                    </a>
-                                </li>
-                                @endcan
+                             
                             </ul>
                         </div>
                     </div>
@@ -374,6 +358,40 @@
                         <div id="procesamientoAccordion" class="accordion-collapse {{ request()->is('processing*') ? 'show' : '' }}">
                         <div class="accordion-body">
                             <ul class="sidebar-menu">
+                            @can('manage processed bins')
+                                <li>
+                                    <a href="{{ route('bin_reception.index') }}" class="{{ request()->is('bin_reception*') ? 'active' : '' }}">
+                                        <i class="fas fa-truck-loading"></i> Recepción de Productos
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('bin_processing.index') }}" class="{{ request()->is('bin_processing*') ? 'active' : '' }}">
+                                        <i class="fas fa-balance-scale"></i> Calibradora
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('plant-shipments.index') }}" class="{{ request()->is('plant-shipments*') ? 'active' : '' }}">
+                                        <i class="fas fa-truck-loading"></i> Despachos a Plantas
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('processing.orders.index') }}" class="{{ request()->is('processing/orders*') ? 'active' : '' }}">
+                                        <i class="fas fa-clipboard-list"></i> Envío de Órdenes
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('stock.index') }}" class="{{ request()->is('stock*') ? 'active' : '' }}">
+                                        <i class="fas fa-warehouse"></i> Inventario de Stock
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('tarjas.scanner') }}" class="{{ request()->is('tarjas*') ? 'active' : '' }}">
+                                        <i class="fas fa-qrcode"></i> Lector de Tarjas
+                                    </a>
+                                </li>
+                                @endcan 
+
+
                                 <li>
                                     <a href="{{ route('processing.maintenances.index') }}" class="{{ request()->is('processing') && !request()->is('processing/*') ? 'active' : (request()->is('processing/maintenances*') ? 'active' : '') }}">
                                         <i class="fas fa-tools"></i> Mantenciones de Máquinas
@@ -389,11 +407,7 @@
                                         <i class="fas fa-clipboard-list"></i> Petición de cupos
                                     </a>
                                 </li>
-                                <li>
-                                    <a href="{{ route('processing.orders.index') }}" class="{{ request()->is('processing/orders*') ? 'active' : '' }}">
-                                        <i class="fas fa-clipboard-list"></i> Envío de Órdenes
-                                    </a>
-                                </li>
+                               
                                 <li>
                                     <a href="{{ route('processing.production-orders.index') }}" class="{{ request()->is('processing/production-orders*') ? 'active' : '' }}">
                                         <i class="fas fa-industry"></i> Programa de Producción
@@ -415,44 +429,21 @@
                     </div>
                 </li>
 
+                
                 <li class="accordion-item">
                     <div class="accordion-header">
-                        <button class="accordion-button {{ request()->is('finance*') ? '' : 'collapsed' }}" type="button" data-target="#finanzasAccordion" aria-expanded="{{ request()->is('finance*') ? 'true' : 'false' }}">
-                            <i class="fas fa-chart-line"></i> Finanzas
-                        </button>
-                    </div>
-                    <div id="finanzasAccordion" class="accordion-collapse {{ request()->is('finance*') ? 'show' : '' }}">
-                        <div class="accordion-body">
-                            <ul class="sidebar-menu">
-                                <li>
-                                    <a href="{{ route('finance.index', ['company' => 'cofrupa']) }}" class="{{ request()->is('finance*') && request()->get('company') === 'cofrupa' ? 'active' : '' }}">
-                                        <i class="fas fa-building"></i> Cofrupa Export
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('finance.index', ['company' => 'luis_gonzalez']) }}" class="{{ request()->is('finance*') && request()->get('company') === 'luis_gonzalez' ? 'active' : '' }}">
-                                        <i class="fas fa-user-tie"></i> Luis Gonzalez
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('finance.index', ['company' => 'comercializadora']) }}" class="{{ request()->is('finance*') && request()->get('company') === 'comercializadora' ? 'active' : '' }}">
-                                        <i class="fas fa-store"></i> Comercializadora
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </li>
-
-                <li class="accordion-item">
-                    <div class="accordion-header">
-                        <button class="accordion-button {{ request()->is('clients*') || request()->is('brokers*') || request()->is('contracts*') || request()->is('documents*') || request()->is('shipments*') || request()->is('exportations*') ? '' : 'collapsed' }}" type="button" data-target="#ventasAccordion" aria-expanded="{{ request()->is('clients*') || request()->is('brokers*') || request()->is('contracts*') || request()->is('documents*') || request()->is('shipments*') || request()->is('exportations*') ? 'true' : 'false' }}">
+                        <button class="accordion-button {{ request()->is('clients*') || request()->is('brokers*') || request()->is('contracts*') || request()->is('documents*') || request()->is('shipments*') || request()->is('exportations*') || request()->is('ventas*') ? '' : 'collapsed' }}" type="button" data-target="#ventasAccordion" aria-expanded="{{ request()->is('clients*') || request()->is('brokers*') || request()->is('contracts*') || request()->is('documents*') || request()->is('shipments*') || request()->is('exportations*') || request()->is('ventas*') ? 'true' : 'false' }}">
                             <i class="fas fa-handshake"></i> Ventas y Exportaciones
                         </button>
                     </div>
-                    <div id="ventasAccordion" class="accordion-collapse {{ request()->is('clients*') || request()->is('brokers*') || request()->is('contracts*') || request()->is('documents*') || request()->is('shipments*') || request()->is('exportations*') ? 'show' : '' }}">
+                    <div id="ventasAccordion" class="accordion-collapse {{ request()->is('clients*') || request()->is('brokers*') || request()->is('contracts*') || request()->is('documents*') || request()->is('shipments*') || request()->is('exportations*') || request()->is('ventas*') ? 'show' : '' }}">
                         <div class="accordion-body">
                             <ul class="sidebar-menu">
+                                <li>
+                                    <a href="{{ route('ventas.index') }}" class="{{ request()->is('ventas*') ? 'active' : '' }}">
+                                        <i class="fas fa-th-large"></i> Vista global
+                                    </a>
+                                </li>
                                 <li>
                                     <a href="{{ route('clients.index') }}" class="{{ request()->is('clients*') ? 'active' : '' }}">
                                         <i class="fas fa-users"></i> Gestión de Clientes y Brokers
@@ -498,10 +489,43 @@
                                         <i class="fas fa-folder-open"></i> Carpetas de Exportación
                                     </a>
                                 </li>
+                                <li>
+                                    <a href="{{ route('ventas.fletes.index') }}" class="{{ request()->is('ventas/fletes*') ? 'active' : '' }}">
+                                        <i class="fas fa-truck"></i> Resumen de Fletes
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </li><li class="accordion-item">
+                    <div class="accordion-header">
+                        <button class="accordion-button {{ request()->is('finance*') ? '' : 'collapsed' }}" type="button" data-target="#finanzasAccordion" aria-expanded="{{ request()->is('finance*') ? 'true' : 'false' }}">
+                            <i class="fas fa-chart-line"></i> Finanzas
+                        </button>
+                    </div>
+                    <div id="finanzasAccordion" class="accordion-collapse {{ request()->is('finance*') ? 'show' : '' }}">
+                        <div class="accordion-body">
+                            <ul class="sidebar-menu">
+                                <li>
+                                    <a href="{{ route('finance.index', ['company' => 'cofrupa']) }}" class="{{ request()->is('finance*') && request()->get('company') === 'cofrupa' ? 'active' : '' }}">
+                                        <i class="fas fa-building"></i> Cofrupa Export
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('finance.index', ['company' => 'luis_gonzalez']) }}" class="{{ request()->is('finance*') && request()->get('company') === 'luis_gonzalez' ? 'active' : '' }}">
+                                        <i class="fas fa-user-tie"></i> Luis Gonzalez
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('finance.index', ['company' => 'comercializadora']) }}" class="{{ request()->is('finance*') && request()->get('company') === 'comercializadora' ? 'active' : '' }}">
+                                        <i class="fas fa-store"></i> Comercializadora
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                     </div>
                 </li>
+
 
                 <!-- Acordeón de Administración - AL FINAL -->
                 <li class="accordion-item">
@@ -526,7 +550,7 @@
                                 </li>
                                 <li>
                                     <a href="{{ route('vitacora.index') }}" class="{{ request()->is('vitacora*') ? 'active' : '' }}">
-                                        <i class="fas fa-clipboard-list"></i> Vitácora
+                                        <i class="fas fa-clipboard-list"></i> Bitácora
                                     </a>
                                 </li>
                                 <li>

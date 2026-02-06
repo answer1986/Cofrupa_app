@@ -70,10 +70,8 @@ class BinProcessingController extends Controller
                     'Grande 50-60', 'Mediana 40-50', 'Pequeña 30-40'
                 ])
             ],
-            'bins.*.calibre_promedio' => 'nullable|string|max:20',
-            'bins.*.defect_notes' => 'nullable|string|max:1000',
-            'bins.*.observations' => 'nullable|string|max:1000',
-            'bins.*.notes' => 'nullable|string|max:500',
+            'bins.*.calibre_promedio' => 'nullable|string|max:50',
+            'bins.*.observations' => 'nullable|string|max:2000',
             'supplier_id' => 'required|exists:suppliers,id',
             'processing_start_date' => 'required|date',
             'processing_end_date' => 'nullable|date|after_or_equal:processing_start_date',
@@ -136,7 +134,6 @@ class BinProcessingController extends Controller
                 'processing_start_date' => $request->processing_start_date,
                 'processing_end_date' => $request->processing_end_date,
                 'bins_processed_per_day' => $binsPerDay,
-                'defect_notes' => $row['defect_notes'] ?? null,
                 'observations' => $row['observations'] ?? null,
                 'fruit_type' => $request->fruit_type,
                 'csg_code' => $request->csg_code,

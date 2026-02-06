@@ -70,6 +70,12 @@ class Purchase extends Model
         return $this->belongsTo(Bin::class);
     }
 
+    // Relationship with supplies (insumos)
+    public function supplies()
+    {
+        return $this->hasMany(PurchaseSupply::class);
+    }
+
     // Calculate total amount if not set
     public function getCalculatedTotalAmountAttribute()
     {

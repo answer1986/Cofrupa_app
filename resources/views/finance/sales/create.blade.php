@@ -126,10 +126,19 @@
                         </div>
                         <div class="row">
                             <div class="col-md-4 mb-3">
-                                <label for="iva_clp" class="form-label">IVA (CLP)</label>
-                                <input type="number" step="0.01" min="0" class="form-control" id="iva_clp" name="iva_clp" value="{{ old('iva_clp', 0) }}">
+                                <label for="with_iva" class="form-label">¿Incluye IVA? <span class="text-danger">*</span></label>
+                                <select class="form-select @error('with_iva') is-invalid @enderror" id="with_iva" name="with_iva">
+                                    <option value="0" {{ old('with_iva', '1') === '0' || old('with_iva') === 0 ? 'selected' : '' }}>Sin IVA (exportación u otra)</option>
+                                    <option value="1" {{ old('with_iva', '1') === '1' || old('with_iva') === 1 || old('with_iva') === true ? 'selected' : '' }}>Con IVA (19% del neto)</option>
+                                </select>
+                                @error('with_iva')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                <small class="text-muted">En exportaciones puede no aplicar IVA.</small>
                             </div>
-                            <div class="col-md-8 mb-3">
+                            <div class="col-md-4 mb-3">
+                                <label for="iva_clp" class="form-label">IVA (CLP)</label>
+                                <input type="number" step="0.01" min="0" class="form-control" id="iva_clp" name="iva_clp" value="{{ old('iva_clp', 0) }}" readonly>
+                            </div>
+                            <div class="col-md-4 mb-3">
                                 <label for="gross_total" class="form-label">Bruto</label>
                                 <input type="number" step="0.01" min="0" class="form-control" id="gross_total" name="gross_total" value="{{ old('gross_total') }}" readonly>
                             </div>
@@ -187,10 +196,6 @@
                             <input class="form-check-input" type="checkbox" id="paid" name="paid" value="1" {{ old('paid') ? 'checked' : '' }}>
                             <label class="form-check-label" for="paid">Pago realizado</label>
                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="with_iva" name="with_iva" value="1" {{ old('with_iva', true) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="with_iva">Con IVA</label>
-                        </div>
                     </div>
                 </div>
 
@@ -233,6 +238,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const gross = document.getElementById('gross_total');
     const payment = document.getElementById('payment_usd');
     const balance = document.getElementById('balance_usd');
+    const withIva = document.getElementById('with_iva');
+    const paymentTermDays = document.getElementById('payment_term_days');
+    const paymentDate = document.getElementById('payment_date');
+
+    const IVA_RATE = 0.19; // 19% del neto
 
     function calculate() {
         const k = parseFloat(kilos.value) || 0;
@@ -245,9 +255,17 @@ document.addEventListener('DOMContentLoaded', function() {
         totalClp.value = netClp.value;
         totalUsd.value = netUsd.value;
 
+        // IVA: 19% del neto (CLP) solo si el select dice "Con IVA". Si "Sin IVA", queda en 0.
+        const netClpVal = parseFloat(totalClp.value) || 0;
+        if (withIva && withIva.value === '1') {
+            iva.value = (netClpVal * IVA_RATE).toFixed(2);
+        } else {
+            iva.value = '0.00';
+        }
         const ivaVal = parseFloat(iva.value) || 0;
         const tUsd = parseFloat(totalUsd.value) || 0;
-        gross.value = (tUsd + ivaVal).toFixed(2);
+        // Bruto = neto + IVA (en CLP)
+        gross.value = (netClpVal + ivaVal).toFixed(2);
 
         if (balance && payment) {
             const pay = parseFloat(payment.value) || 0;
@@ -255,9 +273,28 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Al cambiar "Plazo (días)", calcular Fecha Pago = hoy + N días
+    function updatePaymentDateFromDays() {
+        if (!paymentTermDays || !paymentDate) return;
+        const days = parseInt(paymentTermDays.value, 10);
+        if (days >= 0) {
+            const d = new Date();
+            d.setDate(d.getDate() + days);
+            paymentDate.value = d.toISOString().slice(0, 10);
+        }
+    }
+
+    if (paymentTermDays) {
+        paymentTermDays.addEventListener('input', updatePaymentDateFromDays);
+        paymentTermDays.addEventListener('change', updatePaymentDateFromDays);
+    }
+
     [kilos, unitClp, unitUsd, iva, payment].forEach(el => {
         if (el) el.addEventListener('input', calculate);
     });
+    if (withIva) withIva.addEventListener('change', calculate);
+    // Quitar listener de 'input' en iva porque ahora es readonly
+    if (iva) iva.addEventListener('input', calculate);
 
     calculate();
 });

@@ -169,11 +169,12 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="guide_number" class="form-label">
-                                    <i class="fas fa-file-alt"></i> N° Guía o Factura
+                                    <i class="fas fa-file-alt"></i> N° Guía o Factura <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" class="form-control @error('guide_number') is-invalid @enderror"
                                        id="guide_number" name="guide_number"
                                        value="{{ old('guide_number') }}"
+                                       required
                                        placeholder="Ej: GUIA-001 o FACT-001">
                                 @error('guide_number')
                                     <div class="invalid-feedback">{{ $message }}</div>

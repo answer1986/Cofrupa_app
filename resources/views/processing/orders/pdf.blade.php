@@ -178,10 +178,24 @@
                             <td>{{ $order->quality }}</td>
                         </tr>
                         @endif
-                        @if($order->labeling)
+                        @if($order->labeling || $order->labeling_attachment)
                         <tr>
                             <td>Etiquetado:</td>
-                            <td>{{ $order->labeling }}</td>
+                            <td>
+                                @if($order->labeling){{ $order->labeling }}@endif
+                                @if($order->labeling_attachment)
+                                    @php
+                                        $ext = strtolower(pathinfo($order->labeling_attachment, PATHINFO_EXTENSION));
+                                        $isImage = in_array($ext, ['jpg','jpeg','png','gif','webp']);
+                                        $fullPath = $isImage ? storage_path('app/public/' . $order->labeling_attachment) : null;
+                                    @endphp
+                                    @if($isImage && $fullPath && file_exists($fullPath))
+                                        <br><img src="{{ $fullPath }}" alt="Adjunto etiquetado" style="max-width: 280px; max-height: 180px; margin-top: 6px;" />
+                                    @elseif($order->labeling_attachment)
+                                        <br><em>Adjunto: {{ basename($order->labeling_attachment) }}</em>
+                                    @endif
+                                @endif
+                            </td>
                         </tr>
                         @endif
                         @if($order->packaging)
@@ -246,51 +260,11 @@
                             <td>SAG:</td>
                             <td>{{ $order->sag ? 'Sí' : 'No' }}</td>
                         </tr>
-                        @if($order->kilos_sent)
-                        <tr>
-                            <td>Kilos Enviados:</td>
-                            <td><strong>{{ number_format($order->kilos_sent, 3, ',', '.') }} KILOS</strong></td>
-                        </tr>
-                        @endif
-                        @if($order->kilos_produced)
-                        <tr>
-                            <td>Kilos Producidos:</td>
-                            <td><strong>{{ number_format($order->kilos_produced, 3, ',', '.') }} KILOS</strong></td>
-                        </tr>
-                        @endif
                     </table>
                 </div>
             </div>
         </div>
     </div>
-
-    @if($order->production_days || $order->expected_completion_date)
-    <div class="section">
-        <div class="section-title">Tiempos de Producción</div>
-        <div class="section-content">
-            <table>
-                @if($order->production_days)
-                <tr>
-                    <td>Tiempo de Producción:</td>
-                    <td>{{ $order->production_days }} días</td>
-                </tr>
-                @endif
-                @if($order->expected_completion_date)
-                <tr>
-                    <td>Fecha Término Esperada:</td>
-                    <td><strong>{{ $order->expected_completion_date->format('d/m/Y') }}</strong></td>
-                </tr>
-                @endif
-                @if($order->actual_completion_date)
-                <tr>
-                    <td>Fecha Término Real:</td>
-                    <td>{{ $order->actual_completion_date->format('d/m/Y') }}</td>
-                </tr>
-                @endif
-            </table>
-        </div>
-    </div>
-    @endif
 
     @if($order->notes)
     <div class="section">

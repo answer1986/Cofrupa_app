@@ -166,7 +166,8 @@
                             <select class="form-select @error('calibre') is-invalid @enderror" id="calibre" name="calibre" required>
                                 <option value="">Seleccione calibre</option>
                                 <option value="80-90" {{ old('calibre') == '80-90' ? 'selected' : '' }}>80-90 unidades/libra</option>
-                                <option value="120-x" {{ old('calibre') == '120-x' ? 'selected' : '' }}>120-x unidades/libra</option>
+                                <option value="120-140" {{ old('calibre') == '120-140' ? 'selected' : '' }}>120-140 unidades/libra</option>
+                                <option value="100-120" {{ old('calibre') == '100-120' ? 'selected' : '' }}>100-120 unidades/libra</option>
                                 <option value="90-100" {{ old('calibre') == '90-100' ? 'selected' : '' }}>90-100 unidades/libra</option>
                                 <option value="70-90" {{ old('calibre') == '70-90' ? 'selected' : '' }}>70-90 unidades/libra</option>
                                 <option value="Grande 50-60" {{ old('calibre') == 'Grande 50-60' ? 'selected' : '' }}>Grande (50-60 unidades/libra)</option>

@@ -65,6 +65,63 @@
         </div>
 
         <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Registro de Producción</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="plant_id" class="form-label">Número de Planta</label>
+                        <select class="form-control" id="plant_id" name="plant_id">
+                            <option value="">Seleccione...</option>
+                            @foreach($plants as $plant)
+                                <option value="{{ $plant->id }}" {{ old('plant_id') == $plant->id ? 'selected' : '' }}>
+                                    {{ $plant->code }} - {{ $plant->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="process_order_id" class="form-label">Orden de Proceso</label>
+                        <select class="form-control" id="process_order_id" name="process_order_id">
+                            <option value="">Seleccione...</option>
+                            @foreach($processOrders as $order)
+                                <option value="{{ $order->id }}" {{ old('process_order_id') == $order->id ? 'selected' : '' }}>
+                                    #{{ $order->order_number }} - {{ $order->plant->name ?? 'N/A' }} - {{ $order->product_description }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="plant_production_order_id" class="form-label">Registro de Producción</label>
+                        <select class="form-control" id="plant_production_order_id" name="plant_production_order_id">
+                            <option value="">Seleccione...</option>
+                            @foreach($plantProductionOrders as $prodOrder)
+                                <option value="{{ $prodOrder->id }}" {{ old('plant_production_order_id') == $prodOrder->id ? 'selected' : '' }}>
+                                    #{{ $prodOrder->order_number }} - {{ $prodOrder->plant->name ?? 'N/A' }} - {{ $prodOrder->product }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="process_type" class="form-label">Tipo de Proceso</label>
+                        <input type="text" class="form-control" id="process_type" name="process_type" value="{{ old('process_type') }}" placeholder="Ej: Tiernizado, Deshuesado, Secado">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="kilos_sent" class="form-label">Kilos que Envío</label>
+                        <input type="number" step="0.01" class="form-control" id="kilos_sent" name="kilos_sent" value="{{ old('kilos_sent') }}" min="0" placeholder="0.00">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="total_amount_display" class="form-label">Valor Total</label>
+                        <input type="text" class="form-control bg-light" id="total_amount_display" readonly placeholder="Se calcula automáticamente">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
             <div class="card-header bg-success text-white">
                 <h5 class="mb-0">Detalles del Producto y Montos</h5>
             </div>
@@ -90,8 +147,8 @@
                         <input type="number" step="0.01" class="form-control" id="price_per_kg" name="price_per_kg" value="{{ old('price_per_kg') }}" required min="0">
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label for="total_amount_display" class="form-label">Monto Total</label>
-                        <input type="text" class="form-control bg-light" id="total_amount_display" readonly placeholder="Se calcula automáticamente">
+                        <label for="total_amount_calc" class="form-label">Monto Total</label>
+                        <input type="text" class="form-control bg-light" id="total_amount_calc" readonly placeholder="Se calcula automáticamente">
                     </div>
                 </div>
 
@@ -121,17 +178,32 @@
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="payment_method" class="form-label">Método de Pago</label>
-                        <input type="text" class="form-control" id="payment_method" name="payment_method" value="{{ old('payment_method') }}" placeholder="Ej: Transferencia, Cheque">
+                    <div class="col-md-3 mb-3">
+                        <label for="payment_method_type" class="form-label">Tipo de Pago</label>
+                        <select class="form-control" id="payment_method_type" name="payment_method_type">
+                            <option value="">Seleccione...</option>
+                            <option value="cheque" {{ old('payment_method_type') == 'cheque' ? 'selected' : '' }}>Cheque</option>
+                            <option value="transferencia" {{ old('payment_method_type') == 'transferencia' ? 'selected' : '' }}>Transferencia</option>
+                        </select>
                     </div>
                     <div class="col-md-6 mb-3">
+                        <label for="payment_method_detail" class="form-label">Detalle del Pago</label>
+                        <input type="text" class="form-control" id="payment_method_detail" name="payment_method_detail" value="{{ old('payment_method_detail') }}" placeholder="Ej: Cheque N° 12345, Transferencia a cuenta corriente">
+                    </div>
+                    <div class="col-md-3 mb-3">
                         <label for="payment_status" class="form-label">Estado de Pago *</label>
                         <select class="form-control" id="payment_status" name="payment_status" required>
                             <option value="pending" {{ old('payment_status', 'pending') == 'pending' ? 'selected' : '' }}>Pendiente</option>
                             <option value="partial" {{ old('payment_status') == 'partial' ? 'selected' : '' }}>Parcial</option>
                             <option value="paid" {{ old('payment_status') == 'paid' ? 'selected' : '' }}>Pagado</option>
                         </select>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label for="payment_method" class="form-label">Método de Pago (Adicional)</label>
+                        <input type="text" class="form-control" id="payment_method" name="payment_method" value="{{ old('payment_method') }}" placeholder="Información adicional del pago">
                     </div>
                 </div>
 
@@ -188,14 +260,22 @@
 document.addEventListener('DOMContentLoaded', function() {
     const quantityKg = document.getElementById('quantity_kg');
     const pricePerKg = document.getElementById('price_per_kg');
+    const totalAmountCalc = document.getElementById('total_amount_calc');
     const totalAmountDisplay = document.getElementById('total_amount_display');
 
     function calculateTotal() {
         if (quantityKg.value && pricePerKg.value) {
             const total = parseFloat(quantityKg.value) * parseFloat(pricePerKg.value);
-            totalAmountDisplay.value = new Intl.NumberFormat('es-CL').format(total.toFixed(2));
+            const formattedTotal = new Intl.NumberFormat('es-CL').format(total.toFixed(2));
+            totalAmountCalc.value = formattedTotal;
+            if (totalAmountDisplay) {
+                totalAmountDisplay.value = formattedTotal;
+            }
         } else {
-            totalAmountDisplay.value = '';
+            totalAmountCalc.value = '';
+            if (totalAmountDisplay) {
+                totalAmountDisplay.value = '';
+            }
         }
     }
 

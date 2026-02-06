@@ -491,4 +491,25 @@ class ContractController extends Controller
 
         return back()->with('success', 'Documento enviado exitosamente a ' . $validated['recipient_email']);
     }
+
+    /**
+     * Actualizar estado de pago desde la vista global de Ventas (monitoreo).
+     */
+    public function updatePaymentStatusFromVentas(Request $request, Contract $contract)
+    {
+        $validated = $request->validate([
+            'payment_status' => 'required|in:pending,partial,paid',
+        ]);
+        $contract->update(['payment_status' => $validated['payment_status']]);
+        return redirect()->route('ventas.index')->with('success', 'Estado de pago actualizado: ' . $contract->contract_number);
+    }
+
+    /**
+     * Cerrar negocio (marcar contrato como completado) desde la vista global de Ventas.
+     */
+    public function closeFromVentas(Contract $contract)
+    {
+        $contract->update(['status' => 'completed']);
+        return redirect()->route('ventas.index')->with('success', 'Negocio cerrado: ' . $contract->contract_number);
+    }
 }

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\FinanceBankDebt;
 use App\Models\FinancePurchase;
 use App\Models\FinanceSale;
+use App\Models\Freight;
+use App\Models\AccountingRecord;
 use Illuminate\Http\Request;
 
 class FinanceController extends Controller
@@ -45,7 +47,63 @@ class FinanceController extends Controller
                 ->limit(10)
                 ->get();
 
-            return view('finance.index', compact('company', 'tab', 'debtsByBank', 'records', 'totalPaymentsCompleted', 'totalPaymentsPending', 'paymentsByMethod', 'recentPayments'));
+            // 4. COSTOS TOTALES DE LA OPERACIÓN
+            // a) Compras de fruta (en pesos)
+            $totalCompras = FinancePurchase::where('company', $company)->sum('final_total');
+            $totalKilosComprados = FinancePurchase::where('company', $company)->sum('kilos');
+            
+            // b) Fletes totales (en pesos)
+            $totalFletes = Freight::sum('freight_cost');
+            $totalKilosTransportados = Freight::whereNotNull('kilos')->sum('kilos');
+            $costoFletePorKilo = $totalKilosTransportados > 0 ? $totalFletes / $totalKilosTransportados : 0;
+            
+            // c) Costos de procesamiento/calibrado (accounting_records relacionados con procesos)
+            $totalProcesamiento = AccountingRecord::where('record_type', 'expense')
+                ->whereNotNull('process_order_id')
+                ->sum('total_amount');
+            
+            // d) Otros costos operacionales (accounting_records sin proceso específico)
+            $totalOtrosCostos = AccountingRecord::where('record_type', 'expense')
+                ->whereNull('process_order_id')
+                ->sum('total_amount');
+            
+            // Total de costos
+            $costosOperacionTotales = $totalCompras + $totalFletes + $totalProcesamiento + $totalOtrosCostos;
+            
+            // 5. INGRESOS - Ventas
+            $totalVentas = FinanceSale::where('company', $company)->sum('total_sale_clp');
+            $totalVentasUSD = FinanceSale::where('company', $company)->sum('total_sale_usd');
+            $totalKilosVendidos = FinanceSale::where('company', $company)->sum('kilos');
+            
+            // 6. MÁRGENES
+            $margenBruto = $totalVentas - $costosOperacionTotales;
+            $porcentajeMargen = $totalVentas > 0 ? ($margenBruto / $totalVentas) * 100 : 0;
+            
+            // Costo promedio por kilo (compras + fletes + procesamiento)
+            $costoPorKilo = $totalKilosComprados > 0 ? $costosOperacionTotales / $totalKilosComprados : 0;
+            $ventaPorKilo = $totalKilosVendidos > 0 ? $totalVentas / $totalKilosVendidos : 0;
+            $margenPorKilo = $ventaPorKilo - $costoPorKilo;
+
+            $operationStats = [
+                'total_compras' => $totalCompras,
+                'total_kilos_comprados' => $totalKilosComprados,
+                'total_fletes' => $totalFletes,
+                'total_kilos_transportados' => $totalKilosTransportados,
+                'costo_flete_por_kilo' => $costoFletePorKilo,
+                'total_procesamiento' => $totalProcesamiento,
+                'total_otros_costos' => $totalOtrosCostos,
+                'costos_totales' => $costosOperacionTotales,
+                'total_ventas' => $totalVentas,
+                'total_ventas_usd' => $totalVentasUSD,
+                'total_kilos_vendidos' => $totalKilosVendidos,
+                'margen_bruto' => $margenBruto,
+                'porcentaje_margen' => $porcentajeMargen,
+                'costo_por_kilo' => $costoPorKilo,
+                'venta_por_kilo' => $ventaPorKilo,
+                'margen_por_kilo' => $margenPorKilo,
+            ];
+
+            return view('finance.index', compact('company', 'tab', 'debtsByBank', 'records', 'totalPaymentsCompleted', 'totalPaymentsPending', 'paymentsByMethod', 'recentPayments', 'operationStats'));
         }
 
         $query = $tab === 'purchases' 

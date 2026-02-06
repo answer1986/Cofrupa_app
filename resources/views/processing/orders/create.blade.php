@@ -182,6 +182,59 @@
         </div>
 
         <div class="card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="fas fa-boxes"></i> Insumos a enviar</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small">Seleccione los insumos que enviará con esta orden. Los insumos provienen de las compras registradas en <a href="{{ route('supply-purchases.index') }}" target="_blank">Compras de Insumos</a>.</p>
+                @if($insumosOptions->isEmpty())
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> No hay insumos registrados. <a href="{{ route('supply-purchases.create') }}">Registre una compra de insumos</a> para poder seleccionarlos aquí.
+                    </div>
+                @else
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-sm btn-success" id="addSupplyRow">
+                            <i class="fas fa-plus"></i> Agregar insumo
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm" id="suppliesTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Insumo</th>
+                                    <th style="width: 140px;">Cantidad</th>
+                                    <th style="width: 120px;">Unidad</th>
+                                    <th style="width: 50px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="suppliesTableBody">
+                                <tr class="supply-row">
+                                    <td>
+                                        <select class="form-select form-select-sm supply-name" name="supplies[0][name]" data-unit="">
+                                            <option value="">Seleccione insumo...</option>
+                                            @foreach($insumosOptions as $opt)
+                                                <option value="{{ $opt->name }}" data-unit="{{ $opt->unit }}">{{ $opt->name }} ({{ $opt->unit }})</option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="number" step="0.01" min="0.01" class="form-control form-control-sm supply-qty" name="supplies[0][quantity]" placeholder="0">
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control form-control-sm supply-unit" name="supplies[0][unit]" readonly placeholder="unidad">
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-outline-danger remove-supply-row" title="Quitar"><i class="fas fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        <div class="card mb-4">
             <div class="card-header bg-info text-white">
                 <h5 class="mb-0">Información Adicional</h5>
             </div>
@@ -224,6 +277,50 @@ document.addEventListener('DOMContentLoaded', function() {
 
     orderDate.addEventListener('change', calculateExpectedDate);
     productionDays.addEventListener('input', calculateExpectedDate);
+
+    // Insumos a enviar: filas dinámicas
+    const addSupplyRowBtn = document.getElementById('addSupplyRow');
+    const tbody = document.getElementById('suppliesTableBody');
+    if (addSupplyRowBtn && tbody) {
+        const insumosOptions = @json($insumosOptions->isEmpty() ? [] : $insumosOptions->map(fn($i) => ['name' => $i->name, 'unit' => $i->unit])->values());
+        let supplyRowIndex = 1;
+
+        addSupplyRowBtn.addEventListener('click', function() {
+            const tr = document.createElement('tr');
+            tr.className = 'supply-row';
+            let opts = '<option value="">Seleccione insumo...</option>';
+            insumosOptions.forEach(function(o) {
+                opts += '<option value="' + (o.name || '').replace(/"/g, '&quot;') + '" data-unit="' + (o.unit || 'unidad') + '">' + (o.name || '') + ' (' + (o.unit || 'unidad') + ')</option>';
+            });
+            tr.innerHTML = '<td><select class="form-select form-select-sm supply-name" name="supplies[' + supplyRowIndex + '][name]" data-unit="">' + opts + '</select></td>' +
+                '<td><input type="number" step="0.01" min="0.01" class="form-control form-control-sm supply-qty" name="supplies[' + supplyRowIndex + '][quantity]" placeholder="0"></td>' +
+                '<td><input type="text" class="form-control form-control-sm supply-unit" name="supplies[' + supplyRowIndex + '][unit]" readonly placeholder="unidad"></td>' +
+                '<td><button type="button" class="btn btn-sm btn-outline-danger remove-supply-row" title="Quitar"><i class="fas fa-trash"></i></button></td>';
+            tbody.appendChild(tr);
+            tr.querySelector('.supply-name').addEventListener('change', function() {
+                const opt = this.options[this.selectedIndex];
+                const unit = opt && opt.getAttribute('data-unit');
+                tr.querySelector('.supply-unit').value = unit || 'unidad';
+            });
+            supplyRowIndex++;
+        });
+
+        tbody.addEventListener('click', function(e) {
+            if (e.target.closest('.remove-supply-row')) {
+                const row = e.target.closest('tr.supply-row');
+                if (tbody.querySelectorAll('tr.supply-row').length > 1) row.remove();
+            }
+        });
+
+        tbody.addEventListener('change', function(e) {
+            if (e.target.classList.contains('supply-name')) {
+                const opt = e.target.options[e.target.selectedIndex];
+                const unit = opt && opt.getAttribute('data-unit');
+                const row = e.target.closest('tr');
+                if (row) row.querySelector('.supply-unit').value = unit || 'unidad';
+            }
+        });
+    }
 });
 </script>
 @endsection

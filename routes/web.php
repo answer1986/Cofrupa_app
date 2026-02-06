@@ -52,6 +52,9 @@ Route::middleware(['auth', '2fa'])->group(function () {
     Route::post('/bin_processing/quick-create-external-client', [App\Http\Controllers\BinProcessingController::class, 'quickCreateExternalClient'])->name('bin_processing.quick-create-external-client')->middleware('can:manage processed bins');
     Route::get('/bin_processing/{id}/traceability', [App\Http\Controllers\BinProcessingController::class, 'traceability'])->name('bin_processing.traceability')->middleware('can:manage processed bins');
     
+    // Plant Shipments (despachos a plantas)
+    Route::resource('plant-shipments', App\Http\Controllers\PlantShipmentController::class);
+    
     // Stock/Inventory Management
     Route::get('/stock', [App\Http\Controllers\StockController::class, 'index'])->name('stock.index');
     Route::get('/stock/{id}', [App\Http\Controllers\StockController::class, 'show'])->name('stock.show');
@@ -154,6 +157,16 @@ Route::middleware(['auth', '2fa'])->group(function () {
     Route::delete('/contract-documents/{document}', [App\Http\Controllers\ContractDocumentController::class, 'destroy'])->name('contract-documents.destroy');
     Route::get('/contracts/{contract}/quality-certificate', [App\Http\Controllers\ContractDocumentController::class, 'generateQualityCertificate'])->name('contracts.quality-certificate');
     
+    // Vista global Ventas y Exportaciones (monitoreo y cierre)
+    Route::prefix('ventas')->name('ventas.')->group(function() {
+        Route::get('/', [App\Http\Controllers\HomeController::class, 'ventas'])->name('index');
+        Route::post('/contract/{contract}/payment-status', [App\Http\Controllers\ContractController::class, 'updatePaymentStatusFromVentas'])->name('contract.payment-status');
+        Route::post('/contract/{contract}/close', [App\Http\Controllers\ContractController::class, 'closeFromVentas'])->name('contract.close');
+        
+        // Módulo de Fletes
+        Route::resource('fletes', App\Http\Controllers\FreightController::class);
+    });
+    
     // Exportations routes
     Route::resource('exportations', App\Http\Controllers\ExportationController::class);
     Route::post('/exportations/{id}/upload-document', [App\Http\Controllers\ExportationController::class, 'uploadDocument'])->name('exportations.upload-document');
@@ -219,6 +232,9 @@ Route::middleware(['auth', '2fa'])->group(function () {
         Route::post('/{discard}/dispose', [App\Http\Controllers\DiscardController::class, 'dispose'])->name('discards.dispose');
         Route::post('/bulk-recover', [App\Http\Controllers\DiscardController::class, 'bulkRecover'])->name('discards.bulk-recover');
     });
+
+    // Supply Purchases (Compras de Insumos - Módulo Separado)
+    Route::resource('supply-purchases', App\Http\Controllers\SupplyPurchaseController::class);
 
     // Finance Module (Módulo de Finanzas: Cofrupa, Luis Gonzalez, Comercializadora)
     Route::prefix('finance')->name('finance.')->group(function () {
